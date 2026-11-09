@@ -46,7 +46,9 @@ pnpm typecheck
 pnpm test:fast
 
 # Deliberately NOT `pnpm check`: that chain is minutes (per-package coverage, the
-# Edge browser projects, `test:design`, the audit). It is green at HEAD now that
-# the design suite exists, and it stays the gate before declaring work done
-# (AGENTS.md); this is the few-second floor that has to be green for a commit to
-# exist at all.
+# Edge browser projects, `test:design`, the audit). `test:design` is **red at
+# HEAD** — `apps/web/test/design/` holds no tests yet, so Vitest exits 1 with
+# "No test files found" — and an always-red hook is a hook that gets bypassed, so
+# it stays out of the floor until that suite exists. `pnpm check` is the gate
+# before declaring work done (AGENTS.md); this is the few-second floor that has to
+# be green for a commit to exist at all.

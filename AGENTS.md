@@ -97,7 +97,7 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     under `set -e` — without it husky runs every command and only the **last**
     exit code decides, so a lint failure commits anyway. It never runs
     `pnpm check`: minutes (per-package coverage, the Edge browser projects, the
-    audit), and it ends in `pnpm test:design`, which is red at HEAD —
+    audit), and `check` ends in `pnpm test:design`, which is red at HEAD —
     `apps/web/test/design/**` holds no tests yet — and an always-red hook is a hook
     that gets bypassed. The browser projects stay out of the floor for the same
     reason: a hook that needs Edge installed cannot pass on every machine.
@@ -129,7 +129,8 @@ packages/fetch    http, rss, html, json, render (msedge), pick (headed picker), 
 packages/server   CLI (start/pick/login/status/search/export/import), scheduler, pipeline, SSE, static, toasts
 sources/*.json    Source definitions in git. data/ and profiles/ are gitignored.
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
-docs/             architecture.md, decisions.md, decisions-tooling.md, fetching.md, design.md, testing.md, tooling.md
+docs/             architecture.md, state.md, roadmap.md, decisions.md, decisions-tooling.md,
+                  fetching.md, design.md, testing.md, tooling.md
 ```
 
 ## Commands
