@@ -29,9 +29,11 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@tailwindcss/vite": "catalog:",
     "newspa-config": "workspace:*",
     "newspa-fetch": "workspace:*",
     "vite": "catalog:",
+    "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

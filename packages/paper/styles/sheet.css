@@ -1,76 +1,15 @@
 /*
- * The paper's page: tokens, the reset, the masthead, the lead, print.
+ * The masthead and the space above the fold, mid-migration.
  *
- * Imported first by `paper.css`, which is the file the app imports: the tokens
- * here are what `blocks.css` and `stories.css` read, so the load order is fixed
- * there, not here.
+ * The tokens, the reset, the dark theme, the print rules and the motion
+ * preferences are no longer here: `tokens.css` owns the vocabulary, `base.css`
+ * owns what a utility cannot express. What is left is the masthead's rules as
+ * BEM selectors — unlayered, so they win over utilities until `Masthead.tsx`
+ * carries its own class strings. The file shrinks as the components migrate.
+ *
+ * The masthead is a title, a dateline, a tagline, and a 2px rule above a
+ * thick/thin pair below. That is the whole design: no card, no image, no shadow.
  */
-
-:root {
-  --paper: #f4ecd8;
-  --paper-2: #efe5cc;
-  --ink: #1f1b16;
-  --ink-2: #453d31;
-  --muted: #7a705c;
-  --rule: #d8cdb4;
-  --rule-strong: #b9ac90;
-  --font: Georgia, 'Iowan Old Style', 'Times New Roman', 'Source Serif 4', serif;
-  --measure-gap: 1.75rem;
-  --hair: 0.5px;
-  /*
-   * Three leading values, and only three. Every block used to set its own
-   * (1.02, 1.03, 1.2, 1.5, 1.55), which is why the page read as five different
-   * textures stacked on top of each other. Display type is tight, reading type
-   * is open, meta is a hair tighter than body; nothing else sets a `line-height`.
-   *
-   * `--lh-read` is 1.62, not 1.5: the measure is ~34ch in a column, and the eye
-   * needs the leading to find the next line at that width. Readability came from
-   * these numbers and the type size, not from the font.
-   */
-  --lh-display: 1.06;
-  --lh-read: 1.62;
-  --lh-meta: 1.35;
-}
-
-[data-theme='dark'] {
-  --paper: #16150f;
-  --paper-2: #1c1b14;
-  --ink: #e9e4d6;
-  --ink-2: #c3bcab;
-  --muted: #8d8778;
-  --rule: #34322a;
-  --rule-strong: #4a463a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --paper: #16150f;
-    --paper-2: #1c1b14;
-    --ink: #e9e4d6;
-    --ink-2: #c3bcab;
-    --muted: #8d8778;
-    --rule: #34322a;
-    --rule-strong: #4a463a;
-  }
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font);
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  line-height: var(--lh-read);
-}
 
 .paper {
   --gutter: clamp(0.75rem, 3vw, 2.5rem);
@@ -78,17 +17,6 @@ body {
   max-width: 104rem;
   padding-inline: var(--gutter);
   padding-block-end: 4rem;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
 }
 
 /* The masthead: a 2px rule above, the thick/thin pair below. */
@@ -186,64 +114,4 @@ button:focus-visible {
   gap: 2rem;
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   padding-block-start: 1rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --rule: var(--ink);
-    --rule-strong: var(--ink);
-    --hair: 1px;
-    --muted: var(--ink-2);
-  }
-}
-
-/* Print is the browser's own, on the state you are looking at. */
-@media print {
-  @page {
-    size: A4;
-    margin: 14mm;
-  }
-
-  :root,
-  [data-theme='dark'] {
-    --paper: #ffffff;
-    --paper-2: #ffffff;
-    --ink: #111111;
-    --ink-2: #333333;
-    --muted: #555555;
-    --rule: #cccccc;
-    --rule-strong: #999999;
-  }
-
-  html {
-    print-color-adjust: exact;
-  }
-
-  .masthead__switch,
-  .health {
-    display: none;
-  }
-
-  .section__columns {
-    column-count: 3;
-  }
-
-  /* A printed page has no clicks: the address is the whole point of an index. */
-  .story__headline a::after,
-  .edited__headline a::after {
-    content: ' (' attr(href) ')';
-    font-size: 0.6rem;
-    font-weight: 400;
-    letter-spacing: 0;
-    text-transform: none;
-    color: var(--muted);
-    word-break: break-all;
-  }
 }

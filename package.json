@@ -35,6 +35,7 @@
     "test:fast": "vitest run --project core --project db --project web --project fetch",
     "test:watch": "vitest",
     "test:design": "vitest run --config vitest.design.config.ts",
+    "shots": "node scripts/screenshot-paper.mjs",
     "coverage": "pnpm -r --workspace-concurrency=1 exec vitest run --config vitest.coverage.ts --coverage --passWithNoTests",
     "audit:check": "pnpm audit --audit-level=low",
     "check": "pnpm lines && pnpm check:hooks && pnpm check:repo && pnpm check:secrets && pnpm check:coverage-policy && pnpm typecheck && pnpm lint && pnpm schemas:check && pnpm coverage && pnpm test:design && pnpm audit:check"
@@ -47,6 +48,7 @@
     "happy-dom": "catalog:",
     "husky": "catalog:",
     "playwright": "catalog:",
+    "playwright-core": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"

@@ -162,12 +162,22 @@ source file — the reader decides, not a model:
   story that matters. CSS `order` was rejected: it moves the lead visually and
   leaves it second to a screen reader, which is a divergence between what you
   see and what you hear.
-- **CSS**: `packages/paper/styles/paper.css` is the one entry file; it
-  `@import`s `sheet.css` (tokens, page, masthead, print), then `blocks.css`
-  (sections, edited, health, onboarding), then `front.css` (the front page and
-  its one breakpoint), then `stories.css` (the story block). The cascade order
-  is fixed **in CSS**, not in JavaScript imports, because a linter reorders
-  those.
+- **Styling**: Tailwind v4 (D-024). `packages/paper/styles/paper.css` is the one
+  entry a consumer imports; it `@import`s `tailwindcss`, then `tokens.css` (the
+  `@theme` vocabulary: the colours, the three leading values, the named type
+  steps, the gutter and the measure), then `base.css` (what a utility cannot
+  express: the `html` defaults, keyboard focus, the print rules, `@page`, the SSE
+  flash), then the stylesheets that still carry BEM rules mid-migration. The
+  utilities themselves sit on the elements, in `packages/paper/src/*.tsx`, next to
+  the markup they style — the volume, the measure and the rule width are visible
+  where the element is built. Cascade order is fixed **in CSS**, not in
+  JavaScript imports, because a linter reorders those.
+- **Structural hooks are `data-part` attributes**, never class names: the print
+  rules, the flash animation and the design suite query `[data-part='headline']`,
+  `[data-part='kicker']`, `[data-part='columns']`, `[data-part='health']`,
+  `[data-part='theme-switch']`. A class string is a styling decision, free to
+  change with the design; a structural hook is what a test and a print rule are
+  allowed to depend on.
 
 ## Behaviour
 

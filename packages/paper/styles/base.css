@@ -1,0 +1,149 @@
+/*
+ * The rules a utility cannot express, in `@layer base`.
+ *
+ * The layer is the contract: a base rule loses to any utility, which is what
+ * makes utilities in the components trustworthy — they are never fighting an
+ * element selector. The paper's own reset is small because Tailwind's Preflight
+ * (loaded by `paper.css`) already does the box model, the margins and the
+ * heading reset.
+ *
+ * Two things Preflight gets wrong for a newspaper, both fixed here:
+ *
+ *  - it removes list markers. The onboarding steps are a numbered list, so `ol`
+ *    gets its decimal markers back;
+ *  - it sets `border-width: 0` on everything, which is right for utilities and
+ *    means the hairline rules of the paper are always written down explicitly.
+ *
+ * The selectors use `data-part`, not the old BEM class names. `data-part` is the
+ * paper's structural contract: it is what the design suite queries, what the
+ * print rules target, and what the animation hooks. Style lives in utilities on
+ * the element; structure lives in an attribute that a styling change cannot
+ * rename (docs/design.md, AGENTS.md rule 11).
+ */
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-paper);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    line-height: var(--leading-read);
+  }
+
+  /* A newspaper does not colour its links, and a headline carries no rule at
+     rest: the whole block is clickable and the address is in the status bar. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Keyboard focus is the affordance, and the only one the paper needs. */
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  ol {
+    list-style: decimal;
+    padding-inline-start: 1.25rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* A reader who asks for contrast gets the rules in ink, not in beige. */
+  @media (prefers-contrast: more) {
+    :root {
+      --rule: var(--ink);
+      --rule-strong: var(--ink);
+      --hair: 1px;
+      --muted: var(--ink-2);
+    }
+  }
+
+  /*
+   * Print is the browser's own, on the state you are looking at. The stock goes
+   * white and the ink goes black by rebinding the same names, so every utility
+   * on the page follows without a `print:` variant.
+   */
+  @media print {
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    :root,
+    [data-theme='dark'] {
+      --paper: #ffffff;
+      --paper-2: #ffffff;
+      --ink: #111111;
+      --ink-2: #333333;
+      --muted: #555555;
+      --rule: #cccccc;
+      --rule-strong: #999999;
+    }
+
+    html {
+      print-color-adjust: exact;
+    }
+
+    /* A printed page has no clicks and no theme switch. The BEM names are the
+       paper mid-migration: they go when the last component leaves them. */
+    [data-part='theme-switch'],
+    [data-part='health'],
+    .masthead__switch,
+    .health {
+      display: none;
+    }
+
+    [data-part='columns'],
+    .section__columns {
+      column-count: 3;
+    }
+
+    /* The address is the whole point of an index (D-017): print it. */
+    [data-part='headline'] a::after,
+    .story__headline a::after,
+    .edited__headline a::after {
+      content: ' (' attr(href) ')';
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+      word-break: break-all;
+    }
+  }
+}
+
+/*
+ * The SSE nudge: an update flashes the kicker's rule once, for 300ms. A colour
+ * flash would be a dashboard; this thickens a mark that is already there.
+ *
+ * Outside the base layer on purpose: keyframes and an animation on a data
+ * attribute are behaviour, not a default, and no utility needs to override them.
+ */
+@keyframes flash-rule {
+  from {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--ink);
+  }
+
+  to {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--rule);
+  }
+}
+
+[data-flash='true'] [data-part='kicker'],
+.story[data-flash='true'] .story__kicker {
+  border-bottom: 1px solid var(--rule);
+  animation: flash-rule 300ms ease-out 1;
+}

@@ -60,9 +60,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
 10. **Lint and format are Biome** (`biome.json`, `pnpm lint`, `pnpm format`).
     No ESLint, no Prettier. Formatting is not a debate: run `pnpm format`.
 11. **Paper visuals follow docs/design.md**: one typeface, columns by measure,
-    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. Plain CSS in
-    `packages/paper/styles` (no Tailwind, no CDN assets), no cards, no shadows,
-    no rounded rectangles, no saturated colour.
+    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. Styling is
+    **Tailwind v4** (D-024): the vocabulary is `@theme` in
+    `packages/paper/styles/tokens.css`, utilities are written on the elements in
+    `packages/paper/src`, and only the residue a utility cannot express lives in
+    `base.css`, under `@layer base`. Structural hooks are `data-part` attributes,
+    never BEM class names — the design suite, the print rules and the SSE flash
+    query those. No CDN assets, no cards, no shadow beyond the documented scroll
+    edge, no rounded rectangles, no saturated colour, and **never
+    `text-align: justify`**.
 12. **Every behaviour gets a test** in the package that owns it (Vitest, 95%
     coverage gate). Parser changes need a fixture under
     `packages/fetch/test/fixtures/`.
@@ -133,6 +139,7 @@ pnpm install            pnpm dev            pnpm build
 pnpm start              pnpm pick -- <url>  pnpm login -- <url>
 pnpm check              pnpm typecheck      pnpm lint    pnpm format
 pnpm test               pnpm coverage       pnpm test:design
+pnpm shots              # the paper in real Edge: 1440x900, 1024x768, 390x844
 pnpm export --watchlist > watchlist.json    pnpm import --watchlist file.json
 pnpm audit --audit-level=low
 pnpm hooks:install        # once per clone: activates the pre-commit gate

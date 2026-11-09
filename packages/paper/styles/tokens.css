@@ -1,0 +1,114 @@
+/*
+ * The paper's tokens, in Tailwind v4's own format: CSS, not a JavaScript config.
+ *
+ * This file is the whole theme. A utility like `text-lead`, `leading-display`,
+ * `bg-paper` or `tracking-kicker` exists because a line below defines it, which
+ * is the point of the switch: the vocabulary of the page is one short list, and
+ * a component can only speak words from it. The old stylesheet repeated the same
+ * values (`font-size: 0.66rem` appeared eight times) and every repetition was a
+ * chance to drift.
+ *
+ * Colours are defined as plain CSS custom properties and *mapped* into the theme
+ * with `@theme inline`, so a utility emits `var(--paper)` rather than a literal.
+ * That is what makes the three theme mechanisms work with no `dark:` variant
+ * anywhere: `[data-theme='dark']`, `prefers-color-scheme`, and `@media print`
+ * each rebind the same names, and every utility on the page follows.
+ *
+ * Three leading values, and only three. Every block used to set its own (1.02,
+ * 1.03, 1.2, 1.5, 1.55), which is why the page read as five different textures
+ * stacked on one screen. Display type is tight, reading type is open, meta is a
+ * hair tighter than body; nothing else sets a line height. `--leading-read` is
+ * 1.62, not 1.5: the measure is ~34ch in a 20rem column, and at that width the
+ * eye needs the leading to find the next line.
+ */
+
+:root {
+  --paper: #f4ecd8;
+  --paper-2: #efe5cc;
+  --ink: #1f1b16;
+  --ink-2: #453d31;
+  --muted: #7a705c;
+  --rule: #d8cdb4;
+  --rule-strong: #b9ac90;
+  /* Hairline, and the gap that enforces the measure between columns. */
+  --hair: 0.5px;
+  --measure: 1.75rem;
+}
+
+[data-theme='dark'] {
+  --paper: #16150f;
+  --paper-2: #1c1b14;
+  --ink: #e9e4d6;
+  --ink-2: #c3bcab;
+  --muted: #8d8778;
+  --rule: #34322a;
+  --rule-strong: #4a463a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --paper: #16150f;
+    --paper-2: #1c1b14;
+    --ink: #e9e4d6;
+    --ink-2: #c3bcab;
+    --muted: #8d8778;
+    --rule: #34322a;
+    --rule-strong: #4a463a;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+}
+
+@theme {
+  /*
+   * One typeface, with no download: the paper is opened on a train, and a webfont
+   * is a request that can fail. Hierarchy comes from size, weight, measure and
+   * hairline rules — never from a second face (docs/design.md).
+   */
+  --font-paper: Georgia, 'Iowan Old Style', 'Times New Roman', 'Source Serif 4', serif;
+
+  --leading-display: 1.06;
+  --leading-read: 1.62;
+  --leading-meta: 1.35;
+
+  /*
+   * The type scale. The named steps are the volumes the paper owns; the clamps
+   * are the display sizes, which scale with the viewport because a front page is
+   * read at a desk and on a phone.
+   */
+  --text-kicker: 0.66rem;
+  --text-small: 0.72rem;
+  --text-note: 0.86rem;
+  --text-deck: 0.95rem;
+  --text-deck-lead: 1.05rem;
+  --text-section: 1.05rem;
+  --text-brief: 1.12rem;
+  --text-title: 1.5rem;
+  --text-headline: clamp(1.05rem, 1.7vw, 1.5rem);
+  --text-leader: clamp(1.15rem, 2vw, 1.75rem);
+  --text-lead: clamp(1.9rem, 4.4vw, 3.4rem);
+  --text-masthead: clamp(2.6rem, 7vw, 5.5rem);
+
+  --tracking-kicker: 0.08em;
+  --tracking-display: -0.018em;
+
+  --spacing-gutter: clamp(0.75rem, 3vw, 2.5rem);
+  --spacing-measure: var(--measure);
+  --spacing-column: 20rem;
+
+  /* The paper's one functional shadow: a scroll edge under a sticky label, not a
+     card. docs/design.md records it as the exception to the no-shadow rule. */
+  --shadow-scroll: 0 0.5rem 0.75rem -0.5rem rgb(0 0 0 / 55%);
+
+  /* The paper has no rounded corners; the radius scale exists so nothing is
+     tempted to invent one. */
+  --radius-none: 0;
+}

@@ -1,16 +1,48 @@
 /*
- * The paper's design contract, as one import (docs/design.md). Plain CSS: no
- * framework, no CDN, and no build step in this package.
+ * The paper's design contract, as one import (docs/design.md).
  *
- * The order is the contract, and it is a CSS `@import` chain rather than three
- * `import` statements in the app because a linter reorders JavaScript imports
- * and must not reorder a cascade: tokens and the page first, then the blocks,
- * then the story block, which reads the tokens.
+ * Tailwind v4, whose configuration is CSS: `@theme` in `tokens.css` is the
+ * vocabulary, `@layer base` in `base.css` is what a utility cannot express, and
+ * the classes themselves are written on the elements, in the components
+ * (`packages/paper/src/*.tsx`). This file is the entry a consumer imports —
+ * `newspa-paper/styles/paper.css`, unchanged since the first version.
  *
- * Anything that styles the paper imports **this** file: the app today, and any
- * future exporter that wants the paper's own CSS inlined into one document.
+ * Why Tailwind, stated once (docs/decisions-tooling.md D-024): the class strings
+ * are readable next to the markup they style — a reader of `Story.tsx` sees the
+ * volume, the measure and the rule width where the element is built, instead of
+ * chasing a BEM name through four stylesheets — and the bundle carries only the
+ * utilities that are used. The rules of the paper survive the switch untouched:
+ * one typeface with no download, hierarchy from size, weight and measure,
+ * hairline rules on yellowed stock, no cards, no shadows except the scroll edge,
+ * and `text-align: justify` never.
+ *
+ * The order below is the cascade and a linter must not reorder it, which is why
+ * it is a CSS `@import` chain and not JavaScript imports in the app. Utilities
+ * are generated last, and `base.css` sits in `@layer base`, so a component's
+ * utility always wins over an element rule.
+ */
+
+@import 'tailwindcss';
+@import './tokens.css';
+@import './base.css';
+
+/*
+ * The last four files are the paper mid-migration: BEM rules from the
+ * hand-written stylesheet, unlayered, so they win over utilities while a
+ * component still depends on them. Each shrinks as its area moves into utility
+ * classes in the components, and disappears when the area is done.
  */
 @import './sheet.css';
 @import './blocks.css';
 @import './front.css';
 @import './stories.css';
+
+/*
+ * `@source` is explicit because the class strings live in two packages: the
+ * components here, the app's chrome there. A path is relative to **this** file.
+ * The directives sit after the imports because CSS requires every `@import`
+ * first; Tailwind reads them in any order.
+ */
+@source '../src';
+@source '../../../apps/web/src';
+@source '../../../apps/web/index.html';

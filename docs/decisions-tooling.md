@@ -186,3 +186,44 @@ basic-auth URLs, `Authorization`/`Cookie` headers, Bearer tokens.
   `html-cnn-lite.html`. No user credential is in the history.
 - **A public commit is public forever, including after a squash.** The raw CDN keeps serving cached
   bodies, and anyone who cloned already has the object. Rotate; do not rewrite away.
+
+## D-024 - Tailwind v4 for the paper's styling; the vocabulary is CSS, the classes are on the elements
+
+The reader asked for this, and the reason is the kind that can be checked in the source: _"if I have to
+read your handwritten stuff I am completely lost"_. A class string on the element is the stylesheet
+readable at the place the element is built — in `Story.tsx`, `text-lead font-extrabold leading-display
+tracking-kicker` says which volume the story prints in, next to the JSX that decides the volume. The
+second reason is measurable: the bundle ships only the utilities that are used.
+
+What it replaces: 808 lines of hand-written CSS in four files under `packages/paper/styles/`. That
+stylesheet was good — every rule had a reason, and the reasons are all kept — but its values repeated:
+`font-size: 0.66rem` appeared eight times, and each repetition was a chance to drift. The vocabulary is
+now one list, in `tokens.css` under `@theme`: `--text-kicker`, `--leading-display`, `--color-paper`.
+A utility exists because a line in that file defines it, and a component can only speak words from it.
+
+- **The three theme mechanisms get cheaper, not harder.** Colours are plain custom properties mapped
+  into the theme with `@theme inline`, so `bg-paper` emits `var(--paper)`. `[data-theme='dark']`,
+  `prefers-color-scheme` and `@media print` rebind the same names, and every utility on the page
+  follows — no `dark:` variant, no `print:` variant, anywhere.
+- **`data-part` is the structural contract.** The print rules, the SSE flash and the design suite query
+  `[data-part='headline']`, `[data-part='kicker']`, `[data-part='columns']`, `[data-part='health']`,
+  `[data-part='theme-switch']`. A class string is a styling decision that changes with the design; a
+  structural hook is what a test and a print rule may depend on. The old BEM names stay only in the
+  unlayered stylesheets that are mid-migration, and unlayered CSS beats every layer, which is what
+  makes the migration shippable in steps: the page looks identical the day the engine lands.
+- **The residue is named.** A utility cannot express `@page`, `::first-letter` drop caps,
+  `content: attr(href)` for print, keyframes, the theme rebinding, or Preflight's removal of list
+  markers (the onboarding steps are a numbered list, so `ol` gets its markers back). That is
+  `base.css`, in `@layer base`, so a component's utility always wins over it.
+- **The design rules are untouched, and rule 11 says so in the same commit**: one typeface with no
+  download (no font plugin, no CDN asset), hierarchy from size, weight and measure, hairline rules on
+  `#f4ecd8`, no cards, no rounded corners, no saturated colour, no shadow except the documented scroll
+  edge, and `text-align: justify` never.
+- **Cost, stated.** `tailwindcss` and `@tailwindcss/vite` 4.3.5, exact in the catalog: +20 packages,
+  1.9 s install, no install scripts, so `strictDepBuilds` and `ignoreScripts` stay intact. Biome's
+  CSS parser needs `css.parser.tailwindDirectives: true` — it was `false`, so `@theme` and `@source`
+  were parse errors. The migration touches five components and the design contract; the contract moves
+  from "this BEM rule exists in that file" to "this element computes to this", which is the stronger
+  test. Measured at the engine commit: the app's CSS is 15.83 kB (4.28 kB gzipped) with no utilities
+  in use yet, and `pnpm shots` renders the front page in real Edge at 1440×900, 1024×768 and 390×844
+  with a 323 / 712 / 324 px front grid and zero justified elements.

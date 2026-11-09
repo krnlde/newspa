@@ -104,6 +104,14 @@ catalog:
   "@tanstack/react-query": 5.107.0
   vite: 8.3.6
   "@vitejs/plugin-react": 6.2.1
+  # Styling. Tailwind v4, whose config is CSS (`@theme`, `@custom-variant`,
+  # `@source`), not a JS file. `@tailwindcss/vite` is the only integration this
+  # repo needs: `apps/web` is the one build step, and `packages/paper` ships CSS
+  # source that the app compiles — the paper package runs no compiler of its own.
+  # Unused utilities are dropped from the bundle, which is the part of the
+  # argument that is measurable.
+  tailwindcss: 4.3.5
+  "@tailwindcss/vite": 4.3.5
   "@types/react": 19.3.0
   "@types/react-dom": 19.3.0
   # Test-only React rendering. `@testing-library/dom` is a peer of the React

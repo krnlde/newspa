@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { devApi } from './dev/apiPlugin.ts';
@@ -5,6 +6,11 @@ import { devApi } from './dev/apiPlugin.ts';
 /**
  * The only build step in the project (D-001). The paper is a static bundle:
  * no SSR, no server components, no runtime dependency on a CDN.
+ *
+ * `tailwindcss` is the CSS pipeline for `newspa-paper/styles/paper.css`: v4's
+ * Vite plugin, which reads the theme from CSS (`@theme`) and emits only the
+ * utilities the components use. It replaces the hand-written pipeline this
+ * project had (D-024), and it is the only CSS tool in the tree.
  *
  * Two dev modes, one flag:
  *
@@ -22,7 +28,7 @@ const againstServer = process.env['NEWSPA_SERVER'] === '1';
 const server = { port: 5173, strictPort: true };
 
 export default defineConfig({
-  plugins: [react(), ...(againstServer ? [] : [devApi()])],
+  plugins: [react(), tailwindcss(), ...(againstServer ? [] : [devApi()])],
   // `proxy` is present only in server mode: with `exactOptionalPropertyTypes`,
   // `proxy: undefined` is not the same as no `proxy` at all, and ServerOptions
   // does not accept it.
