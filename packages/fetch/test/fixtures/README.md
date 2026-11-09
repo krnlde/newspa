@@ -71,6 +71,19 @@ Walls and unsupported payloads:
 | `login-wall.html` | A registration wall (form, no content) is `challenge`; the marker is early, which is what makes it trustworthy |
 | `plain-text.txt` | A payload that is none of the supported kinds is `kind-mismatch` for every source kind, naming what was sniffed and the leading marker |
 
+Transport (hand-written, labelled in-file):
+
+| File | Pin |
+| --- | --- |
+| `transport-feed-utf8.xml` (1 327 B) | The byte count the cap is measured against: UTF-8 bytes (`c3 a9` = é, `e2 80 94` = em dash) with `charset=utf-8` on the response, so `result.bytes` equals the file's own length — the number that proves `maxBytes` is applied **after** decompression, not to `content-length` (D-006) |
+| `transport-feed-latin1.xml` (1 065 B) | The same feed as single high bytes (`e9 ab bb fc e0 e7 ee df ef c9 c7`, written by a script, not an editor): served with `charset=ISO-8859-1` it yields `Le Café « Zürich »` with **no** U+FFFD — those bytes are é/«/» only under a latin-1 decoder, and they arrive that way through real undici too (`transportServer.test.ts`), which is what proves the transport decodes the bytes and undici does not |
+| `transport-prolog-utf8-bytes.xml` (1 101 B) | A prolog that declares `encoding="ISO-8859-1"` over **UTF-8** bytes (`c3 a9`, `af`): obeying the declaration turns a real feed into mojibake, so the transport reports it in `declaredCharset` plus a note and decodes by the header/default (`decodeBody`, `xmlDeclaredCharset`); the note is silent when the header agrees, and an alias (`utf8` vs `UTF-8`) is not a disagreement |
+
+These three pin the transport's charset ladder (`src/charset.ts`): the
+`Content-Type; charset=` label decides, the default is UTF-8, and an XML
+declaration is a finding to surface. A byte-exact Latin-1 payload cannot be
+written by an editor, which is why the file says a script wrote it.
+
 The D-006 case a fixture cannot capture — a feed served as `text/html`, which
 `reddit.com/.rss` does — is pinned by a test that builds the payload inline,
 because the live endpoints answer `302` (old.reddit) and `403` (www.reddit) to

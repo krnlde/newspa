@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-written transport fixture (labelled per fixtures/README.md).
+  Pin: the charset is decoded from `Content-Type; charset=`, and the byte count
+  `maxBytes` caps is the DECODED size (D-006 measured `content-length: 61508`
+  for a 370436-byte decoded body, so a header-based cap is no cap at all).
+  Bytes are UTF-8: the `é` of "Café" is C3 A9, and the file is 483 bytes, so a
+  400-byte maxBytes must fail on the real byte count, not on a truncated parse.
+-->
+<rss version="2.0">
+  <channel>
+    <title>Café World — UTF-8, two bytes for the accent</title>
+    <link>https://example.invalid/feed</link>
+    <description>é é é é é é é é é é é é é é é é é é é é</description>
+    <pubDate>Sun, 09 Nov 2026 10:00:00 GMT</pubDate>
+    <item>
+      <title>Accent marks are two bytes in UTF-8: café, naïve, Zürich</title>
+      <link>https://example.invalid/one</link>
+      <description>éééééééééééééééééééééééééééééééééééééé</description>
+    </item>
+    <item>
+      <title>And the cap is counted after gzip, not before</title>
+      <link>https://example.invalid/two</link>
+      <description>éééééééééééééééééééééééééééééééééééééé</description>
+    </item>
+  </channel>
+</rss>

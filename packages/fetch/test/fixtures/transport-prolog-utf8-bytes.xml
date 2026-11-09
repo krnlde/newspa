@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  Hand-written transport fixture (labelled per fixtures/README.md).
+  The prolog declares ISO-8859-1 and the bytes are UTF-8 (the é of "Café" is
+  C3 A9). Pin: the transport decodes by `Content-Type; charset=` (here absent,
+  so UTF-8) and **reports** the declaration in `notes` as `declaredCharset`,
+  never obeys it. `parsePayload`'s docstring states the contract; obeying a
+  document-level declaration is how a lying prolog turns a real payload into
+  mojibake.
+-->
+<rss version="2.0">
+  <channel>
+    <title>Café UTF-8 sous un prolog qui ment</title>
+    <link>https://example.invalid/feed-prolog-mismatch</link>
+    <description>Le prolog dit ISO-8859-1 ; les octets sont UTF-8 : été, naïve.</description>
+    <pubDate>Sun, 09 Nov 2026 10:00:00 GMT</pubDate>
+    <item>
+      <title>Un prolog est une déclaration, pas une instruction</title>
+      <link>https://example.invalid/prolog-mismatch-one</link>
+      <description>Décodé en UTF-8, déclaré en ISO-8859-1, signalé dans les notes.</description>
+    </item>
+  </channel>
+</rss>

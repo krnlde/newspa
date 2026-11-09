@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  Hand-written transport fixture (labelled per fixtures/README.md). Bytes are
+  ISO-8859-1, written by a script, not by an editor.
+  Pin: the charset comes from `Content-Type; charset=`, and 0xE9 (é) and 0xAB/0xBB
+  (« ») decode to é/«/» only under a latin-1 decoder. Served with
+  `application/rss+xml; charset=ISO-8859-1` the transport must report
+  `charset: 'iso-8859-1'`; served as `application/rss+xml` it must say UTF-8 was the
+  default and report the prolog, not silently obey it.
+-->
+<rss version="2.0">
+  <channel>
+    <title>Le Café « Zürich »  un seul octet pour l'accent</title>
+    <link>https://example.invalid/feed-latin1</link>
+    <description>éàçî« » one byte each, and mojibake under UTF-8</description>
+    <pubDate>Sun, 09 Nov 2026 10:00:00 GMT</pubDate>
+    <item>
+      <title>Grüß Gott, café, naïve, Zürich, l'État</title>
+      <link>https://example.invalid/latin1-one</link>
+      <description>Ça va? 0xE9 is one byte, and two under UTF-8.</description>
+    </item>
+  </channel>
+</rss>

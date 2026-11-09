@@ -97,6 +97,7 @@ export const parsePayload = (text: string, spec: SourceSpec): ParseResult => {
 /** The sniffed kind of a payload, for a caller that wants it before parsing. */
 export const sniffPayload = (text: string): Sniffed => sniff(text);
 
+export { charsetFromContentType, decodeBody, mediaTypeOf, xmlDeclaredCharset } from './charset.ts';
 /**
  * The result types, exported because the caller **is** the health layer: the
  * server maps a `ParseFailureReason` to a `HealthState`, and doing that needs
@@ -111,3 +112,40 @@ export type {
   SkippedItem,
   SuccessInput,
 } from './results.ts';
+export { type FetchLike, fetchSource, refusalOf, type TransportDeps } from './transport.ts';
+export { bodyHashOf, HASH_PREFIX, probeLimit, readCapped } from './transportBody.ts';
+export { classifyThrown } from './transportErrors.ts';
+export {
+  ACCEPT_BY_KIND,
+  baselineValidators,
+  buildRequestHeaders,
+  DEFAULT_USER_AGENT,
+  FORBIDDEN_HEADERS,
+  headerAccessor,
+} from './transportHeaders.ts';
+export {
+  BACKOFF_MAX_MS,
+  isRetryableFailure,
+  isRetryableStatus,
+  MAX_RETRIES,
+  RETRYABLE_STATUS,
+  retryPlan,
+} from './transportRetry.ts';
+/**
+ * The transport, for the same reason: `FetchOutcome` is core's classification
+ * **input** and carries `itemCount`, which only exists after a parse, so the
+ * pipeline composes `TransportResult` + `ParseResult` into it. That composition
+ * needs these types, not a cast.
+ */
+export {
+  type BaselineState,
+  describeTransport,
+  failTransport,
+  NO_BASELINE,
+  type TransportFailure,
+  type TransportFailureReason,
+  type TransportNotModified,
+  type TransportOk,
+  type TransportResponseMeta,
+  type TransportResult,
+} from './transportTypes.ts';
