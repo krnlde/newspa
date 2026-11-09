@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-written fixture. It pins the guid grammar, which no captured feed shows
+  in one document: `isPermaLink` true, false, absent, a numeric guid, a guid
+  with no link at all, and the namespace spellings (`dc:creator`,
+  `content:encoded`, `media:content`) plus the entity forms that real feeds mix
+  — escaped `&amp;`, CDATA, an unescaped `&nbsp;`, and a numeric reference.
+-->
+<rss version="2.0"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Guid grammar</title>
+    <link>https://example.invalid/</link>
+    <description>Every guid spelling the parser has to tell apart.</description>
+    <lastBuildDate>Sun, 09 Nov 2025 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Permalink guid, tracking parameters on both</title>
+      <link>https://example.invalid/permalink?utm_source=rss&amp;ref=feed</link>
+      <guid isPermaLink="true">https://example.invalid/permalink?utm_source=news</guid>
+      <pubDate>Sun, 09 Nov 2025 10:00:00 GMT</pubDate>
+      <description>Deck one</description>
+    </item>
+    <item>
+      <title>Opaque guid, ISO date in dc:date</title>
+      <link>https://example.invalid/opaque</link>
+      <guid isPermaLink="false">tag:example.invalid,2025:opaque-1</guid>
+      <dc:date>2025-11-09T10:00:00Z</dc:date>
+      <description>Deck two</description>
+    </item>
+    <item>
+      <title>Numeric guid stays text</title>
+      <link>https://example.invalid/numeric</link>
+      <guid isPermaLink="false">42</guid>
+      <description>Deck three</description>
+    </item>
+    <item>
+      <title>Guid only, no link element at all</title>
+      <guid isPermaLink="false">tag:example.invalid,2025:no-link</guid>
+      <description>Deck four</description>
+    </item>
+    <item>
+      <title><![CDATA[CDATA title &amp; ampersand]]></title>
+      <link>https://example.invalid/cdata</link>
+      <description><![CDATA[<p>CDATA deck &amp; more</p>]]></description>
+    </item>
+    <item>
+      <title>Unescaped entity &nbsp; and &copy; and &#8216;quoted&#8217;</title>
+      <link>https://example.invalid/entities?a=1&amp;b=2</link>
+      <media:content url="https://example.invalid/hero.jpg" medium="image" type="image/jpeg"/>
+      <enclosure url="https://example.invalid/podcast.mp3" length="12" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Enclosure image wins over the audio one</title>
+      <link>/relative/enclosure</link>
+      <enclosure url="https://example.invalid/podcast.mp3" length="12" type="audio/mpeg"/>
+      <enclosure url="https://example.invalid/hero.jpg" length="12" type="image/jpeg"/>
+      <dc:creator>Ann Example</dc:creator>
+      <content:encoded><![CDATA[<p>Long body &amp; paragraphs.</p>
+
+<p>Second paragraph.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title></title>
+      <link>https://example.invalid/blank-title</link>
+      <description>A headline-less node: counted as skipped, never printed.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,21 @@
+{
+  "all": true,
+  "provider": "v8",
+  "reporter": ["text", "html", "lcov"],
+  "reportsDirectory": "coverage",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "**/*.test.{ts,tsx}",
+    "**/test/**",
+    "**/fixtures/**",
+    "src/cli.ts",
+    "src/render/launch.ts",
+    "src/pick/launch.ts",
+    "src/main.tsx",
+    "**/*.d.ts",
+    "**/vitest*.{ts,config.ts}",
+    "**/vitest.coverage.ts",
+    "**/vite.config.ts"
+  ],
+  "thresholds": { "lines": 95, "functions": 95, "branches": 95, "statements": 95, "perFile": false }
+}

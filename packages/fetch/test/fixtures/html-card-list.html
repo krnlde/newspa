@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Hand-written fixture: a card page with the field spellings an index page
+  actually uses, and the noise that has to be stripped before an item's text is
+  its text. Pinned here:
+   - `fields.title` below the item, `fields.link` absent (the anchor inside
+     carries `href`), a deck with a `<br>` (cheerio's `.text()` would join
+     "Deck for one." to "Second line of the deck."),
+   - `time[datetime]` beside a display string ("3 hours ago") that is not a date,
+   - a `srcset` image (candidates, not a URL),
+   - `.byline` as the hCard/hAtom author convention,
+   - a `<script>`, a `<style>` and a `.promo` / `.live-ticket` slot that must
+     not become the item's body (measured: `.text()` includes script and style
+     content),
+   - `&amp;` inside an `href`, and tracking parameters core strips from identity.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Card list</title>
+  </head>
+  <body>
+    <ul class="cards">
+      <li class="card">
+        <h2 class="title"><a href="/world/one?utm_source=rss&amp;ref=feed">One &amp; Two</a></h2>
+        <p class="deck">Deck for one.<br />Second line of the deck.</p>
+        <time class="stamp" datetime="2026-11-09T10:00:00Z">3 hours ago</time>
+        <img class="hero" srcset="small.jpg 640w, large.jpg 1920w" src="small.jpg" alt="" />
+        <span class="byline">By Ann Example</span>
+        <span class="promo">Subscribe for the full archive</span>
+        <div class="live-ticker">Updated 3 minutes ago</div>
+        <script>
+          window.adSlot = 'top';
+        </script>
+        <style>
+          .card {
+            color: red;
+          }
+        </style>
+      </li>
+      <li class="card">
+        <h2 class="title"><a href="/world/two">Second story</a></h2>
+        <p class="deck">Deck for two.</p>
+        <time class="stamp" datetime="2026-11-09T09:00:00Z">4 hours ago</time>
+        <span class="byline">By Ben Example</span>
+        <div class="live-ticker">Updated 4 minutes ago</div>
+      </li>
+      <li class="card">
+        <h2 class="title"></h2>
+        <p class="deck">A card with no headline: skipped, and counted.</p>
+        <time class="stamp" datetime="2026-11-09T08:00:00Z">5 hours ago</time>
+      </li>
+      <li class="card">
+        <h2 class="title">A headline with no anchor: skipped, and counted</h2>
+        <p class="deck">The paper links out, so an item with no link is not publishable.</p>
+      </li>
+    </ul>
+  </body>
+</html>

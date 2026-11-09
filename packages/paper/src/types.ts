@@ -1,0 +1,73 @@
+import type { ItemView } from 'newspa-core';
+
+/**
+ * The props every paper component is built from.
+ *
+ * **No string in this package is translated, and no date is formatted here.**
+ * i18n is a boundary (D-019): the paper ships **locale-free parts**, and the
+ * app hands in finished strings and formatter functions built from i18next's
+ * current `language`. A formatter created at module load would be a frozen
+ * language, so the formatters arrive as functions, per render.
+ *
+ * `slot` is a **display** slot, not `ItemView.tier`: the lead is one story, a
+ * section leader is the first story of a section, and the same item is a plain
+ * `story` in the archive. The paper decides what is big; the server decides
+ * what matters. The name is `slot`, not `role`, because `role` is an ARIA
+ * attribute and a component prop named `role` is a lint false positive waiting
+ * to happen.
+ */
+export type StorySlot = 'lead' | 'leader' | 'story' | 'brief';
+
+/** Finished words for one story. The app owns the language; this owns the layout. */
+export interface StoryLabels {
+  /** The kicker of a story that has never been seen: `"New"`. */
+  readonly newKicker: string;
+  /** The kicker of a story whose text changed: `"Edited"`. */
+  readonly editedKicker: string;
+  /** The meta line's word for a later change: `"changed 3 hours ago"`. */
+  readonly changedLabel: string;
+  /** `"By Ann Example"` — the app composes it with its own word order. */
+  readonly byline: (author: string) => string;
+  /** The accessible name of the link: `"Open the BBC story in a new tab"`. */
+  readonly opensInNewTab: (sourceLabel: string) => string;
+  /** `"3 characters added, 1 removed"` — the diff summary in the `edited` strip. */
+  readonly editSummary: (added: number, removed: number) => string;
+}
+
+/** A date, an instant, an age — formatted by the app, in the app's language. */
+export interface FormatProps {
+  /** `publishedAt` as `"06:40"` today, `"8 Nov"` this year, `"8 Nov 2025"` older. */
+  readonly published: (iso: string | null) => string;
+  /** `lastChangedAt` as an age: `"3 hours ago"`. */
+  readonly ago: (iso: string) => string;
+}
+
+export interface StoryProps {
+  readonly item: ItemView;
+  readonly slot: StorySlot;
+  readonly labels: StoryLabels;
+  readonly format: FormatProps;
+  /** Lead and section leaders only, and only when the source has an image. */
+  readonly showImage: boolean;
+}
+
+export interface SectionProps {
+  readonly id: string;
+  readonly title: string;
+  readonly blurb: string | null;
+  readonly items: readonly ItemView[];
+  readonly labels: StoryLabels;
+  readonly format: FormatProps;
+}
+
+export interface MastheadProps {
+  readonly name: string;
+  readonly tagline: string;
+  readonly dateline: string;
+  /** One line of the stats strip: `"38 stories · 6 new · 2 edited"`. */
+  readonly summary: string;
+  readonly theme: 'light' | 'dark';
+  readonly onToggleTheme: () => void;
+  /** The switcher's own words, and its accessible name. */
+  readonly themeLabel: string;
+}

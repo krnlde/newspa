@@ -1,0 +1,20 @@
+{
+  // The real payoff of a `$schema` URL in every export: an editor resolves the
+  // generated JSON Schema (its `$id` is that URL) and validates as you type.
+  // `pnpm schemas:gen` regenerates `schemas/` from zod; `pnpm check` fails on drift.
+  "json.validate.enable": true,
+  "json.schemas": [
+    {
+      "fileMatch": ["sources/*.json"],
+      "url": "./schemas/source.schema.json"
+    },
+    {
+      "fileMatch": ["newspa.config.json"],
+      "url": "./schemas/appconfig.schema.json"
+    },
+    {
+      "fileMatch": ["watchlist.json", "*watchlist*.json"],
+      "url": "./schemas/watchlist.schema.json"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# Build output and caches
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.vitest/
+*.log
+
+# Secrets and machine-local files
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# Runtime state. The corpus (SQLite, snapshots) and the login profiles are not
+# sources: a profile directory is plaintext cookies on disk, and the DB is
+# rebuildable from `sources/` + a first poll. Sources and fixtures ARE sources
+# and stay in git.
+/data/
+/profiles/
+
+# The dev paper: `pnpm seed` writes it out of the parser fixtures, and the dev
+# Vite plugin serves it. Generated, machine-local, never authored by hand.
+/apps/web/dev/state.json

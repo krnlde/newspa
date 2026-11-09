@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/krnlde/newspa/main/schemas/watchlist.schema.json",
+  "title": "newspa watchlist",
+  "description": "Interests for newspa: watch and block terms, scoped globally or to one source, plus source weights.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "$schemaVersion": {
+      "default": "newspa.watchlist.v1",
+      "type": "string",
+      "const": "newspa.watchlist.v1"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "terms": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "kind": {
+            "default": "watch",
+            "type": "string",
+            "enum": [
+              "watch",
+              "block"
+            ]
+          },
+          "scope": {
+            "default": "global",
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "global"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "sourceId"
+                ]
+              }
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "term"
+        ]
+      }
+    },
+    "weights": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "sourceId",
+          "weight"
+        ]
+      }
+    }
+  }
+}

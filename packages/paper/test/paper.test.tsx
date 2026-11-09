@@ -1,0 +1,270 @@
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import type { ItemView, SourceHealthView } from 'newspa-core';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { PaperProps } from '../src/index.ts';
+import { Paper } from '../src/index.ts';
+import {
+  anEdition,
+  anItem,
+  aReport,
+  aSection,
+  aSource,
+  at,
+  nthStory,
+  one,
+  storyClasses,
+  THE_FORMAT,
+  THE_LABELS,
+  THE_MASTHEAD,
+  textsOf,
+} from './support.ts';
+
+/**
+ * `Paper.tsx` owns two things and nothing else: **the order the page prints in**
+ * (masthead, lead, ornament, sections, edited strip, health) and **the empty
+ * paper as a state** (onboarding, with the command that adds a source). These
+ * tests pin both, plus which blocks appear for which edition, because every
+ * other decision — the words, the dates, the theme's effect — belongs to the app.
+ *
+ * `sources: []` is the onboarding case, and the assertion is that no section and
+ * no health strip print: a paper with no sources must not look like a paper with
+ * no news (rule 5).
+ */
+
+afterEach(cleanup);
+
+const okSource = aSource({ id: 'tech', state: 'ok' });
+const brokenSource = aSource({ id: 'world', state: 'no-matches', note: 'the selector matched 0 of 14 elements' });
+
+const editedItem = (key: string, over: Partial<ItemView> = {}): ItemView =>
+  anItem({ key, lastEventKind: 'edited', lastReport: aReport(), lastChangedAt: at('09:30'), ...over });
+
+const showPaper = (over: Partial<PaperProps> = {}) => {
+  const props: PaperProps = {
+    masthead: THE_MASTHEAD,
+    edition: anEdition(),
+    sources: [okSource],
+    labels: THE_LABELS,
+    format: THE_FORMAT,
+    theme: 'light',
+    onToggleTheme: vi.fn(),
+    themeLabel: 'Switch to dark',
+    ...over,
+  };
+  const container = render(<Paper {...props} />).container;
+  return { container, props, onToggleTheme: props.onToggleTheme };
+};
+
+describe('a paper with no sources', () => {
+  it('prints the onboarding block: title, lead, the steps in order, and the command', () => {
+    const { container } = showPaper({ sources: [] });
+    expect(one('.onboarding__title', container).textContent).toBe(THE_LABELS.onboarding.title);
+    expect(one('.onboarding__lead', container).textContent).toBe(THE_LABELS.onboarding.lead);
+    expect(textsOf('.onboarding__steps li', container)).toEqual(THE_LABELS.onboarding.steps);
+    expect(one('.onboarding__command', container).textContent).toBe(THE_LABELS.onboarding.command);
+  });
+
+  it('prints no section, no lead, no edited strip and no health strip', () => {
+    const { container } = showPaper({
+      sources: [],
+      edition: anEdition({ lead: anItem({ key: 'lead:1' }), edited: [editedItem('world:2')] }),
+    });
+    expect(container.querySelector('.onboarding')).not.toBeNull();
+    expect(container.querySelectorAll('.section')).toHaveLength(0);
+    expect(container.querySelector('.paper__lead')).toBeNull();
+    expect(container.querySelector('.edited')).toBeNull();
+    expect(container.querySelector('.health')).toBeNull();
+  });
+
+  it('keeps the masthead, so the empty paper is still a paper', () => {
+    const { container } = showPaper({ sources: [] });
+    expect(one('.masthead__name', container).textContent).toBe(THE_MASTHEAD.name);
+  });
+});
+
+describe('the masthead line', () => {
+  it('prints the stats line the label function composed for this edition', () => {
+    const { container } = showPaper({
+      edition: anEdition({
+        stats: { items: 4, newItems: 2, editedItems: 1, sourcesFetched: 2, sourcesUnhealthy: 1, cycles: 7 },
+      }),
+    });
+    expect(one('.masthead__summary', container).textContent).toBe('4 stories · 2 new · 1 edited');
+    expect(one('.masthead__dateline', container).textContent).toBe(anEdition().dateline);
+  });
+
+  it('reflects the theme it is given, and a click asks the app to change it, once', () => {
+    const { container, onToggleTheme } = showPaper({ theme: 'dark' });
+    const button = one<HTMLButtonElement>('.masthead__switch', container);
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(button);
+    expect(onToggleTheme).toHaveBeenCalledOnce();
+  });
+});
+
+describe('the lead', () => {
+  it('prints the lead story as the lead, and the ornament after it', () => {
+    const { container } = showPaper({ edition: anEdition({ lead: anItem({ key: 'lead:1' }) }) });
+    expect(storyClasses(one('.paper__lead', container))).toEqual(['story story--lead']);
+    expect(one('.paper__ornament', container).textContent).toBe('\u2766');
+    expect(one('.paper__ornament', container).getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('shows the lead its image, because the lead is always shown one', () => {
+    const { container } = showPaper({
+      edition: anEdition({ lead: anItem({ key: 'lead:1', image: 'https://feeds.example.test/a.jpg' }) }),
+    });
+    expect(one('.paper__lead .story__figure', container)).not.toBeNull();
+  });
+
+  it('prints no lead and no ornament for an edition with no lead', () => {
+    const { container } = showPaper({ edition: anEdition({ lead: null }) });
+    expect(container.querySelector('.paper__lead')).toBeNull();
+    expect(container.querySelector('.paper__ornament')).toBeNull();
+  });
+});
+
+describe('the sections', () => {
+  it('prints every section of the edition, with its title, in the edition order', () => {
+    const { container } = showPaper({
+      edition: anEdition({
+        sections: [
+          aSection({ id: 'world', title: 'World', items: [anItem({ key: 'world:1' })] }),
+          aSection({ id: 'technology', title: 'Technology', items: [anItem({ key: 'tech:1' })] }),
+        ],
+      }),
+    });
+    expect(textsOf('.section__head', container)).toEqual(['World', 'Technology']);
+    expect([...container.querySelectorAll('section.section')].map((node) => node.id)).toEqual([
+      'section-world',
+      'section-technology',
+    ]);
+  });
+
+  it('prints the section’s first story as the leader, and the rest as stories', () => {
+    const { container } = showPaper({
+      edition: anEdition({
+        sections: [
+          aSection({
+            id: 'world',
+            items: [anItem({ key: 'world:1' }), anItem({ key: 'world:2' }), anItem({ key: 'world:3' })],
+          }),
+        ],
+      }),
+    });
+    expect(storyClasses(container)).toEqual(['story story--leader', 'story story--story', 'story story--story']);
+    expect(container.querySelector('.section .story__figure')).toBeNull();
+  });
+
+  it('prints a section with no items as an empty section, not as nothing', () => {
+    const { container } = showPaper({
+      edition: anEdition({ sections: [aSection({ id: 'world', title: 'World', items: [] })] }),
+    });
+    expect(container.querySelectorAll('.section')).toHaveLength(1);
+    expect(container.querySelectorAll('article')).toHaveLength(0);
+  });
+});
+
+describe('the edited strip', () => {
+  it('prints one row per story that has a report, with its headline, diff and stamp', () => {
+    const { container } = showPaper({
+      edition: anEdition({
+        edited: [
+          editedItem('world:2', { title: 'Rates held for the third month running' }),
+          editedItem('tech:4', { sourceLabel: 'Example Tech', title: 'A standard body agrees on a wire format' }),
+        ],
+      }),
+    });
+    expect(one('.edited__head', container).textContent).toBe(THE_LABELS.editedHeadline);
+    expect(container.querySelectorAll('.edited__row')).toHaveLength(2);
+    expect(textsOf('.edited__headline a', container)).toEqual([
+      'Rates held for the third month running',
+      'A standard body agrees on a wire format',
+    ]);
+    expect(textsOf('.edited__source', container)).toEqual(['Example World', 'Example Tech']);
+    expect(container.querySelectorAll('.edited__row .diff')).toHaveLength(2);
+    const rows = [...container.querySelectorAll<HTMLElement>('.edited__row')];
+    const first = rows[0];
+    if (first === undefined) throw new Error('the edited strip printed no row');
+    const link = one<HTMLAnchorElement>('.edited__headline a', first);
+    expect(link.getAttribute('href')).toBe('https://feeds.example.test/first-story');
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(link.getAttribute('aria-label')).toBe(THE_LABELS.opensInNewTab('Example World'));
+    expect(one('.diff__count', first).textContent).toBe('9 added, 5 removed');
+    expect(textsOf('.edited__meta', container)).toEqual([`pub(${at('09:30')})`, `pub(${at('09:30')})`]);
+  });
+
+  it('omits a story whose report is null, and prints no strip when none has one', () => {
+    const { container } = showPaper({ edition: anEdition({ edited: [anItem({ key: 'world:9' })] }) });
+    expect(container.querySelector('.edited')).toBeNull();
+    expect(container.querySelectorAll('.edited__row')).toHaveLength(0);
+  });
+
+  it('falls back to the publication stamp when a story was changed at no recorded instant', () => {
+    const { container } = showPaper({
+      edition: anEdition({ edited: [editedItem('world:2', { lastChangedAt: null, publishedAt: at('06:00') })] }),
+    });
+    expect(one('.edited__meta', container).textContent).toBe(`pub(${at('06:00')})`);
+  });
+});
+
+describe('the health strip', () => {
+  it('prints the unhealthy sources of the state response, and nothing for the healthy ones', () => {
+    const sources: readonly SourceHealthView[] = [okSource, brokenSource];
+    const { container } = showPaper({ sources });
+    expect(container.querySelectorAll('.health__row')).toHaveLength(1);
+    expect(one('.health__label', container).textContent).toBe('Example World');
+  });
+
+  it('prints the all-well line when every source is reporting', () => {
+    const { container } = showPaper({ sources: [okSource, aSource({ id: 'gov', label: 'Example Gov' })] });
+    expect(one('.health', container).className).toBe('health health--well');
+    expect(one('.health__line', container).textContent).toBe('2 sources, all reporting');
+  });
+});
+
+describe('the order of the page', () => {
+  it('prints masthead, front page, ornament, sections, edited strip, health, in that order', () => {
+    const { container } = showPaper({
+      edition: anEdition({
+        // The lead is also the first item of the strongest section, which is how
+        // core builds an edition: `edition.lead` is the top-scoring item, and
+        // sections are ordered by the score they carry.
+        lead: anItem({ key: 'world:1' }),
+        sections: [
+          aSection({ id: 'world', title: 'World', items: [anItem({ key: 'world:1' }), anItem({ key: 'world:2' })] }),
+          aSection({ id: 'tech', title: 'Technology', items: [anItem({ key: 'tech:1' })] }),
+          aSection({ id: 'biz', title: 'Business', items: [anItem({ key: 'biz:1' })] }),
+        ],
+        edited: [editedItem('world:2')],
+      }),
+      sources: [brokenSource],
+    });
+    expect([...one('.paper', container).children].map((node) => node.className)).toEqual([
+      'masthead',
+      'paper__front',
+      'paper__ornament',
+      'paper__sections',
+      'edited',
+      'health',
+    ]);
+    // The centre of the front page is the lead story, and the two strongest
+    // sections flank it — the DOM prints the lead first, so reading order and
+    // print order start with the story that matters, and the grid places it in
+    // the middle column (see blocks.css).
+    expect([...one('.paper__front', container).children].map((node) => node.className)).toEqual([
+      'paper__lead front__lead',
+      'front__rail front__rail--left',
+      'front__rail front__rail--right',
+    ]);
+    expect(container.querySelector<HTMLElement>('.front__lead .story')?.dataset['key']).toBe('world:1');
+    // A rail never repeats the centre story: the same headline twice on one
+    // screen is not an index.
+    const railKeys = [...container.querySelectorAll<HTMLElement>('.front__rail article')].map(
+      (node) => node.dataset['key'],
+    );
+    expect(railKeys).toEqual(['world:2', 'tech:1']);
+    expect(nthStory(container, 0).className).toBe('story story--lead');
+  });
+});

@@ -1,0 +1,39 @@
+{
+  "_comment": "Hand-written fixture (2026-11-09): the JSON path grammar the source schema allows — dot keys, `[n]` for one element, `[]` to walk an array. The `data.children[].data.title` shape is Reddit's listing; the wrapper array under `data.children` is why a key step looks inside an array. Each `itemsPath` a test asks for is one arm of the grammar, and the failures are pinned next to the successes: a missing key, an index out of range, a path into a string, an array of scalars.",
+  "data": {
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "title": "First post",
+          "url": "/posts/one",
+          "author": "ann",
+          "created_utc": "2026-11-09T10:00:00Z",
+          "thumbnail": "https://example.invalid/thumb-one.jpg",
+          "selftext": "Body one, first line.\n\nSecond paragraph."
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "title": "Second post",
+          "url": "https://example.invalid/posts/two",
+          "author": { "name": "Ben Example" },
+          "created_utc": "not a date",
+          "thumbnail": "",
+          "link_flair_text": "live"
+        }
+      },
+      { "kind": "ad", "data": { "url": "/ads/three" } }
+    ],
+    "after": null,
+    "posts": [
+      { "title": "Indexed item one", "url": "https://example.invalid/p1" },
+      { "title": "Indexed item two", "url": "https://example.invalid/p2" }
+    ],
+    "tags": ["world", "politics"],
+    "count": 2,
+    "byline": "Ann Example"
+  },
+  "meta": { "generatedAt": "2026-11-09T12:00:00Z", "version": 3 }
+}

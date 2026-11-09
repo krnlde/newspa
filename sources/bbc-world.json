@@ -1,0 +1,9 @@
+{
+  "id": "bbc-world",
+  "label": "BBC World",
+  "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+  "kind": "rss",
+  "cadenceMinutes": 15,
+  "weight": 3,
+  "section": "World"
+}

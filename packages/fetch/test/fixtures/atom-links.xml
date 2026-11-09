@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Hand-written fixture: the Atom grammar the parser has to get right.
+   - `link rel=alternate` is the story; `rel=self` is the feed's own URL, and
+     taking the first link in document order is how a parser prints
+     `…/entries/one.atom` as the article (measured on GitHub's releases.atom,
+     where every entry has both),
+   - a `link` with **no** `rel` is an alternate by spec,
+   - `rel=enclosure` with `type="image/jpeg"` is the story image,
+   - `published` is the publication date; `updated` is the last resort,
+   - `content type="html"` carries escaped markup, `type="xhtml"` carries
+     elements under `xhtml:div`,
+   - an `author` is `<name>`-wrapped, or a bare string,
+   - an entry with no link is counted as skipped, not printed with an empty link.
+-->
+<feed
+  xmlns="http://www.w3.org/2005/Atom"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:media="http://search.yahoo.com/mrss/">
+  <id>tag:example.invalid,2025:feed</id>
+  <title>Atom grammar</title>
+  <updated>2025-11-09T12:00:00Z</updated>
+  <link rel="self" href="https://example.invalid/atom"/>
+  <entry>
+    <id>tag:example.invalid,2025:one</id>
+    <title type="html">Two links, and the alternate wins</title>
+    <link rel="self" href="https://example.invalid/entries/one.atom"/>
+    <link rel="alternate" type="text/html" href="https://example.invalid/entries/one?utm_source=atom"/>
+    <link rel="enclosure" type="image/jpeg" href="https://example.invalid/hero.jpg" length="12"/>
+    <published>2025-11-09T10:00:00Z</published>
+    <updated>2025-11-09T11:00:00Z</updated>
+    <summary type="html">&lt;p&gt;Deck &amp;amp; more&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;Body paragraph one.&lt;/p&gt;&lt;p&gt;Body paragraph two.&lt;/p&gt;</content>
+    <author>
+      <name>Ann Example</name>
+      <uri>https://example.invalid/ann</uri>
+      <email>ann@example.invalid</email>
+    </author>
+    <category term="world"/>
+  </entry>
+  <entry>
+    <id>tag:example.invalid,2025:two</id>
+    <title>XHTML content and a string author</title>
+    <link href="https://example.invalid/entries/two"/>
+    <updated>2025-11-08T10:00:00Z</updated>
+    <content type="xhtml">
+      <xhtml:div>
+        <p>XHTML body &amp; text</p>
+        <p>Second paragraph.</p>
+      </xhtml:div>
+    </content>
+    <author>Ben Example</author>
+    <media:content url="https://example.invalid/media.jpg" medium="image"/>
+  </entry>
+  <entry>
+    <id>tag:example.invalid,2025:three</id>
+    <title>Entry with no link element at all</title>
+    <updated>2025-11-07T10:00:00Z</updated>
+    <summary>No link, so not publishable.</summary>
+  </entry>
+</feed>

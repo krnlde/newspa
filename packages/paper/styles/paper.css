@@ -1,0 +1,16 @@
+/*
+ * The paper's design contract, as one import (docs/design.md). Plain CSS: no
+ * framework, no CDN, and no build step in this package.
+ *
+ * The order is the contract, and it is a CSS `@import` chain rather than three
+ * `import` statements in the app because a linter reorders JavaScript imports
+ * and must not reorder a cascade: tokens and the page first, then the blocks,
+ * then the story block, which reads the tokens.
+ *
+ * Anything that styles the paper imports **this** file: the app today, and any
+ * future exporter that wants the paper's own CSS inlined into one document.
+ */
+@import './sheet.css';
+@import './blocks.css';
+@import './front.css';
+@import './stories.css';

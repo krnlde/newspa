@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Daily</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="A personal newspaper: what changed since the last poll." />
+    <script>
+      // The theme is applied before first paint: a dark-theme device must not
+      // flash the yellowed stock. The key is `newspa.theme` (see src/theme.ts),
+      // and `data-theme` is the hook the paper's CSS reads.
+      (() => {
+        const at = document.documentElement;
+        try {
+          const saved = localStorage.getItem('newspa.theme');
+          const dark = saved === 'dark' || (saved === null && matchMedia('(prefers-color-scheme: dark)').matches);
+          at.dataset.theme = dark ? 'dark' : 'light';
+        } catch {
+          at.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

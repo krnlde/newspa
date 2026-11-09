@@ -1,0 +1,52 @@
+# The pre-commit floor. Fast, and honest about what is red by design.
+#
+# `set -e` is load-bearing. Husky runs this file with `sh`, and without it every
+# command runs and only the LAST exit code decides: a Biome failure followed by a
+# passing file-length scan commits anyway. A hook that reports success on a lint
+# error is worse than no hook, because it is trusted.
+set -e
+
+# Lint, format and import order, on the staged files only. This is `check`, not
+# `lint`: `check` is what `pnpm lint` runs, and a file that merely needs
+# formatting fails it with no rule name in the output - the most confusing
+# possible way to block a commit, so the hook runs the same thing the repo does.
+#
+# Warnings are allowed on purpose. The tree carries 10 of them (cognitive
+# complexity in core's cron/diff/health/signals, `!important` in the reduced-motion
+# block, one descending-specificity selector). Promoting them to errors blocks any
+# commit that touches those files and teaches everyone to type `--no-verify`,
+# which protects nothing.
+pnpm exec biome check --staged
+
+# Rule 1: no file over 300 lines. Whole tree, not staged files - a commit is a
+# whole tree, and the rule is per-file, so a partial set can hide an overage.
+node scripts/check-file-length.mjs
+
+# Credentials, in every staged file (git ls-files reads the index, so staged work
+# is covered). 0.13s, so it runs before the slow gates. This repo is public and
+# needs no committed credential at all - the browser profile and the SQLite file
+# are both gitignored - so a credential in a tracked file is a design violation,
+# and a public commit is public forever (docs/decisions-tooling.md D-023).
+node scripts/check-secrets.mjs
+
+# The JSON Schema in schemas/ must match the zod schemas that generate it. Cheap,
+# and drift here is silent everywhere else.
+node scripts/generate-schemas.mjs check
+
+# Typecheck, whole workspace: measured 1.9s (TypeScript 7 is the native compiler,
+# D-018). A commit that does not compile is not a behaviour change, it is a
+# broken tree, and 2 seconds is not a reason to let one exist.
+pnpm typecheck
+
+# The suite: measured 6.0s for 78 files. Rule 12 makes a test part of every
+# behaviour, so the suite is the behaviour - committing a red one is how a red
+# main becomes normal. The design suite (real Edge) is NOT here: see the last
+# comment. Coverage is not here either, because a coverage run is minutes and a
+# hook must not be.
+pnpm test
+
+# Deliberately NOT `pnpm check`: that chain ends in `pnpm test:design`, and the
+# real-Edge design suite under apps/web/test/design is not written yet, so
+# `check` is red at HEAD. A hook that is always red is a hook that gets bypassed.
+# `check` stays the gate before declaring work done (AGENTS.md); this is the
+# few-second floor that has to be green for a commit to exist at all.

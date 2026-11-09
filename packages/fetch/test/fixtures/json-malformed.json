@@ -1,0 +1,4 @@
+{
+  "hits": [
+    { "title": "The bytes stop mid-object", "url": "https://example.invalid/one" },
+    { "title": "Cut off here", "url":

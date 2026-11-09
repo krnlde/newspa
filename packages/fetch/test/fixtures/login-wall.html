@@ -1,0 +1,29 @@
+<!--
+  Provenance: hand-written to the shape of a registration wall measured from
+  this project (docs/decisions.md D-007): a page whose "article" is a form.
+  Not a verbatim capture — a login page is only served to a fresh session.
+  Pins: a payload whose only content is a sign-in form is `blocked`, with the
+  matched marker named. The marker strings come from core's CHALLENGE_MARKERS,
+  so this fixture spells them exactly as core spells them.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Front page</title>
+</head>
+<body>
+  <header><a href="/">The Daily Paper</a></header>
+  <main>
+    <h1>Subscribe to continue</h1>
+    <p>This article is available to subscribers.</p>
+    <form action="/signin" method="post">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" />
+      <button type="submit">Log in to continue</button>
+    </form>
+  </main>
+</body>
+</html>

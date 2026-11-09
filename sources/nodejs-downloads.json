@@ -1,0 +1,10 @@
+{
+  "id": "nodejs-downloads",
+  "label": "Node.js downloads",
+  "url": "https://nodejs.org/en/download",
+  "kind": "html",
+  "cadenceMinutes": 60,
+  "weight": 5,
+  "section": "Software",
+  "strip": [".updated"]
+}

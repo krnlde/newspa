@@ -1,0 +1,27 @@
+<!doctype html>
+<!--
+  Hand-written fixture: the self-match arm. A picker that writes
+  `list: '.headline'` and `fields.title: '.title'` for a page whose item **is**
+  the heading is legal, and cheerio's `find` excludes the root: `.title` below
+  the item matches nothing while the page is fine. The parser falls back to
+  matching the item node itself; a source that does not get this reports
+  "matched nothing" on a page that has news.
+  The page is also the CNN-lite shape: the anchor is the item, so the link comes
+  from the item's own `href` (or the anchor inside it), not from `fields.link`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Headline list</title>
+  </head>
+  <body>
+    <div class="page">
+      <h2 class="headline title"><a href="/world/one">Heading item, anchor inside</a></h2>
+      <h2 class="headline title" rel="canonical" data-href="/world/two">Heading item, href on the anchor below</h2>
+      <p><a href="/world/two">The anchor the parser is allowed to find</a></p>
+      <div class="rail">
+        <h2 class="headline title"><a href="/world/three?utm_source=hl">Third heading</a></h2>
+      </div>
+    </div>
+  </body>
+</html>

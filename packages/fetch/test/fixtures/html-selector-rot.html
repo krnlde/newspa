@@ -1,0 +1,27 @@
+<!doctype html>
+<!--
+  Hand-written fixture: selector rot. The page publishes cards under
+  `.story-grid`, and the source in git asks for `.legacy-rail .card`, which
+  matched 14 elements the day it was picked. cheerio answers `length: 0` for
+  that, which is indistinguishable from an empty page by value, so the parser
+  reports the selector and the count, and quotes the `matchCount` the picker
+  recorded. No items, no silence.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redesigned index</title>
+  </head>
+  <body>
+    <main class="story-grid">
+      <article class="card">
+        <h2><a href="/world/one">A story the old selector cannot see</a></h2>
+        <p>The rail it used to live on is gone.</p>
+      </article>
+      <article class="card">
+        <h2><a href="/world/two">Another story</a></h2>
+        <p>Also invisible to the old selector.</p>
+      </article>
+    </main>
+  </body>
+</html>

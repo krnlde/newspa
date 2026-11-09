@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-written fixture: RSS 1.0 (RSS/RDF), where the story link is the item's
+  own `rdf:about` attribute, not a `<link>` text, and the date is `dc:date`.
+  The root tag is `rdf:RDF`, so the parser must reach it without a `<channel>`.
+  The namespace prefixes survive fast-xml-parser's default key shape
+  (`rdf:about` lower-cased by this package's tag transform).
+-->
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns="http://purl.org/rss/1.0/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel rdf:about="https://example.invalid/rdf">
+    <title>RDF fixture</title>
+    <link>https://example.invalid/</link>
+    <description>RSS 1.0.</description>
+    <items>
+      <rdf:Seq>
+        <rdf:li rdf:resource="https://example.invalid/rdf/one"/>
+      </rdf:Seq>
+    </items>
+  </channel>
+  <item rdf:about="https://example.invalid/rdf/one">
+    <title>The link is the about attribute</title>
+    <link>https://example.invalid/rdf/one</link>
+    <description>Deck.</description>
+    <dc:date>2025-11-09T10:00:00Z</dc:date>
+    <dc:creator>Ann Example</dc:creator>
+  </item>
+  <item rdf:about="https://example.invalid/rdf/two">
+    <title>No link element, only about</title>
+    <description>Deck two.</description>
+    <dc:date>2025-11-08T10:00:00Z</dc:date>
+  </item>
+</rdf:RDF>

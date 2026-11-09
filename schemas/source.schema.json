@@ -1,0 +1,647 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/krnlde/newspa/main/schemas/source.schema.json",
+  "title": "newspa source",
+  "description": "One newspa source: an RSS feed, an HTML page with CSS selectors, or a JSON endpoint. Filename must equal id.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "group": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "section": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "cadenceMinutes": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 43200
+        },
+        "cadenceCron": {
+          "type": "string",
+          "minLength": 9,
+          "maxLength": 80
+        },
+        "quietHours": {
+          "type": "object",
+          "properties": {
+            "startHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            },
+            "endHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            }
+          },
+          "required": [
+            "startHour",
+            "endHour"
+          ]
+        },
+        "enabled": {
+          "default": true,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 1,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "watchwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "blockwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "render": {
+          "default": false,
+          "type": "boolean"
+        },
+        "renderTimeoutMs": {
+          "default": 20000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "profile": {
+          "default": false,
+          "type": "boolean"
+        },
+        "cookieFile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "headers": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "acceptLanguage": {
+          "default": "en-US,en;q=0.9",
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "timeoutMs": {
+          "default": 15000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "maxBytes": {
+          "default": 8388608,
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 33554432
+        },
+        "minEditRatio": {
+          "default": 0.06,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "matchCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "baselinedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "kind": {
+          "type": "string",
+          "const": "rss"
+        },
+        "maxItems": {
+          "default": 60,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "url",
+        "kind"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "group": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "section": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "cadenceMinutes": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 43200
+        },
+        "cadenceCron": {
+          "type": "string",
+          "minLength": 9,
+          "maxLength": 80
+        },
+        "quietHours": {
+          "type": "object",
+          "properties": {
+            "startHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            },
+            "endHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            }
+          },
+          "required": [
+            "startHour",
+            "endHour"
+          ]
+        },
+        "enabled": {
+          "default": true,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 1,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "watchwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "blockwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "render": {
+          "default": false,
+          "type": "boolean"
+        },
+        "renderTimeoutMs": {
+          "default": 20000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "profile": {
+          "default": false,
+          "type": "boolean"
+        },
+        "cookieFile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "headers": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "acceptLanguage": {
+          "default": "en-US,en;q=0.9",
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "timeoutMs": {
+          "default": 15000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "maxBytes": {
+          "default": 8388608,
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 33554432
+        },
+        "minEditRatio": {
+          "default": 0.06,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "matchCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "baselinedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "kind": {
+          "type": "string",
+          "const": "html"
+        },
+        "list": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fields": {
+          "default": {
+            "title": "title",
+            "linkAttr": "href",
+            "dateAttr": "datetime",
+            "imageAttr": "src"
+          },
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "link": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "date": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "image": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "linkAttr": {
+              "default": "href",
+              "type": "string",
+              "minLength": 1
+            },
+            "dateAttr": {
+              "default": "datetime",
+              "type": "string",
+              "minLength": 1
+            },
+            "imageAttr": {
+              "default": "src",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "title"
+          ]
+        },
+        "strip": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "url",
+        "kind"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "group": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "section": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "cadenceMinutes": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 43200
+        },
+        "cadenceCron": {
+          "type": "string",
+          "minLength": 9,
+          "maxLength": 80
+        },
+        "quietHours": {
+          "type": "object",
+          "properties": {
+            "startHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            },
+            "endHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            }
+          },
+          "required": [
+            "startHour",
+            "endHour"
+          ]
+        },
+        "enabled": {
+          "default": true,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 1,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "watchwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "blockwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "render": {
+          "default": false,
+          "type": "boolean"
+        },
+        "renderTimeoutMs": {
+          "default": 20000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "profile": {
+          "default": false,
+          "type": "boolean"
+        },
+        "cookieFile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "headers": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "acceptLanguage": {
+          "default": "en-US,en;q=0.9",
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "timeoutMs": {
+          "default": 15000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        },
+        "maxBytes": {
+          "default": 8388608,
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 33554432
+        },
+        "minEditRatio": {
+          "default": 0.06,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "matchCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "baselinedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "kind": {
+          "type": "string",
+          "const": "json"
+        },
+        "itemsPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "link": {
+              "type": "string",
+              "minLength": 1
+            },
+            "date": {
+              "type": "string",
+              "minLength": 1
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "image": {
+              "type": "string",
+              "minLength": 1
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "title",
+            "link"
+          ]
+        },
+        "island": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "islandRoot": {
+          "default": "props.pageProps",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "url",
+        "kind",
+        "itemsPath",
+        "fields"
+      ]
+    }
+  ]
+}

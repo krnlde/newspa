@@ -1,0 +1,92 @@
+/*
+ * The front page: the lead in the centre column, the two strongest sections as
+ * narrow rails beside it, and the one breakpoint that stacks them.
+ *
+ * Load order is a contract: `paper.css` imports this after `blocks.css`, which
+ * owns the `.section__head` the rails reuse as their heading, and before
+ * `stories.css`, which styles the story block the rails print.
+ */
+
+/*
+ * Above the fold: the lead in the centre with the two strongest sections as
+ * narrow rails beside it (the front page of a magazine: one big story, two
+ * columns of what else is happening), and below it the sections print as the
+ * list. Which section is "strongest" is core's score, not a guess: sections
+ * arrive ordered by the score they carry.
+ */
+.paper__front {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr);
+  gap: 0 var(--measure-gap);
+  align-items: start;
+  padding-block-start: 0.75rem;
+}
+
+/*
+ * The DOM prints the lead **first**, and the grid places the rails in the outer
+ * columns. Reading order, screen-reader order and print order therefore all
+ * begin with the story that matters; CSS `order` would move the lead visually
+ * and leave it second to a screen reader, which is precisely the divergence
+ * between "what you see" and "what you hear" that this layout must not have.
+ *
+ * A rail that has nothing to show renders nothing, so an outer column can be
+ * empty: an asymmetric margin is a newspaper's own whitespace, and it is honest
+ * about a paper with one strong section.
+ */
+.front__lead {
+  grid-column: 2;
+  grid-row: 1;
+  border-inline: var(--hair) solid var(--rule);
+  padding-inline: var(--measure-gap);
+}
+
+.front__rail {
+  padding-block-start: 0.35rem;
+}
+
+.front__rail--left {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.front__rail--right {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.rail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail__list .story {
+  padding-block: 0.6rem;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.rail__list .story:first-child {
+  border-top: 0;
+  padding-block-start: 0.15rem;
+}
+
+@media (max-width: 900px) {
+  /* One column, lead first: three screens of scrolling rails is not a paper. */
+  .paper__front {
+    grid-template-columns: 1fr;
+    gap: 1.5rem 0;
+  }
+
+  .front__lead,
+  .front__rail--left,
+  .front__rail--right {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .front__lead {
+    border-inline: 0;
+    border-block: var(--hair) solid var(--rule);
+    padding-inline: 0;
+  }
+}

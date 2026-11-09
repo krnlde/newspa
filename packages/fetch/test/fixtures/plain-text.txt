@@ -1,0 +1,6 @@
+Provenance: hand-written plain-text payload (2026-11-09).
+Pins: bytes that are not a feed, HTML, JSON, XML or an island document are an
+unsupported kind, named by what it is, with the payload's leading bytes quoted
+in the note. No parser is attempted, so no items, and no silent zero.
+
+The leading bytes of this file, and the whole file, are plain text.

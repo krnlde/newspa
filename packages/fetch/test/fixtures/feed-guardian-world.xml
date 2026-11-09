@@ -1,0 +1,1188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  fixture: fetched verbatim from https://www.theguardian.com/world/rss
+  date: 2026-11-09
+  method: single GET, curl, user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+  content-type: text/xml; charset=UTF-8; 155 205 bytes; media:content with media:credit children, dc:creator, dc:date, category arrays
+  The only edit to the payload is this comment.
+-->
+<rss xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>World news | The Guardian</title>
+    <link>https://www.theguardian.com/world</link>
+    <description>Latest World news news, comment and analysis from the Guardian, the world's leading liberal voice</description>
+    <language>en-gb</language>
+    <copyright>Guardian News and Media Limited or its affiliated companies. All rights reserved. 2026</copyright>
+    <pubDate>Mon, 09 Nov 2026 12:42:22 GMT</pubDate>
+    <dc:date>2026-11-09T12:42:22Z</dc:date>
+    <dc:language>en-gb</dc:language>
+    <dc:rights>Guardian News and Media Limited or its affiliated companies. All rights reserved. 2026</dc:rights>
+    <image>
+      <title>The Guardian</title>
+      <url>https://assets.guim.co.uk/images/guardian-logo-rss.c45beb1bafa34b347ac333af2e6fe23f.png</url>
+      <link>https://www.theguardian.com</link>
+    </image>
+    <item>
+      <title>Collision of two trains in Egypt kills at least seven</title>
+      <link>https://www.theguardian.com/world/2026/nov/08/egypt-two-trains-deadly-collision</link>
+      <description>&lt;p&gt;President orders prompt investigation after one train derails in collision in al-Ayyat about 50km from Cairo&lt;/p&gt;&lt;p&gt;Seven people were killed and at least 125 injured when two trains collided on Sunday south of the Egyptian capital, Cairo, officials said.&lt;/p&gt;&lt;p&gt;The crash occurred in al-Ayyat district in Giza province, about 50km (30 miles) south of Cairo, when a train travelling to Fayoum province crashed into the rear of a train heading to the southern province of Aswan, according to the transport ministry.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/08/egypt-two-trains-deadly-collision"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/egypt">Egypt</category>
+      <category domain="https://www.theguardian.com/world/train-crashes">Train crashes</category>
+      <category domain="https://www.theguardian.com/world/rail-transport">Rail transport</category>
+      <category domain="https://www.theguardian.com/world/africa">Africa</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Sun, 08 Nov 2026 17:51:17 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/08/egypt-two-trains-deadly-collision</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/7527078bbb41cf17b1a35718b70ebdceeada7492/206_271_4462_3569/master/4462.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=24b5e48c937f7ee0a5afbdfdeb04cf94">
+        <media:credit scheme="urn:ebu">Photograph: AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/7527078bbb41cf17b1a35718b70ebdceeada7492/206_271_4462_3569/master/4462.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=be400dbf78861cb6c65bfd2d6d5ec67e">
+        <media:credit scheme="urn:ebu">Photograph: AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/7527078bbb41cf17b1a35718b70ebdceeada7492/206_271_4462_3569/master/4462.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9a7f650e6ba494d56a7a03998e168b5f">
+        <media:credit scheme="urn:ebu">Photograph: AFP/Getty Images</media:credit>
+      </media:content>
+      <dc:creator>Associated Press</dc:creator>
+      <dc:date>2026-11-08T17:51:17Z</dc:date>
+    </item>
+    <item>
+      <title>How African philosophies inspired a new approach to staging film festivals in Manchester</title>
+      <link>https://www.theguardian.com/news/2026/nov/08/african-philosophies-see-my-world-film-festival-manchester</link>
+      <description>&lt;p&gt;See My World, an event highlighting the pan-African thought via film, poetry and dance, builds on momentum sparked by local activists and creatives&lt;/p&gt;&lt;p&gt;African philosophies including exploring how lessons from the past can shape the present and near future have inspired a film festival coming to Manchester.&lt;/p&gt;&lt;p&gt;&lt;a href="https://www.eventbrite.co.uk/e/see-my-world-film-festival-tickets-2000609164867"&gt;See My World&lt;/a&gt;, a day dedicated to independent creators from across the African diaspora in the north of England, will take place at the Contact theatre on 21 November.&lt;/p&gt; &lt;a href="https://www.theguardian.com/news/2026/nov/08/african-philosophies-see-my-world-film-festival-manchester"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/uk/manchester">Manchester</category>
+      <category domain="https://www.theguardian.com/culture/culture">Culture</category>
+      <category domain="https://www.theguardian.com/film/film">Film</category>
+      <category domain="https://www.theguardian.com/stage/theatre">Theatre</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/world/colonialism">Colonialism</category>
+      <category domain="https://www.theguardian.com/world/kenya">Kenya</category>
+      <category domain="https://www.theguardian.com/world/africa">Africa</category>
+      <pubDate>Sun, 08 Nov 2026 12:00:39 GMT</pubDate>
+      <guid>https://www.theguardian.com/news/2026/nov/08/african-philosophies-see-my-world-film-festival-manchester</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/bcb07f839060d7b54330feb02b27ea2cae25f696/62_0_2371_1897/master/2371.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=aac1a0e90bbdcc40e6993511572b0f95">
+        <media:credit scheme="urn:ebu">Photograph: Omar Balaa</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/bcb07f839060d7b54330feb02b27ea2cae25f696/62_0_2371_1897/master/2371.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=d454c4eee40e85ec50a9c4f4c51d3b9d">
+        <media:credit scheme="urn:ebu">Photograph: Omar Balaa</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/bcb07f839060d7b54330feb02b27ea2cae25f696/62_0_2371_1897/master/2371.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8654595ccf5516ad30142841d973f554">
+        <media:credit scheme="urn:ebu">Photograph: Omar Balaa</media:credit>
+      </media:content>
+      <dc:creator>Chris Osuh Community affairs correspondent</dc:creator>
+      <dc:date>2026-11-08T12:00:39Z</dc:date>
+    </item>
+    <item>
+      <title>Kenyan doomsday sect leader jailed for 200 years for murder of 190 children</title>
+      <link>https://www.theguardian.com/world/2026/nov/06/kenyan-doomsday-sect-leader-jailed-murders-paul-mackenzie</link>
+      <description>&lt;p&gt;Paul Mackenzie convicted over deaths of children and one adult after followers were ordered to starve themselves and their families&lt;/p&gt;&lt;p&gt;The leader of a Kenyan doomsday sect has been sentenced to 200 years in prison for the murders of 190 children and one adult in one of the world’s worst cult disasters in recent history.&lt;/p&gt;&lt;p&gt;The sentence, comprising 100 years for murder by starvation and 100 years by direct homicide, came two weeks after the court in Kenya’s coastal city of Mombasa &lt;a href="https://www.theguardian.com/world/2026/oct/19/kenya-starvation-cult-leader-guilty-murder-190-children"&gt;found the cult leader guilty&lt;/a&gt; of the crimes.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/06/kenyan-doomsday-sect-leader-jailed-murders-paul-mackenzie"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/kenya">Kenya</category>
+      <category domain="https://www.theguardian.com/world/christianity">Christianity</category>
+      <category domain="https://www.theguardian.com/world/religion">Religion</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/africa">Africa</category>
+      <pubDate>Fri, 06 Nov 2026 15:08:43 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/06/kenyan-doomsday-sect-leader-jailed-murders-paul-mackenzie</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/017bd9f3ebe11c01312f4eefff5b6fce391376f3/332_0_3320_2656/master/3320.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=de3f13d6c01242a2b2e958fbe65a4439">
+        <media:credit scheme="urn:ebu">Photograph: EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/017bd9f3ebe11c01312f4eefff5b6fce391376f3/332_0_3320_2656/master/3320.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=fe5aa1ace8ab49f452539ee117021b9c">
+        <media:credit scheme="urn:ebu">Photograph: EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/017bd9f3ebe11c01312f4eefff5b6fce391376f3/332_0_3320_2656/master/3320.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8a0748f8e79a98a7be3eb273d2d19b8d">
+        <media:credit scheme="urn:ebu">Photograph: EPA</media:credit>
+      </media:content>
+      <dc:creator>Carlos Mureithi in Nairobi and agencies</dc:creator>
+      <dc:date>2026-11-06T15:08:43Z</dc:date>
+    </item>
+    <item>
+      <title>ANC faces bruising defeat in South African local elections with 80% of ballots counted</title>
+      <link>https://www.theguardian.com/world/2026/nov/06/anc-faces-defeat-south-african-local-elections</link>
+      <description>&lt;p&gt;Former liberation movement’s share of national vote almost 14 percentage points below 2021 result&lt;/p&gt;&lt;p&gt;The African National Congress is on course to suffer a bruising defeat in South Africa’s local elections, with the once dominant party of Nelson Mandela falling to under a third of the vote nationally with more than 80% of ballots counted.&lt;/p&gt;&lt;p&gt;Wednesday’s fragmented vote marks another stage in the decline of the ANC, which has led national governments since the end of white minority apartheid rule in 1994. High unemployment, crime, corruption and poor local service delivery have all contributed to &lt;a href="https://www.theguardian.com/world/2026/nov/04/anc-south-africa-local-elections-water-outages-power-cuts"&gt;voters turning away from the party&lt;/a&gt;.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/06/anc-faces-defeat-south-african-local-elections"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/anc-african-national-congress">ANC (African National Congress)</category>
+      <category domain="https://www.theguardian.com/world/southafrica">South Africa</category>
+      <category domain="https://www.theguardian.com/world/africa">Africa</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Fri, 06 Nov 2026 12:48:37 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/06/anc-faces-defeat-south-african-local-elections</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/ca80f1733421e850930a8c2267b7214219fef832/697_286_4649_3719/master/4649.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=f4831bd02c6a91cdc25376cf8e9b3a3b">
+        <media:credit scheme="urn:ebu">Photograph: Siphiwe Sibeko/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/ca80f1733421e850930a8c2267b7214219fef832/697_286_4649_3719/master/4649.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b4ad1607a312706dc717a8bcc71097d3">
+        <media:credit scheme="urn:ebu">Photograph: Siphiwe Sibeko/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/ca80f1733421e850930a8c2267b7214219fef832/697_286_4649_3719/master/4649.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=4b52fcd00653a4881aa4fe2b6b753875">
+        <media:credit scheme="urn:ebu">Photograph: Siphiwe Sibeko/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Rachel Savage in Johannesburg</dc:creator>
+      <dc:date>2026-11-06T12:48:37Z</dc:date>
+    </item>
+    <item>
+      <title>British healthcare worker with Ebola evacuated from DR Congo to UK</title>
+      <link>https://www.theguardian.com/world/2026/nov/04/british-healthcare-worker-ebola-evacuated-drc-to-uk-document-shows</link>
+      <description>&lt;p&gt;Patient is ⁠in ​stable condition and will be transferred to a specialist ‘high consequence’ infectious disease unit&lt;/p&gt;&lt;p&gt;A British healthcare worker with Ebola is being evacuated from the Democratic Republic of the Congo to the UK for medical treatment, it has been confirmed.&lt;/p&gt;&lt;p&gt;“A British citizen currently in the DR Congo has tested positive for Ebola,” a spokesperson for the UK government said in a statement on Wednesday. “The UK has well-established procedures for dealing with cases like this, and those processes have been activated … The risk to the UK public from Ebola remains low.”&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/04/british-healthcare-worker-ebola-evacuated-drc-to-uk-document-shows"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/ebola">Ebola</category>
+      <category domain="https://www.theguardian.com/world/congo">Democratic Republic of the Congo</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/science/infectiousdiseases">Infectious diseases</category>
+      <category domain="https://www.theguardian.com/global-development/global-development">Global development</category>
+      <category domain="https://www.theguardian.com/society/health">Health</category>
+      <category domain="https://www.theguardian.com/society/society">Society</category>
+      <category domain="https://www.theguardian.com/world/africa">Africa</category>
+      <pubDate>Wed, 04 Nov 2026 18:18:37 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/04/british-healthcare-worker-ebola-evacuated-drc-to-uk-document-shows</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/22d88a4e5887695fa17d85593fd7c9e807599182/872_0_4800_3840/master/4800.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e75a89393e422c54d1dcf69d2965d49d">
+        <media:credit scheme="urn:ebu">Photograph: Sebastien Kitsa Musayi/AP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/22d88a4e5887695fa17d85593fd7c9e807599182/872_0_4800_3840/master/4800.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=03f134d63890616dc53cea8c97720fa7">
+        <media:credit scheme="urn:ebu">Photograph: Sebastien Kitsa Musayi/AP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/22d88a4e5887695fa17d85593fd7c9e807599182/872_0_4800_3840/master/4800.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=d033440f358b578a25babd142ed385e9">
+        <media:credit scheme="urn:ebu">Photograph: Sebastien Kitsa Musayi/AP</media:credit>
+      </media:content>
+      <dc:creator>Sarah Johnson</dc:creator>
+      <dc:date>2026-11-04T18:18:37Z</dc:date>
+    </item>
+    <item>
+      <title>Deadly floods hit Iraq as thunderstorms sweep across region</title>
+      <link>https://www.theguardian.com/environment/2026/nov/09/deadly-floods-iraq-thunderstorms-iran-portugal-japan-snow</link>
+      <description>&lt;p&gt;Violent storms lash northern Iraq and parts of Iran, while Portugal faces strong winds and Japan braces for further snowfall&lt;/p&gt;&lt;p&gt;Deadly flash floods hit northern Iraq on Saturday as severe thunderstorms swept across the region, including in neighbouring Iran. The city of Erbil, in Iraq, was particularly badly hit, with extensive damage to homes and businesses. Streets were inundated as torrential rain fell over a short period.&lt;/p&gt;&lt;p&gt;Rainfall exceeded forecasts, with an estimated 80mm falling in the city, compared with expectations of 30mm. Two people were killed in the floods.&lt;/p&gt; &lt;a href="https://www.theguardian.com/environment/2026/nov/09/deadly-floods-iraq-thunderstorms-iran-portugal-japan-snow"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/world/iraq">Iraq</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/portugal">Portugal</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/world/japan">Japan</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <category domain="https://www.theguardian.com/world/peru">Peru</category>
+      <category domain="https://www.theguardian.com/world/americas">Americas</category>
+      <category domain="https://www.theguardian.com/environment/elnino">El Niño southern oscillation</category>
+      <pubDate>Mon, 09 Nov 2026 10:59:06 GMT</pubDate>
+      <guid>https://www.theguardian.com/environment/2026/nov/09/deadly-floods-iraq-thunderstorms-iran-portugal-japan-snow</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/00aead2f7eac7d091928a3293777413e5367d450/0_0_6880_5504/master/6880.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=067e0f4447d82eeeaeff5e2ae40663a3">
+        <media:credit scheme="urn:ebu">Photograph: Sabur Rashid/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/00aead2f7eac7d091928a3293777413e5367d450/0_0_6880_5504/master/6880.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=363b4552a7c078afb54a92d0d3ecc912">
+        <media:credit scheme="urn:ebu">Photograph: Sabur Rashid/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/00aead2f7eac7d091928a3293777413e5367d450/0_0_6880_5504/master/6880.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ec1fdcc7efa9451ad508a1831bcdeb6f">
+        <media:credit scheme="urn:ebu">Photograph: Sabur Rashid/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Oliver Wyndham-Lewis and Magdalena Shopova for the MetDesk</dc:creator>
+      <dc:date>2026-11-09T10:59:06Z</dc:date>
+    </item>
+    <item>
+      <title>Pope Leo delivers stinging rebuke of Milei’s austerity measures during Argentina visit</title>
+      <link>https://www.theguardian.com/world/2026/nov/09/pope-leo-argentina-visit-speech-javier-milei-austerity</link>
+      <description>&lt;p&gt;Pontiff tells Argentina’s president the economy must benefit all on second stop of 12-day Latin America tour&lt;/p&gt;&lt;p&gt;Pope Leo XIV has delivered a stinging critique of Argentine president Javier Milei’s harsh austerity measures, insisting growth must benefit all in a speech met with rapturous applause in Buenos Aires.&lt;/p&gt;&lt;p&gt;“The economy must be at the service of the people, rather than people being at the service of the economy,” he said on Sunday, shortly after landing in Argentina on the second leg of a Latin America tour.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/09/pope-leo-argentina-visit-speech-javier-milei-austerity"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/pope-leo-xiv">Pope Leo XIV</category>
+      <category domain="https://www.theguardian.com/world/catholicism">Catholicism</category>
+      <category domain="https://www.theguardian.com/world/argentina">Argentina</category>
+      <category domain="https://www.theguardian.com/world/americas">Americas</category>
+      <category domain="https://www.theguardian.com/world/the-papacy">The papacy</category>
+      <category domain="https://www.theguardian.com/world/christianity">Christianity</category>
+      <category domain="https://www.theguardian.com/world/javier-milei">Javier Milei</category>
+      <pubDate>Mon, 09 Nov 2026 02:11:25 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/09/pope-leo-argentina-visit-speech-javier-milei-austerity</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/cebae71e5fdd86b5579126f7d39addd8b86cf7f9/123_0_2842_2274/master/2842.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=cf86259dc8237fa6a6872433d1541e66">
+        <media:credit scheme="urn:ebu">Photograph: Daniel Dal Zennaro/EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/cebae71e5fdd86b5579126f7d39addd8b86cf7f9/123_0_2842_2274/master/2842.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=a3f2b0de1fa52c4ee1bbb54caba5b3a8">
+        <media:credit scheme="urn:ebu">Photograph: Daniel Dal Zennaro/EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/cebae71e5fdd86b5579126f7d39addd8b86cf7f9/123_0_2842_2274/master/2842.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=10ec074df5e4211e9bc79bc521c9f23c">
+        <media:credit scheme="urn:ebu">Photograph: Daniel Dal Zennaro/EPA</media:credit>
+      </media:content>
+      <dc:creator>Agence France-Presse</dc:creator>
+      <dc:date>2026-11-09T02:11:25Z</dc:date>
+    </item>
+    <item>
+      <title>Pope’s visit to Argentina sets up showdown with ‘hyper-capitalist’ Milei</title>
+      <link>https://www.theguardian.com/world/2026/nov/08/popes-visit-to-argentina-sets-up-showdown-with-hyper-capitalist-milei</link>
+      <description>&lt;p&gt;President has opposing views on many issues, and once called Leo’s predecessor the ‘representative of the Evil One’&lt;/p&gt;&lt;p&gt;Trees are being planted in the garden. The brightly coloured buildings are getting another coat of paint. The choir rehearses. Hundreds of other residents, several of them using wheelchairs, practise their positions outside the sanctuary. Excitement is in the air, because on Monday 9 November, the Cottolengo Don Orione – a Catholic-run home for disabled people – will be the first stop on Pope Leo XIV’s first full day of his trip to Argentina.&lt;/p&gt;&lt;p&gt;But the pope’s visit to Claypole, about 26km from Buenos Aires, does not come at an especially happy time for the home, which counts about 400 residents with disabilities. Argentina’s president, Javier Milei, has made wide-ranging cuts to disability funding.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/08/popes-visit-to-argentina-sets-up-showdown-with-hyper-capitalist-milei"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/pope-leo-xiv">Pope Leo XIV</category>
+      <category domain="https://www.theguardian.com/world/argentina">Argentina</category>
+      <category domain="https://www.theguardian.com/world/javier-milei">Javier Milei</category>
+      <category domain="https://www.theguardian.com/world/americas">Americas</category>
+      <category domain="https://www.theguardian.com/world/the-papacy">The papacy</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/religion">Religion</category>
+      <category domain="https://www.theguardian.com/world/catholicism">Catholicism</category>
+      <pubDate>Sun, 08 Nov 2026 09:00:35 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/08/popes-visit-to-argentina-sets-up-showdown-with-hyper-capitalist-milei</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/69382c7253bd848478bf7c1f031a9d97c2de58fb/333_0_3333_2667/master/3333.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=3dddb36cfd2ec2fe18b0994331e43611">
+        <media:credit scheme="urn:ebu">Photograph: Evandro Inetti/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/69382c7253bd848478bf7c1f031a9d97c2de58fb/333_0_3333_2667/master/3333.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=49c98ed022378708ee239b76a471cf27">
+        <media:credit scheme="urn:ebu">Photograph: Evandro Inetti/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/69382c7253bd848478bf7c1f031a9d97c2de58fb/333_0_3333_2667/master/3333.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=99323030904fc85b3a2e09201b96bfa7">
+        <media:credit scheme="urn:ebu">Photograph: Evandro Inetti/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Facundo Iglesia in Buenos Aires</dc:creator>
+      <dc:date>2026-11-08T09:00:35Z</dc:date>
+    </item>
+    <item>
+      <title>Banana producers in Latin America want better pay to cope with effects of climate crisis</title>
+      <link>https://www.theguardian.com/business/2026/nov/08/banana-producers-in-latin-america-want-better-pay-to-cope-with-effects-of-climate-crisis</link>
+      <description>&lt;p&gt;Farmers face big drop in production from extreme weather during this year’s super El Niño event&lt;/p&gt;&lt;p&gt;Banana producers in Latin America are calling for better pay to help cope with the impact of the climate crisis, as they face big drops in production resulting from extreme weather during this year’s super El Niño event.&lt;/p&gt;&lt;p&gt;High winds in parts of Colombia, one of the biggest suppliers to the UK market where droughts are predicted in some regions this year, and heavy rainfall in Peru and Ecuador are already affecting production, according to the Fairtrade Foundation ethical trade body. In the Dominican Republic, farmers are expected to face drought conditions, with forecasts of drier and warmer than usual conditions.&lt;/p&gt; &lt;a href="https://www.theguardian.com/business/2026/nov/08/banana-producers-in-latin-america-want-better-pay-to-cope-with-effects-of-climate-crisis"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/business/fooddrinks">Food &amp; drink industry</category>
+      <category domain="https://www.theguardian.com/food/fruit">Fruit</category>
+      <category domain="https://www.theguardian.com/business/business">Business</category>
+      <category domain="https://www.theguardian.com/food/food">Food</category>
+      <category domain="https://www.theguardian.com/environment/climate-crisis">Climate crisis</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/colombia">Colombia</category>
+      <category domain="https://www.theguardian.com/world/peru">Peru</category>
+      <category domain="https://www.theguardian.com/environment/elnino">El Niño southern oscillation</category>
+      <category domain="https://www.theguardian.com/world/ecuador">Ecuador</category>
+      <category domain="https://www.theguardian.com/world/dominicanrepublic">Dominican Republic</category>
+      <category domain="https://www.theguardian.com/world/americas">Americas</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/environment/farming">Farming</category>
+      <category domain="https://www.theguardian.com/world/extreme-weather">Extreme weather</category>
+      <pubDate>Sun, 08 Nov 2026 07:00:34 GMT</pubDate>
+      <guid>https://www.theguardian.com/business/2026/nov/08/banana-producers-in-latin-america-want-better-pay-to-cope-with-effects-of-climate-crisis</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/9998f654354c4d901763da7a8e3a1176665da648/11_5_1775_1421/master/1775.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e0a7f48086ddcc00a4d4314519f8f04a">
+        <media:credit scheme="urn:ebu">Photograph: Alberto Lowe/REUTERS</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/9998f654354c4d901763da7a8e3a1176665da648/11_5_1775_1421/master/1775.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ae31b369a354e1e3be0ffa3e9df78442">
+        <media:credit scheme="urn:ebu">Photograph: Alberto Lowe/REUTERS</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/9998f654354c4d901763da7a8e3a1176665da648/11_5_1775_1421/master/1775.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6deb07ce42dd93b0be1263324b040140">
+        <media:credit scheme="urn:ebu">Photograph: Alberto Lowe/REUTERS</media:credit>
+      </media:content>
+      <dc:creator>Sarah Butler</dc:creator>
+      <dc:date>2026-11-08T07:00:34Z</dc:date>
+    </item>
+    <item>
+      <title>Ousted Paraguay president under house arrest after banking crisis leaves 60% of country unable to access accounts</title>
+      <link>https://www.theguardian.com/world/2026/nov/07/ousted-paraguay-president-under-house-arrest-after-banking-crisis-leaves-60-of-country-unable-to-access-accounts</link>
+      <description>&lt;p&gt;Santiago Peña was detained minutes after he was impeached by Congress, as protesters took to the streets demanding answers after the suspension of the Ueno bank&lt;/p&gt;&lt;p&gt;Paraguay’s rightwing president has been placed under house arrest minutes after he was impeached by Congress, amid a severe crisis that left more than half the country’s population unable to access their bank accounts.&lt;/p&gt;&lt;p&gt;Santiago Peña is being investigated about allegations he used his political influence to favour a bank that expanded exponentially under his government and was &lt;a href="https://www.theguardian.com/world/2026/nov/05/paraguay-president-santiago-pena-resigns"&gt;suspended this week after irregularities&lt;/a&gt;.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/07/ousted-paraguay-president-under-house-arrest-after-banking-crisis-leaves-60-of-country-unable-to-access-accounts"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/paraguay">Paraguay</category>
+      <category domain="https://www.theguardian.com/world/americas">Americas</category>
+      <pubDate>Sat, 07 Nov 2026 01:55:11 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/07/ousted-paraguay-president-under-house-arrest-after-banking-crisis-leaves-60-of-country-unable-to-access-accounts</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/3279bdc7ce3e00c2cbd356e73e342e1cba40051e/294_0_4320_3456/master/4320.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=53fe013eafe5b6ddce4601a63f181f9a">
+        <media:credit scheme="urn:ebu">Photograph: César Olmedo/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/3279bdc7ce3e00c2cbd356e73e342e1cba40051e/294_0_4320_3456/master/4320.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=0ec041f108221b973180fffe67be9186">
+        <media:credit scheme="urn:ebu">Photograph: César Olmedo/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/3279bdc7ce3e00c2cbd356e73e342e1cba40051e/294_0_4320_3456/master/4320.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=aa5aded0512a86a940d492d73c645385">
+        <media:credit scheme="urn:ebu">Photograph: César Olmedo/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Tiago Rogero South America correspondent</dc:creator>
+      <dc:date>2026-11-07T01:55:11Z</dc:date>
+    </item>
+    <item>
+      <title>Nvidia opens investigation after report CEO Jensen Huang was target of foreign intelligence</title>
+      <link>https://www.theguardian.com/us-news/2026/nov/08/nvidia-jensen-huang-investigation</link>
+      <description>&lt;p&gt;CEO reportedly ‌had close relationship ‌with a Chinese businesswoman who passed information to ‌Beijing&lt;/p&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/technology/nvidia"&gt;Nvidia&lt;/a&gt; said ⁠on Sunday it “is initiating an independent investigation in light of recent reporting that founder and CEO Jensen Huang has been the &lt;a href="https://www.theguardian.com/technology/2026/oct/29/nvidia-ceo-targeted-chinese-spy"&gt;target&lt;/a&gt; of a foreign intelligence effort”.&lt;/p&gt;&lt;p&gt;The &lt;a href="https://www.nytimes.com/2026/10/29/us/politics/nvidia-china-jensen-huang-trump.html"&gt;New York Times reported&lt;/a&gt; in ​October that &lt;a href="https://www.theguardian.com/us-news/donaldtrump"&gt;Donald Trump&lt;/a&gt; had been briefed last year on intelligence that Huang ‌had a close relationship ‌with a &lt;a href="https://www.theguardian.com/world/china"&gt;Chinese&lt;/a&gt; businesswoman who passed information to ‌Beijing.&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/08/nvidia-jensen-huang-investigation"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/technology/nvidia">Nvidia</category>
+      <category domain="https://www.theguardian.com/world/china">China</category>
+      <category domain="https://www.theguardian.com/technology/technology">Technology</category>
+      <category domain="https://www.theguardian.com/technology/artificialintelligenceai">AI (artificial intelligence)</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/us-news/trump-administration">Trump administration</category>
+      <pubDate>Mon, 09 Nov 2026 00:25:28 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/2026/nov/08/nvidia-jensen-huang-investigation</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/3fc6a5d68684a58fece0294bce9094ed76072ecd/2488_14_5430_4347/master/5430.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=57b1a4b39c9e4d81da1942f21f2da458">
+        <media:credit scheme="urn:ebu">Photograph: Brendan Smialowski/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/3fc6a5d68684a58fece0294bce9094ed76072ecd/2488_14_5430_4347/master/5430.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=f97261fe5e6b674c05d31d24b76132d6">
+        <media:credit scheme="urn:ebu">Photograph: Brendan Smialowski/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/3fc6a5d68684a58fece0294bce9094ed76072ecd/2488_14_5430_4347/master/5430.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=479082a01b7c472e474af2b77df4e1a8">
+        <media:credit scheme="urn:ebu">Photograph: Brendan Smialowski/AFP/Getty Images</media:credit>
+      </media:content>
+      <dc:creator>Marina Dunbar and Robert Mackey</dc:creator>
+      <dc:date>2026-11-09T00:25:28Z</dc:date>
+    </item>
+    <item>
+      <title>Uyghurs facing deportation by Thailand say they will be ‘like slaves’ in China</title>
+      <link>https://www.theguardian.com/global-development/2026/nov/08/uyghurs-thailand-china-forced-deportation</link>
+      <description>&lt;p&gt;Activists fear Bangkok will give in to pressure from Beijing despite reports of torture and human rights abuses against the mostly muslim ethnic minority&lt;/p&gt;&lt;p&gt;The deportation of two more Uyghurs to China from Thailand would put their lives in grave danger, activists have said, with one of the men saying he would be “like a slave” if he was sent back.&lt;/p&gt;&lt;p&gt;Last year, Thai authorities &lt;a href="https://www.theguardian.com/world/2025/feb/27/thailand-deports-dozens-of-uyghurs-to-china-despite-torture-fears"&gt;forcibly deported 40 Uyghur men&lt;/a&gt; to China despite pleas from the men themselves and the UN.
+ &lt;br&gt;
+ &lt;br&gt;
+ The US and Canada had reportedly &lt;a href="https://www.theguardian.com/world/2025/mar/05/us-offered-to-resettle-uyghurs-that-thailand-deported-to-china-sources-say"&gt;offered to resettle them&lt;/a&gt;, but Bangkok appeared to want to avoid upsetting Beijing. The &lt;a href="https://www.ohchr.org/en/press-releases/2026/02/chinas-silence-deepens-fears-over-disappeared-uyghur-returnees-year-warn-un"&gt;UN has said the returnees’ whereabouts remain unknown.&lt;/a&gt;&lt;/p&gt; &lt;a href="https://www.theguardian.com/global-development/2026/nov/08/uyghurs-thailand-china-forced-deportation"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/uyghurs">Uyghurs</category>
+      <category domain="https://www.theguardian.com/global-development/global-development">Global development</category>
+      <category domain="https://www.theguardian.com/world/thailand">Thailand</category>
+      <category domain="https://www.theguardian.com/world/xinjiang">Xinjiang</category>
+      <category domain="https://www.theguardian.com/world/china">China</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <category domain="https://www.theguardian.com/global-development/human-rights">Human rights</category>
+      <category domain="https://www.theguardian.com/global-development/transnational-repression">Transnational repression</category>
+      <category domain="https://www.theguardian.com/world/refugees">Refugees</category>
+      <category domain="https://www.theguardian.com/law/torture">Torture</category>
+      <category domain="https://www.theguardian.com/law/human-rights">Human rights</category>
+      <pubDate>Sun, 08 Nov 2026 03:00:28 GMT</pubDate>
+      <guid>https://www.theguardian.com/global-development/2026/nov/08/uyghurs-thailand-china-forced-deportation</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/35edbd25132584ead100a994fe3243e80a1ce3f1/0_0_4132_3306/master/4132.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=27393216122fc0abfebcbe2607170f1a">
+        <media:credit scheme="urn:ebu">Illustration: Guardian Pictures/EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/35edbd25132584ead100a994fe3243e80a1ce3f1/0_0_4132_3306/master/4132.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=96724b6fa6c4ecb376acdd383cd392c3">
+        <media:credit scheme="urn:ebu">Illustration: Guardian Pictures/EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/35edbd25132584ead100a994fe3243e80a1ce3f1/0_0_4132_3306/master/4132.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=3d91431bb720495dd7b81a0379fcde52">
+        <media:credit scheme="urn:ebu">Illustration: Guardian Pictures/EPA</media:credit>
+      </media:content>
+      <dc:creator>Amy Hawkins</dc:creator>
+      <dc:date>2026-11-08T03:00:28Z</dc:date>
+    </item>
+    <item>
+      <title>NZ election 2026: New Zealand faces weeks of uncertainty with results ‘too close to call’</title>
+      <link>https://www.theguardian.com/world/2026/nov/07/new-zealand-election-too-close-to-call-vote-count</link>
+      <description>&lt;p&gt;National party will be largest in parliament but ultimate shape of next government won’t be settled for some time&lt;/p&gt;&lt;p&gt;New Zealand could be facing a weeks-long wait to know the shape of its next government, after its nail-biting election failed to hand a decisive victory to either the incumbent rightwing coalition or opposition left bloc.&lt;/p&gt;&lt;p&gt;On preliminary results, the centre-right National party, led by the prime minister, Christopher Luxon, managed to secure enough seats to govern alongside its traditional coalition partners, the libertarian Act and populist New Zealand First parties.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/07/new-zealand-election-too-close-to-call-vote-count"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/new-zealand-election-2026">New Zealand election 2026</category>
+      <category domain="https://www.theguardian.com/world/newzealand">New Zealand</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/new-zealand-politics">New Zealand politics</category>
+      <category domain="https://www.theguardian.com/world/christopher-luxon">Christopher Luxon</category>
+      <category domain="https://www.theguardian.com/world/chris-hipkins">Chris Hipkins</category>
+      <category domain="https://www.theguardian.com/world/m-ori">Māori</category>
+      <category domain="https://www.theguardian.com/world/national-party-new-zealand">National Party</category>
+      <pubDate>Sun, 08 Nov 2026 01:00:48 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/07/new-zealand-election-too-close-to-call-vote-count</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/7fcb32a817f834d2911af2cc72d2a3a7d313ee0e/688_0_6880_5504/master/6880.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=030d6b177625782a5ee646ba1c1d9571">
+        <media:credit scheme="urn:ebu">Photograph: Bianca de Marchi/AAP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/7fcb32a817f834d2911af2cc72d2a3a7d313ee0e/688_0_6880_5504/master/6880.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e84b4f6321405d8e1201c960b64d3aef">
+        <media:credit scheme="urn:ebu">Photograph: Bianca de Marchi/AAP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/7fcb32a817f834d2911af2cc72d2a3a7d313ee0e/688_0_6880_5504/master/6880.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8f3b8896357b72317e0f0e7fb8b34aac">
+        <media:credit scheme="urn:ebu">Photograph: Bianca de Marchi/AAP</media:credit>
+      </media:content>
+      <dc:creator>Eva Corlett in Auckland</dc:creator>
+      <dc:date>2026-11-08T01:00:48Z</dc:date>
+    </item>
+    <item>
+      <title>New Zealand election coalition talks will likely take weeks – as it happened</title>
+      <link>https://www.theguardian.com/world/live/2026/nov/07/nz-general-election-2026-live-updates-results-new-zealand-polls</link>
+      <description>&lt;ul&gt;&lt;li&gt;&lt;p&gt;This blog is closed, you can &lt;a href="https://www.theguardian.com/world/2026/nov/07/new-zealand-election-too-close-to-call-vote-count"&gt;read our report on the New Zealand election here&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Another update here with &lt;strong&gt;8% of the vote counted&lt;/strong&gt;.
+ &lt;br&gt;
+ &lt;br&gt;
+ &lt;strong&gt;National on 31.2%, Labour 28.4%, the Greens 12.9%, Act 11.2%, NZ First 9.6%, Opportunity 5.7% and Te Pāti Māori 0.4%.&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;On these numbers, we would have a right bloc coalition back in power. &lt;em&gt;Long way to go&lt;/em&gt;.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/live/2026/nov/07/nz-general-election-2026-live-updates-results-new-zealand-polls"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/newzealand">New Zealand</category>
+      <category domain="https://www.theguardian.com/world/new-zealand-election-2026">New Zealand election 2026</category>
+      <category domain="https://www.theguardian.com/world/national-party-new-zealand">National Party</category>
+      <category domain="https://www.theguardian.com/world/labour-party-new-zealand">Labour party</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <pubDate>Sat, 07 Nov 2026 13:12:22 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/live/2026/nov/07/nz-general-election-2026-live-updates-results-new-zealand-polls</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/ca0da5faecb3c527577fc78ebfc856aa865bc8d6/1_0_4998_4000/master/4998.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=842242f69139eccf98f50148f27a190a">
+        <media:credit scheme="urn:ebu">Composite: Phil Walter/Hagen Hopkins/Getty Images</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/ca0da5faecb3c527577fc78ebfc856aa865bc8d6/1_0_4998_4000/master/4998.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ded34bcee488a2d8d6318bad59fc450b">
+        <media:credit scheme="urn:ebu">Composite: Phil Walter/Hagen Hopkins/Getty Images</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/ca0da5faecb3c527577fc78ebfc856aa865bc8d6/1_0_4998_4000/master/4998.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=3cc57e2df7b15ce3c153f61cbe77d785">
+        <media:credit scheme="urn:ebu">Composite: Phil Walter/Hagen Hopkins/Getty Images</media:credit>
+      </media:content>
+      <dc:creator>Mark Saunokonoko</dc:creator>
+      <dc:date>2026-11-07T13:12:22Z</dc:date>
+    </item>
+    <item>
+      <title>Global stocks fall amid ‘big worries over AI’ after Democrats’ midterms triumph</title>
+      <link>https://www.theguardian.com/business/2026/nov/06/global-stocks-plunge-amid-ai-slowdown-fears-after-democrats-midterm-triumph</link>
+      <description>&lt;p&gt;Asian and European markets follow US tech rout with many analysts predicting more waves of selling to come&lt;/p&gt;&lt;p&gt;European and Asian stock markets fell sharply on Friday after the Democrats’ decisive victory in the midterms triggered a rout in US tech stocks a day earlier.&lt;/p&gt;&lt;p&gt;A sell-off on Wall Street on Thursday was followed by sharp falls in Asian stock markets on Friday. The investor sentiment then reached London, where the market was, at one stage, poised for its worst day since March.&lt;/p&gt; &lt;a href="https://www.theguardian.com/business/2026/nov/06/global-stocks-plunge-amid-ai-slowdown-fears-after-democrats-midterm-triumph"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/business/stock-markets">Stock markets</category>
+      <category domain="https://www.theguardian.com/technology/artificialintelligenceai">AI (artificial intelligence)</category>
+      <category domain="https://www.theguardian.com/business/business">Business</category>
+      <category domain="https://www.theguardian.com/business/technology">Technology sector</category>
+      <category domain="https://www.theguardian.com/business/ftse">FTSE</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/world/asia-pacific">Asia Pacific</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/business/nasdaq">Nasdaq</category>
+      <category domain="https://www.theguardian.com/technology/technology">Technology</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/business/marketturmoil">Market turmoil</category>
+      <category domain="https://www.theguardian.com/us-news/democrats">Democrats</category>
+      <category domain="https://www.theguardian.com/business/us-markets">US markets</category>
+      <pubDate>Fri, 06 Nov 2026 21:23:54 GMT</pubDate>
+      <guid>https://www.theguardian.com/business/2026/nov/06/global-stocks-plunge-amid-ai-slowdown-fears-after-democrats-midterm-triumph</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/133fcf307a659f484d60938a125776efe501ba4e/407_0_3025_2422/master/3025.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=89a44d686b06b49ef9bf9404d834f126">
+        <media:credit scheme="urn:ebu">Photograph: Ritchie B Tongo/EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/133fcf307a659f484d60938a125776efe501ba4e/407_0_3025_2422/master/3025.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ff3042c93e0c4a87dadb98b73f68be7f">
+        <media:credit scheme="urn:ebu">Photograph: Ritchie B Tongo/EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/133fcf307a659f484d60938a125776efe501ba4e/407_0_3025_2422/master/3025.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c9b009d116ee1fdcc35377fd421c7636">
+        <media:credit scheme="urn:ebu">Photograph: Ritchie B Tongo/EPA</media:credit>
+      </media:content>
+      <dc:creator>Mark Sweney and Graeme Wearden</dc:creator>
+      <dc:date>2026-11-06T21:23:54Z</dc:date>
+    </item>
+    <item>
+      <title>Stop undermining Jim Chalmers, environment minister urges Labor colleagues</title>
+      <link>https://www.theguardian.com/uk-news/2026/nov/09/stop-undermining-treasurer-jim-chalmers-environment-minister-urges-colleagues</link>
+      <description>&lt;p&gt;‘It’s pretty obvious that there are all sorts of people making all sorts of comments,’ Murray Watt says after budget savings meeting&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;Get our &lt;a href="https://www.theguardian.com/email-newsletters?CMP=cvau_sfl"&gt;breaking news email&lt;/a&gt;, &lt;a href="https://app.adjust.com/w4u7jx3"&gt;free app&lt;/a&gt; or &lt;a href="https://www.theguardian.com/australia-news/series/full-story?CMP=cvau_sfl"&gt;daily news podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;The &lt;a href="https://www.theguardian.com/environment/2026/mar/17/australia-environment-murray-watt-ocean-protection-fishers-drillers"&gt;environment minister, Murray Watt&lt;/a&gt;, has urged ministers to stop undermining the treasurer, Jim Chalmers, as Labor struggles to sell its budget and looks to cut popular clean energy subsidies to help with the fight against inflation.&lt;/p&gt;&lt;p&gt;Cabinet ministers met again on Monday to discuss potential budget savings to be included in next month’s mid-year update, part of efforts to reducing spending to ease pressure on the economy.&lt;/p&gt; &lt;a href="https://www.theguardian.com/uk-news/2026/nov/09/stop-undermining-treasurer-jim-chalmers-environment-minister-urges-colleagues"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/australia-news/labor-party">Labor party</category>
+      <category domain="https://www.theguardian.com/australia-news/jim-chalmers--australian-politician-">Jim Chalmers</category>
+      <category domain="https://www.theguardian.com/australia-news/anthony-albanese">Anthony Albanese</category>
+      <category domain="https://www.theguardian.com/australia-news/australian-politics">Australian politics</category>
+      <category domain="https://www.theguardian.com/australia-news/australia-news">Australia news</category>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/australia-news/coalition">Coalition</category>
+      <category domain="https://www.theguardian.com/business/australia-economy">Australian economy</category>
+      <category domain="https://www.theguardian.com/environment/electric-vehicles-australia">Electric vehicles</category>
+      <pubDate>Mon, 09 Nov 2026 05:47:49 GMT</pubDate>
+      <guid>https://www.theguardian.com/uk-news/2026/nov/09/stop-undermining-treasurer-jim-chalmers-environment-minister-urges-colleagues</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/0a251c36d8f4f67e296c116d611465daf42788cd/212_0_5048_4038/master/5048.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b1558db5c26a0a43c35a7d026786850e">
+        <media:credit scheme="urn:ebu">Photograph: Mick Tsikas/AAP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/0a251c36d8f4f67e296c116d611465daf42788cd/212_0_5048_4038/master/5048.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c3503d770b873cf4a705fbf327555f55">
+        <media:credit scheme="urn:ebu">Photograph: Mick Tsikas/AAP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/0a251c36d8f4f67e296c116d611465daf42788cd/212_0_5048_4038/master/5048.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=900fd81b41c7e274ea7f64f0bb7543ed">
+        <media:credit scheme="urn:ebu">Photograph: Mick Tsikas/AAP</media:credit>
+      </media:content>
+      <dc:creator>Tom McIlroy Political editor</dc:creator>
+      <dc:date>2026-11-09T05:47:49Z</dc:date>
+    </item>
+    <item>
+      <title>Victorian election 2026: Concern and scepticism among Labor MPs as new poll shows party trailing One Nation</title>
+      <link>https://www.theguardian.com/australia-news/2026/nov/09/victoria-election-2026-labor-mps-new-opinion-poll-one-nation-ntwnfb</link>
+      <description>&lt;p&gt;Ben Carroll refuses to be drawn on latest opinion poll that puts Labor at all-time low of just 18%, behind One Nation on 21% and the Coalition on 33%&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;Get our &lt;a href="https://www.theguardian.com/email-newsletters?CMP=cvau_sfl"&gt;daily political email&lt;/a&gt;, &lt;a href="https://app.adjust.com/w4u7jx3"&gt;free app&lt;/a&gt; or &lt;a href="https://www.theguardian.com/australia-news/series/full-story?CMP=cvau_sfl"&gt;daily news podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Victorian Labor MPs are both sceptical and seriously concerned about a new poll ahead of the state election showing the party trailing third behind One Nation, with its primary vote at an all-time low of just 18%.&lt;/p&gt;&lt;p&gt;The DemosAU/PremierNational, &lt;a href="https://www.heraldsun.com.au/news/victoria/state-election/coalition-surges-to-5644-lead-as-victorian-labor-faces-catastrophic-state-election-wipeout/news-story/cfd77a95d33cd90b152b633f1f4642cb"&gt;first published&lt;/a&gt; by the Herald Sun on Monday, showed Labor’s primary vote share has crashed seven points to 18%, putting it in third place behind the Coalition’s 33% and One Nation’s 21%. At the same time, &lt;a href="https://www.theguardian.com/australia-news/2026/nov/01/is-one-nation-losing-steam-victoria-new-polling-greens-state-election-ntwnfb"&gt;the Greens improved their primary vote&lt;/a&gt; to 17%, an increase of three points since September.&lt;/p&gt; &lt;a href="https://www.theguardian.com/australia-news/2026/nov/09/victoria-election-2026-labor-mps-new-opinion-poll-one-nation-ntwnfb"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/australia-news/victoria-state-election-2026">Victoria state election 2026</category>
+      <category domain="https://www.theguardian.com/australia-news/victorian-politics">Victorian politics</category>
+      <category domain="https://www.theguardian.com/australia-news/victoria">Victoria</category>
+      <category domain="https://www.theguardian.com/australia-news/australia-news">Australia news</category>
+      <pubDate>Mon, 09 Nov 2026 04:55:15 GMT</pubDate>
+      <guid>https://www.theguardian.com/australia-news/2026/nov/09/victoria-election-2026-labor-mps-new-opinion-poll-one-nation-ntwnfb</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/eb1414dc0eeede52985082395d9f3ea36f782c63/1248_827_3346_2677/master/3346.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=be6e9c00cd74f32ee0ea1ed5b842f2d1">
+        <media:credit scheme="urn:ebu">Photograph: Rob Prezioso/AAP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/eb1414dc0eeede52985082395d9f3ea36f782c63/1248_827_3346_2677/master/3346.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=7b06a4c1a19da6a244661a8b408d957d">
+        <media:credit scheme="urn:ebu">Photograph: Rob Prezioso/AAP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/eb1414dc0eeede52985082395d9f3ea36f782c63/1248_827_3346_2677/master/3346.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=86d85a3dfcaeabeb9b4f35fbeb3e50a0">
+        <media:credit scheme="urn:ebu">Photograph: Rob Prezioso/AAP</media:credit>
+      </media:content>
+      <dc:creator>Benita Kolovos Victorian state correspondent</dc:creator>
+      <dc:date>2026-11-09T04:55:15Z</dc:date>
+    </item>
+    <item>
+      <title>CFMEU ‘enjoy a significant level of influence’ over Victorian government, Big Build royal commission hears</title>
+      <link>https://www.theguardian.com/australia-news/2026/nov/09/big-build-royal-commission-hears-cfmeu-enjoy-a-significant-level-of-influence-over-victorian-government-ntwnfb</link>
+      <description>&lt;p&gt;Inquiry into allegations of corruption begins block of hearings focused on 2022 level crossing removal project&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;Get our &lt;a href="https://www.theguardian.com/email-newsletters?CMP=cvau_sfl"&gt;breaking news email&lt;/a&gt;, &lt;a href="https://app.adjust.com/w4u7jx3"&gt;free app&lt;/a&gt; or &lt;a href="https://www.theguardian.com/australia-news/series/full-story?CMP=cvau_sfl"&gt;daily news podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;The &lt;a href="https://www.theguardian.com/australia-news/2026/sep/23/victoria-big-build-royal-commission-construction-inquiry-corruption-first-hearing-ntwnfb"&gt;royal commission&lt;/a&gt; into allegations of corruption on Victorian Big Build projects has heard a major construction company feared putting the Construction, Forestry and Maritime Employees Union (CFMEU) offside because of its close links to the Daniel Andrews Labor government.&lt;/p&gt;&lt;p&gt;The first block of hearings under the commission into the integrity of major public and civil infrastructure construction projects in Victoria will hear evidence about the union’s involvement in a level crossing removal project at Gap Road in Sunbury, north of Melbourne, in 2022.&lt;/p&gt; &lt;a href="https://www.theguardian.com/australia-news/2026/nov/09/big-build-royal-commission-hears-cfmeu-enjoy-a-significant-level-of-influence-over-victorian-government-ntwnfb"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/australia-news/victorian-politics">Victorian politics</category>
+      <category domain="https://www.theguardian.com/australia-news/australian-trade-unions">Australian trade unions</category>
+      <category domain="https://www.theguardian.com/australia-news/business-australia">Business</category>
+      <category domain="https://www.theguardian.com/australia-news/victoria">Victoria</category>
+      <category domain="https://www.theguardian.com/australia-news/australia-news">Australia news</category>
+      <pubDate>Mon, 09 Nov 2026 04:34:08 GMT</pubDate>
+      <guid>https://www.theguardian.com/australia-news/2026/nov/09/big-build-royal-commission-hears-cfmeu-enjoy-a-significant-level-of-influence-over-victorian-government-ntwnfb</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/8470b813c89fe3b167c0e7fa2ec9891e14056371/0_0_4721_3779/master/4721.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=0daf72df8dc2f2b53aa7af351fa95d1e">
+        <media:credit scheme="urn:ebu">Photograph: Joel Carrett/AAP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/8470b813c89fe3b167c0e7fa2ec9891e14056371/0_0_4721_3779/master/4721.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6bfefbc8f93a7c8a4e613f46bb2f0158">
+        <media:credit scheme="urn:ebu">Photograph: Joel Carrett/AAP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/8470b813c89fe3b167c0e7fa2ec9891e14056371/0_0_4721_3779/master/4721.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=22a3d7189a507417460a0ba52bb8fcc8">
+        <media:credit scheme="urn:ebu">Photograph: Joel Carrett/AAP</media:credit>
+      </media:content>
+      <dc:creator>Nino Bucci and Jack Larkin</dc:creator>
+      <dc:date>2026-11-09T04:34:08Z</dc:date>
+    </item>
+    <item>
+      <title>Man accused of HungryPanda delivery rider’s stabbing murder yells and exposes himself in Melbourne court</title>
+      <link>https://www.theguardian.com/australia-news/2026/nov/09/man-charged-fatal-stabbing-hungrypanda-delivery-driver-jianming-feng-melbourne-ntwnfb</link>
+      <description>&lt;p&gt;Roberto Urbano, 51, appears in court via video link after death of 47-year-old Feng Jianming in the CBD on Friday night&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;Get our &lt;a href="https://www.theguardian.com/email-newsletters?CMP=cvau_sfl"&gt;breaking news email&lt;/a&gt;, &lt;a href="https://app.adjust.com/w4u7jx3"&gt;free app&lt;/a&gt; or &lt;a href="https://www.theguardian.com/australia-news/series/full-story?CMP=cvau_sfl"&gt;daily news podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;A food delivery rider’s alleged murderer has pulled down his pants and exposed himself as he appeared in court.&lt;/p&gt;&lt;p&gt;Roberto Urbano, 51, appeared in Melbourne magistrates court via video link on Monday after being charged with murder and intentionally causing serious injury.&lt;/p&gt; &lt;a href="https://www.theguardian.com/australia-news/2026/nov/09/man-charged-fatal-stabbing-hungrypanda-delivery-driver-jianming-feng-melbourne-ntwnfb"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/australia-news/melbourne">Melbourne</category>
+      <category domain="https://www.theguardian.com/australia-news/australia-news">Australia news</category>
+      <category domain="https://www.theguardian.com/australia-news/victoria">Victoria</category>
+      <category domain="https://www.theguardian.com/business/the-gig-economy">Gig economy</category>
+      <pubDate>Mon, 09 Nov 2026 03:47:21 GMT</pubDate>
+      <guid>https://www.theguardian.com/australia-news/2026/nov/09/man-charged-fatal-stabbing-hungrypanda-delivery-driver-jianming-feng-melbourne-ntwnfb</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/4954ad8d5503c8161345548e255e4fdf2719dd1d/585_40_1083_867/master/1083.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5ec33b002d331556a841dce611707272">
+        <media:credit scheme="urn:ebu">Photograph: PR IMAGE/Supplied by Go Fund Me</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/4954ad8d5503c8161345548e255e4fdf2719dd1d/585_40_1083_867/master/1083.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5e13752e63cf72bb32e4885897ea4724">
+        <media:credit scheme="urn:ebu">Photograph: PR IMAGE/Supplied by Go Fund Me</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/4954ad8d5503c8161345548e255e4fdf2719dd1d/585_40_1083_867/master/1083.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c2a92e245a3be71fdb86b2473d379161">
+        <media:credit scheme="urn:ebu">Photograph: PR IMAGE/Supplied by Go Fund Me</media:credit>
+      </media:content>
+      <dc:creator>Australian Associated Press</dc:creator>
+      <dc:date>2026-11-09T03:47:21Z</dc:date>
+    </item>
+    <item>
+      <title>‘Outrageous and racist’: premier responds to NSW One Nation candidate’s claim Australians are being ‘demographically replaced’</title>
+      <link>https://www.theguardian.com/australia-news/2026/nov/09/one-nation-stuart-bonds-slammed-immigration-comments-ntwnfb</link>
+      <description>&lt;p&gt;Chris Minns and race discrimination commissioner lambast comments made by Stuart Bonds, who leads party’s NSW upper house ticket&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;Get our &lt;a href="https://www.theguardian.com/email-newsletters?CMP=cvau_sfl"&gt;breaking news email&lt;/a&gt;, &lt;a href="https://app.adjust.com/w4u7jx3"&gt;free app&lt;/a&gt; or &lt;a href="https://www.theguardian.com/australia-news/series/full-story?CMP=cvau_sfl"&gt;daily news podcast&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;The New South Wales premier and the Australian Human Rights Commission have criticised comments by the man who heads One Nation’s upper house ticket in NSW after he said Australians faced demographic replacement unless “mass migration” was curtailed.&lt;/p&gt;&lt;p&gt;Chris Minns described Stuart Bonds’ comments as “frankly outrageous and racist”.&lt;/p&gt; &lt;a href="https://www.theguardian.com/australia-news/2026/nov/09/one-nation-stuart-bonds-slammed-immigration-comments-ntwnfb"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/australia-news/australia-news">Australia news</category>
+      <category domain="https://www.theguardian.com/australia-news/new-south-wales">New South Wales</category>
+      <category domain="https://www.theguardian.com/australia-news/one-nation">One Nation</category>
+      <category domain="https://www.theguardian.com/australia-news/chris-minns">Chris Minns</category>
+      <category domain="https://www.theguardian.com/australia-news/australian-politics">Australian politics</category>
+      <pubDate>Mon, 09 Nov 2026 03:33:14 GMT</pubDate>
+      <guid>https://www.theguardian.com/australia-news/2026/nov/09/one-nation-stuart-bonds-slammed-immigration-comments-ntwnfb</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/39f09dedf1330fa12ee7faa964b23d239dcb80af/375_0_6309_5051/master/6309.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c60578f8c92047cb0bee9b7f85ead937">
+        <media:credit scheme="urn:ebu">Photograph: Dan Himbrechts/AAP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/39f09dedf1330fa12ee7faa964b23d239dcb80af/375_0_6309_5051/master/6309.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=4926cb96f21808fb716164a0efb1057b">
+        <media:credit scheme="urn:ebu">Photograph: Dan Himbrechts/AAP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/39f09dedf1330fa12ee7faa964b23d239dcb80af/375_0_6309_5051/master/6309.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=f3792a7b0a1188934d3d64a91164e99d">
+        <media:credit scheme="urn:ebu">Photograph: Dan Himbrechts/AAP</media:credit>
+      </media:content>
+      <dc:creator>Anne Davies</dc:creator>
+      <dc:date>2026-11-09T03:33:14Z</dc:date>
+    </item>
+    <item>
+      <title>Poland’s justice minister says investigation into Kraków shooting will aim to establish if the 24-year-old acted alone – Europe live</title>
+      <link>https://www.theguardian.com/world/live/2026/nov/09/polands-krakow-attack-ukraine-russia-france-germany-europe-latest-news</link>
+      <description>&lt;p&gt;Terrorism investigation was opened after attacker opened fire in a market square&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Canada is expanding ⁠its ⁠Russia-related sanctions&lt;/strong&gt; ​to target ⁠another 38 ⁠entities ​and ‌24 ‌individuals, including actors ‌involved in ballistic missile ‌technology development and cyber ​activities, Reuters reports.&lt;/p&gt;&lt;p&gt;The EU has filed a lawsuit against &lt;strong&gt;IBM&lt;/strong&gt; and two other companies involved in its troubled border-management system, an internal document has revealed.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/live/2026/nov/09/polands-krakow-attack-ukraine-russia-france-germany-europe-latest-news"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/world/poland">Poland</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/ukraine">Ukraine</category>
+      <category domain="https://www.theguardian.com/world/russia">Russia</category>
+      <category domain="https://www.theguardian.com/world/france">France</category>
+      <category domain="https://www.theguardian.com/world/germany">Germany</category>
+      <pubDate>Mon, 09 Nov 2026 12:25:26 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/live/2026/nov/09/polands-krakow-attack-ukraine-russia-france-germany-europe-latest-news</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/275cfb2ac59b00e76178a04ebec8c40d2840a0a9/1268_0_6827_5464/master/6827.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6edbf3a45a61a2b61069f3faa7729e17">
+        <media:credit scheme="urn:ebu">Photograph: Beata Zawrzel/AP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/275cfb2ac59b00e76178a04ebec8c40d2840a0a9/1268_0_6827_5464/master/6827.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8055c310933bc379146b41c2d2b584fd">
+        <media:credit scheme="urn:ebu">Photograph: Beata Zawrzel/AP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/275cfb2ac59b00e76178a04ebec8c40d2840a0a9/1268_0_6827_5464/master/6827.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=df99f6c7699e53172e0148a9b9a7f1af">
+        <media:credit scheme="urn:ebu">Photograph: Beata Zawrzel/AP</media:credit>
+      </media:content>
+      <dc:creator>Martin Belam (now) and Yohannes Lowe (earlier)</dc:creator>
+      <dc:date>2026-11-09T12:25:26Z</dc:date>
+    </item>
+    <item>
+      <title>EU sues IBM and two European firms over troubled entry/exit border system</title>
+      <link>https://www.theguardian.com/world/2026/nov/09/eu-lawsuit-ibm-atos-leonardo-entry-exit-border-system</link>
+      <description>&lt;p&gt;Lawsuit filed last year against IBM, Atos and Leonardo after delays to passengers blamed on the system, first reported in the FT&lt;/p&gt;&lt;p&gt;The EU has filed a lawsuit against IBM and two other companies involved in its troubled border-management system, an internal document has revealed.&lt;/p&gt;&lt;p&gt;The bloc’s IT agency, EU-Lisa, filed a case last year against IBM, the French IT company Atos and Italian defence contractor Leonardo, the three members of a consortium to implement and maintain the &lt;a href="https://www.theguardian.com/business/2026/jul/02/what-is-the-ess-and-how-is-it-affecting-visitors-to-eu-nations-this-summer"&gt;EU’s entry/exit system&lt;/a&gt;, which was launched in October 2025.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/09/eu-lawsuit-ibm-atos-leonardo-entry-exit-border-system"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/eu">European Union</category>
+      <category domain="https://www.theguardian.com/technology/technology">Technology</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/business/travelleisure">Travel &amp; leisure</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Mon, 09 Nov 2026 10:49:23 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/09/eu-lawsuit-ibm-atos-leonardo-entry-exit-border-system</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/d4e0bb6cf66538930d3fcf221707a4675ec85a38/222_0_2919_2336/master/2919.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e22ca6f51d1bd73b95db705e80cecde5">
+        <media:credit scheme="urn:ebu">Photograph: Avpics/Alamy</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/d4e0bb6cf66538930d3fcf221707a4675ec85a38/222_0_2919_2336/master/2919.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9965d4f5afa31da053eca4105276ede2">
+        <media:credit scheme="urn:ebu">Photograph: Avpics/Alamy</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/d4e0bb6cf66538930d3fcf221707a4675ec85a38/222_0_2919_2336/master/2919.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b403fc516fd69c94a9d3ece86d99a9b9">
+        <media:credit scheme="urn:ebu">Photograph: Avpics/Alamy</media:credit>
+      </media:content>
+      <dc:creator>Jennifer Rankin in Brussels</dc:creator>
+      <dc:date>2026-11-09T10:49:23Z</dc:date>
+    </item>
+    <item>
+      <title>French police officers face trial over beating of black man they accused of not wearing Covid face mask</title>
+      <link>https://www.theguardian.com/world/2026/nov/09/french-police-officers-face-trial-over-beating-of-black-man-not-wearing-mask-during-covid</link>
+      <description>&lt;p&gt;Assault on Michel Zecler in 2020 is rare case of police brutality reaching court, at time of heightened tensions&lt;/p&gt;&lt;p&gt;Three French police officers are to go on trial over the beating of a black music producer who they say was not wearing a face mask during the Covid pandemic, in a rare case of police brutality reaching court.&lt;/p&gt;&lt;p&gt;The assault on Michel Zecler, now 47, triggered outrage in France over police violence, which victims and researchers say is systemic but authorities and law enforcement unions claim is limited to isolated cases.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/09/french-police-officers-face-trial-over-beating-of-black-man-not-wearing-mask-during-covid"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/france">France</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Mon, 09 Nov 2026 10:24:40 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/09/french-police-officers-face-trial-over-beating-of-black-man-not-wearing-mask-during-covid</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/180b3165795acc6821e469d992253c2c643c3c1e/1970_1083_3999_3199/master/3999.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=fc36de756ea26ecd99e5a8d1b6bb5f5c">
+        <media:credit scheme="urn:ebu">Photograph: Poitout Florian/ABACA/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/180b3165795acc6821e469d992253c2c643c3c1e/1970_1083_3999_3199/master/3999.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=93c64e1ed12439596ad4fd3f9effa7af">
+        <media:credit scheme="urn:ebu">Photograph: Poitout Florian/ABACA/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/180b3165795acc6821e469d992253c2c643c3c1e/1970_1083_3999_3199/master/3999.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c940c9a9514ee55844accc39b66f47b1">
+        <media:credit scheme="urn:ebu">Photograph: Poitout Florian/ABACA/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Agence France-Presse</dc:creator>
+      <dc:date>2026-11-09T10:24:40Z</dc:date>
+    </item>
+    <item>
+      <title>Kraków shooting suspect who killed six has died, Polish police say</title>
+      <link>https://www.theguardian.com/world/2026/nov/09/krakow-shooting-suspected-gunman-dead</link>
+      <description>&lt;p&gt;Terrorism investigation continues after 24-year-old opened fire in market square, leaving 16 injured&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/world/live/2026/nov/09/polands-krakow-attack-ukraine-russia-france-germany-europe-latest-news"&gt;Europe live – latest updates&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;A gunman suspected of killing six people, including a British man, and injuring 16 in a rare mass shooting in a busy market square in Kraków has died in hospital, Polish police said.&lt;/p&gt;&lt;p&gt;The 24-year-old Polish national, who has not yet been officially named, opened fire in the city’s main square on Saturday afternoon in an attack that a government minister said was probably influenced by far-right ideologies. He was wounded during a shootout with police and taken to hospital in a critical condition.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/09/krakow-shooting-suspected-gunman-dead"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/poland">Poland</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <pubDate>Mon, 09 Nov 2026 10:22:54 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/09/krakow-shooting-suspected-gunman-dead</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/144167bc139f2f8e3e5afca64d7a0ce876d25f24/24_0_4300_3440/master/4300.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=19608618c7b3d8ebc7947d4c6d7b94d3">
+        <media:credit scheme="urn:ebu">Photograph: Jakub Porzycki/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/144167bc139f2f8e3e5afca64d7a0ce876d25f24/24_0_4300_3440/master/4300.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=106fb1bcc169e995053214992040c0a9">
+        <media:credit scheme="urn:ebu">Photograph: Jakub Porzycki/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/144167bc139f2f8e3e5afca64d7a0ce876d25f24/24_0_4300_3440/master/4300.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=36c35ab776378cdf63c260777b3a9026">
+        <media:credit scheme="urn:ebu">Photograph: Jakub Porzycki/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Angela Giuffrida and agencies</dc:creator>
+      <dc:date>2026-11-09T10:22:54Z</dc:date>
+    </item>
+    <item>
+      <title>‘A global political awakening’: how gen Z protests are sweeping the world</title>
+      <link>https://www.theguardian.com/world/2026/nov/06/gen-z-protests-sweeping-the-world</link>
+      <description>&lt;p&gt;From Serbia to Bangladesh and India to France, young people are pushing back against authoritarianism and reshaping political landscapes&lt;/p&gt;&lt;p&gt;In Brazil, they rallied online by the millions, sharing videos and spreading memes. In Serbia, they cycled across Europe and ran ultramarathons to make their voices heard.&lt;/p&gt;&lt;p&gt;Both movements burst into international public view last month as they became central during election campaigns to the pushback against authoritarianism. What they also offered, however, was a window into a wider phenomenon playing out across the globe, as youth-led movements reshape political landscapes.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/06/gen-z-protests-sweeping-the-world"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/protest">Protest</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/society/youngpeople">Young people</category>
+      <category domain="https://www.theguardian.com/world/france">France</category>
+      <category domain="https://www.theguardian.com/world/germany">Germany</category>
+      <category domain="https://www.theguardian.com/world/serbia">Serbia</category>
+      <category domain="https://www.theguardian.com/world/bangladesh">Bangladesh</category>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/world/belgium">Belgium</category>
+      <category domain="https://www.theguardian.com/world/mexico">Mexico</category>
+      <category domain="https://www.theguardian.com/world/spain">Spain</category>
+      <category domain="https://www.theguardian.com/world/italy">Italy</category>
+      <category domain="https://www.theguardian.com/world/morocco">Morocco</category>
+      <category domain="https://www.theguardian.com/society/society">Society</category>
+      <pubDate>Mon, 09 Nov 2026 08:04:44 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/06/gen-z-protests-sweeping-the-world</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/d8c802e22e952ef416894c5d0a6ecca11d13b496/459_0_4582_3666/master/4582.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=92a98b53493301af4a38acb36c24d9e4">
+        <media:credit scheme="urn:ebu">Photograph: Uros Arsic/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/d8c802e22e952ef416894c5d0a6ecca11d13b496/459_0_4582_3666/master/4582.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=696a83c3a860b507c37e09ffd47ae7c3">
+        <media:credit scheme="urn:ebu">Photograph: Uros Arsic/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/d8c802e22e952ef416894c5d0a6ecca11d13b496/459_0_4582_3666/master/4582.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=0e6444e5dfc451bcc781cb563d8ef201">
+        <media:credit scheme="urn:ebu">Photograph: Uros Arsic/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Ashifa Kassam and Lex McMenamin</dc:creator>
+      <dc:date>2026-11-09T08:04:44Z</dc:date>
+    </item>
+    <item>
+      <title>Gadi Eisenkot reaches out to Netanyahu allies as he strives to form government</title>
+      <link>https://www.theguardian.com/world/2026/nov/08/gadi-eisenkot-netanyahu-allies-form-israel-government</link>
+      <description>&lt;p&gt;Former military chief says prime minister brought Israel to historic crisis and it is approaching ‘point of no return’&lt;/p&gt;&lt;p&gt;Israel’s former military chief Gadi Eisenkot started the tough task of forming a government on Sunday, reaching out to Benjamin Netanyahu’s allies as he said the veteran prime minister had brought the country to a historic crisis.&lt;/p&gt;&lt;p&gt;Eisenkot, 66, the leader of the Yashar party, who has vowed to bridge Israel’s deep polarisation under Netanyahu, formally received a mandate from the president, Isaac Herzog, who gave him 28 days to form a government despite his bloc lacking a clear majority.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/08/gadi-eisenkot-netanyahu-allies-form-israel-government"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/israel">Israel</category>
+      <category domain="https://www.theguardian.com/world/benjamin-netanyahu">Benjamin Netanyahu</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Sun, 08 Nov 2026 17:53:59 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/08/gadi-eisenkot-netanyahu-allies-form-israel-government</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/c89093b1bdff428195f0ad9be24f6d4eac75b842/555_286_3230_2586/master/3230.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e5e03cc0e5601cb1524de4d029ca1130">
+        <media:credit scheme="urn:ebu">Photograph: Debbie Hill/UPI/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/c89093b1bdff428195f0ad9be24f6d4eac75b842/555_286_3230_2586/master/3230.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=59d5e017ceef76ee63241524ec19c0f1">
+        <media:credit scheme="urn:ebu">Photograph: Debbie Hill/UPI/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/c89093b1bdff428195f0ad9be24f6d4eac75b842/555_286_3230_2586/master/3230.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5ddd93bfa4edf2e9347e0b35f467de4d">
+        <media:credit scheme="urn:ebu">Photograph: Debbie Hill/UPI/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Guardian staff and agencies</dc:creator>
+      <dc:date>2026-11-08T17:53:59Z</dc:date>
+    </item>
+    <item>
+      <title>Israel’s president picks Yashar leader Gadi Eisenkot to form government</title>
+      <link>https://www.theguardian.com/world/2026/nov/07/israel-president-gadi-eisenkot-form-government</link>
+      <description>&lt;p&gt;Knesset has been deadlocked since the election last month when Benjamin Netanyahu’s coalition lost its majority&lt;/p&gt;&lt;p&gt;Israel’s president has ⁠chosen Gadi Eisenkot, the prime minister Benjamin Netanyahu’s ⁠strongest rival, to ⁠try to ​form a new government, after a deadlocked election that left neither man ⁠with a clear path to power.&lt;/p&gt;&lt;p&gt;Isaac Herzog’s office said he had informed Eisenkot, the leader of the Yashar party, on Saturday night “of his intention to task him with forming a government”.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/07/israel-president-gadi-eisenkot-form-government"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/israel">Israel</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/benjamin-netanyahu">Benjamin Netanyahu</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/hamas">Hamas</category>
+      <pubDate>Sun, 08 Nov 2026 14:26:14 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/07/israel-president-gadi-eisenkot-form-government</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/7eec88b1e0176fdcaf9916606ea9a1c049ff2da6/552_347_2266_1813/master/2266.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=a900eb5d96def2c3cc51c767660e3a47">
+        <media:credit scheme="urn:ebu">Photograph: Paulina Patimer/JNA/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/7eec88b1e0176fdcaf9916606ea9a1c049ff2da6/552_347_2266_1813/master/2266.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=52ad59783d36ab24d9b366dcb16e7c01">
+        <media:credit scheme="urn:ebu">Photograph: Paulina Patimer/JNA/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/7eec88b1e0176fdcaf9916606ea9a1c049ff2da6/552_347_2266_1813/master/2266.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=32bf07c5d2f45f0c7848a86ae00b2af7">
+        <media:credit scheme="urn:ebu">Photograph: Paulina Patimer/JNA/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Guardian staff and agencies</dc:creator>
+      <dc:date>2026-11-08T14:26:14Z</dc:date>
+    </item>
+    <item>
+      <title>Court rules against Home Office in asylum seeker kidnapping case</title>
+      <link>https://www.theguardian.com/law/2026/nov/07/court-of-appeal-rules-kidnap-for-ransom-libya-exploitation-trafficking-victims-asylum-seeker-home-office</link>
+      <description>&lt;p&gt;Department had claimed that being kidnapped for ransom was not exploitation of trafficking victims in case of Syrian man abducted in Libya&lt;/p&gt;&lt;p&gt;The court of appeal has rejected claims by the Home Office that being kidnapped for ransom is not exploitation of trafficking victims.&lt;/p&gt;&lt;p&gt;The ruling means that many people who have been kidnapped for ransom, whom officials have previously excluded from being victims of exploitation under trafficking rules, will now have to have these claims considered. They may be eligible for the support and recovery package trafficking victims are entitled to.&lt;/p&gt; &lt;a href="https://www.theguardian.com/law/2026/nov/07/court-of-appeal-rules-kidnap-for-ransom-libya-exploitation-trafficking-victims-asylum-seeker-home-office"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/law/human-trafficking">Human trafficking</category>
+      <category domain="https://www.theguardian.com/law/court-of-appeal">Court of appeal</category>
+      <category domain="https://www.theguardian.com/uk/immigration">Immigration and asylum</category>
+      <category domain="https://www.theguardian.com/world/refugees">Refugees</category>
+      <category domain="https://www.theguardian.com/politics/home-office">Home Office</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/world/libya">Libya</category>
+      <category domain="https://www.theguardian.com/law/law">Law</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/europe-news">Europe</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/politics/politics">Politics</category>
+      <category domain="https://www.theguardian.com/politics/shabana-mahmood">Shabana Mahmood</category>
+      <pubDate>Sat, 07 Nov 2026 13:00:11 GMT</pubDate>
+      <guid>https://www.theguardian.com/law/2026/nov/07/court-of-appeal-rules-kidnap-for-ransom-libya-exploitation-trafficking-victims-asylum-seeker-home-office</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/ba6b66a9237796408a3d132a0a8ce3e5749ed595/542_7_3957_3166/master/3957.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5f753c6febd18fcebb8421ebd0de0ddb">
+        <media:credit scheme="urn:ebu">Photograph: Martin Godwin/The Guardian</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/ba6b66a9237796408a3d132a0a8ce3e5749ed595/542_7_3957_3166/master/3957.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=a067a081487dc3a3a298e6269810a2a4">
+        <media:credit scheme="urn:ebu">Photograph: Martin Godwin/The Guardian</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/ba6b66a9237796408a3d132a0a8ce3e5749ed595/542_7_3957_3166/master/3957.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=46e333b55f2ff4220d5bb0bed5d1d01b">
+        <media:credit scheme="urn:ebu">Photograph: Martin Godwin/The Guardian</media:credit>
+      </media:content>
+      <dc:creator>Diane Taylor</dc:creator>
+      <dc:date>2026-11-07T13:00:11Z</dc:date>
+    </item>
+    <item>
+      <title>Strait of Hormuz could reopen as part of Qatari plan for Iran nuclear inspections</title>
+      <link>https://www.theguardian.com/world/2026/nov/07/strait-of-hormuz-qatar-plan-iran-nuclear-inspections</link>
+      <description>&lt;p&gt;Trump still considering new assault on Iran nuclear sites – though threats less credible after Vance remarks&lt;/p&gt;&lt;p&gt;Qatar, the lead mediator in the US-Iran conflict, is seeking to persuade Tehran to allow UN nuclear weapons inspectors to visit Iran’s bombed nuclear sites, including those housing the country’s stockpile of highly enriched uranium.&lt;/p&gt;&lt;p&gt;Iran would not be required to make any commitment that the stockpile would be removed from the country, with other options on the table, including reducing the uranium content by down-blending it.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/07/strait-of-hormuz-qatar-plan-iran-nuclear-inspections"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/iran">Iran</category>
+      <category domain="https://www.theguardian.com/world/us-israel-war-on-iran">US-Israel war on Iran</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/world/iran-nuclear-deal">Iran nuclear deal</category>
+      <category domain="https://www.theguardian.com/world/irans-nuclear-programme">Iran nuclear programme</category>
+      <category domain="https://www.theguardian.com/world/middle-east-peace-talks">Middle East peace talks</category>
+      <category domain="https://www.theguardian.com/world/qatar">Qatar</category>
+      <category domain="https://www.theguardian.com/us-news/us-foreign-policy">US foreign policy</category>
+      <category domain="https://www.theguardian.com/world/nuclear-weapons">Nuclear weapons</category>
+      <category domain="https://www.theguardian.com/world/non-proliferation-treaty-npt">Non-proliferation treaty (NPT)</category>
+      <category domain="https://www.theguardian.com/world/iaea">International Atomic Energy Agency (IAEA)</category>
+      <category domain="https://www.theguardian.com/world/unitednations">United Nations</category>
+      <category domain="https://www.theguardian.com/us-news/jd-vance">JD Vance</category>
+      <pubDate>Sat, 07 Nov 2026 07:00:04 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/07/strait-of-hormuz-qatar-plan-iran-nuclear-inspections</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/e3e106cee8c7a119858472afd76f5d130e4d43b6/1722_527_3180_2545/master/3180.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c72bd7888aaa9fe83477f32594d1988a">
+        <media:credit scheme="urn:ebu">Photograph: Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/e3e106cee8c7a119858472afd76f5d130e4d43b6/1722_527_3180_2545/master/3180.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b7912d99bfb4cdff3076d2abe739671c">
+        <media:credit scheme="urn:ebu">Photograph: Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/e3e106cee8c7a119858472afd76f5d130e4d43b6/1722_527_3180_2545/master/3180.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b8e22b5c3cf4c074bcfda67a7e16255b">
+        <media:credit scheme="urn:ebu">Photograph: Reuters</media:credit>
+      </media:content>
+      <dc:creator>Patrick Wintour Diplomatic editor</dc:creator>
+      <dc:date>2026-11-07T07:00:04Z</dc:date>
+    </item>
+    <item>
+      <title>US midterm results may help unite Israeli coalition to unseat Netanyahu</title>
+      <link>https://www.theguardian.com/world/2026/nov/07/us-midterm-results-may-help-unite-israeli-coalition-to-unseat-netanyahu</link>
+      <description>&lt;p&gt;Democrats’ sweep could urge Israel’s divided opposition to join forces and remove prime minister closely allied with Trump&lt;/p&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/commentisfree/2026/nov/05/the-guardian-view-on-the-midterms-and-foreign-policy-american-voters-spoke-and-now-the-world-waits-anxiously"&gt;The Democrats’ sweep of Congress&lt;/a&gt; may make it easier for Israel’s splintered opposition to overcome deep internal divisions and form a coalition government, by increasing the urgency of unseating Benjamin Netanyahu, who has associated himself so closely with Donald Trump’s Republicans.&lt;/p&gt;&lt;p&gt;But as Israel took stock of the results, there was also a sense that the elections marked a longer-term shift in US politics that will make the job of any new Israeli leader far more difficult.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/07/us-midterm-results-may-help-unite-israeli-coalition-to-unseat-netanyahu"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/israel">Israel</category>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/world/middleeast">Middle East and north Africa</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/benjamin-netanyahu">Benjamin Netanyahu</category>
+      <category domain="https://www.theguardian.com/world/yair-lapid">Yair Lapid</category>
+      <pubDate>Sat, 07 Nov 2026 06:00:04 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/07/us-midterm-results-may-help-unite-israeli-coalition-to-unseat-netanyahu</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/26ca01f978ce01c4b69b4f2cf325f6776851a3c5/750_0_3750_3000/master/3750.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=04e915bd6dd19b7cb3e3556f13fb5777">
+        <media:credit scheme="urn:ebu">Photograph: Jacquelyn Martin/AP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/26ca01f978ce01c4b69b4f2cf325f6776851a3c5/750_0_3750_3000/master/3750.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ca5bbfa889a556a5135caa844a4d979c">
+        <media:credit scheme="urn:ebu">Photograph: Jacquelyn Martin/AP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/26ca01f978ce01c4b69b4f2cf325f6776851a3c5/750_0_3750_3000/master/3750.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=0860f305045364af4c39a8fba0fb923b">
+        <media:credit scheme="urn:ebu">Photograph: Jacquelyn Martin/AP</media:credit>
+      </media:content>
+      <dc:creator>Emma Graham-Harrison in Jerusalem</dc:creator>
+      <dc:date>2026-11-07T06:00:04Z</dc:date>
+    </item>
+    <item>
+      <title>Environmentalists criticise choice of Earthshot prize venue owned by fossil fuel firm</title>
+      <link>https://www.theguardian.com/environment/2026/nov/08/earthshot-prize-venue-criticism-fossil-fuel-firm-reliance-industries-india-mumbai</link>
+      <description>&lt;p&gt;Mumbai facility is part of Reliance Industries, owner of world’s biggest oil refinery and funder of controversial mega-zoo&lt;/p&gt;&lt;p&gt;The Prince of Wales’s &lt;a href="https://www.theguardian.com/environment/earthshot-prize"&gt;Earthshot prize&lt;/a&gt; will host its forthcoming annual awards ceremony at a venue owned by the billionaire Ambani family conglomerate, drawing criticism from conservationists over their fossil fuel businesses and their foundation’s &lt;a href="https://www.theguardian.com/environment/2026/nov/03/uk-ministers-anant-ambani-indian-zoo-vantara-freedom-information-endangered-animals-cites"&gt;controversial mega-zoo&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;A spokesperson for the Earthshot prize, which awards £1m to five winners every year to invest in conservation work, confirmed to the Guardian and the news outlet Mongabay that this year’s ceremony will be held at the Jio World Convention Centre in Mumbai on 17 November.&lt;/p&gt; &lt;a href="https://www.theguardian.com/environment/2026/nov/08/earthshot-prize-venue-criticism-fossil-fuel-firm-reliance-industries-india-mumbai"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/environment/earthshot-prize">Earthshot prize</category>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/environment/fossil-fuels">Fossil fuels</category>
+      <category domain="https://www.theguardian.com/environment/conservation">Conservation</category>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/world/south-and-central-asia">South and central Asia</category>
+      <category domain="https://www.theguardian.com/uk/prince-william">Prince William</category>
+      <category domain="https://www.theguardian.com/environment/endangeredspecies">Endangered species</category>
+      <category domain="https://www.theguardian.com/world/animal-welfare">Animal welfare</category>
+      <category domain="https://www.theguardian.com/world/unitednations">United Nations</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Sun, 08 Nov 2026 06:00:33 GMT</pubDate>
+      <guid>https://www.theguardian.com/environment/2026/nov/08/earthshot-prize-venue-criticism-fossil-fuel-firm-reliance-industries-india-mumbai</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/318a7571aaf58a51d5597de23c3e8e795c29e3fa/401_226_2845_2276/master/2845.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5e32c6b0e8f2ade891cb151fa341f642">
+        <media:credit scheme="urn:ebu">Photograph: Divyakant Solanki/EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/318a7571aaf58a51d5597de23c3e8e795c29e3fa/401_226_2845_2276/master/2845.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=66b9efdff01ade34dabd46e79a9e0d18">
+        <media:credit scheme="urn:ebu">Photograph: Divyakant Solanki/EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/318a7571aaf58a51d5597de23c3e8e795c29e3fa/401_226_2845_2276/master/2845.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e162effeff36edb67536b019cd518db2">
+        <media:credit scheme="urn:ebu">Photograph: Divyakant Solanki/EPA</media:credit>
+      </media:content>
+      <dc:creator>Rebecca Ratcliffe, Gloria Dickie and Elisângela Mendonça</dc:creator>
+      <dc:date>2026-11-08T06:00:33Z</dc:date>
+    </item>
+    <item>
+      <title>The private creative world of Rabindranath Tagore, the man Yeats called ‘greater than any of us’</title>
+      <link>https://www.theguardian.com/world/2026/nov/03/rabindranath-tagore-yeats-nobel-prize-india</link>
+      <description>&lt;p&gt;A previously unseen family archive offers a glimpse into the Indian Nobel prize winner’s artistic&lt;strong&gt; &lt;/strong&gt;process and personal relationships in his&lt;strong&gt; &lt;/strong&gt;final years&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/world/2026/jul/30/sign-up-for-this-is-india-our-free-weekly-newsletter-on-life-in-the-subcontinent"&gt;&lt;strong&gt;Don’t get This is India delivered to your inbox? Sign up here&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;It’s easy to run out of words to describe Rabindranath Tagore. The first non-European to win the Nobel prize in literature, Tagore was a Bengali poet, musician, novelist, philosopher, songwriter, painter, humanist and educator.&lt;/p&gt;&lt;p&gt;Born in 1861, Tagore left an indelible mark on the subcontinent’s literature, music, education and art. Among his enduring legacies are the national anthems of India and Bangladesh.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/03/rabindranath-tagore-yeats-nobel-prize-india"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/world/south-and-central-asia">South and central Asia</category>
+      <category domain="https://www.theguardian.com/books/books">Books</category>
+      <category domain="https://www.theguardian.com/books/literary-criticism">Literary criticism</category>
+      <pubDate>Tue, 03 Nov 2026 15:24:53 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/03/rabindranath-tagore-yeats-nobel-prize-india</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/e6ccea1df8a2ec9e0eb698cbb792c0180213d8da/0_618_1390_1111/master/1390.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9c7f5cc7520678e2b7af280789d5a092">
+        <media:credit scheme="urn:ebu">Photograph: CHRISTIE’S IMAGES LTD. 2026 undefined</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/e6ccea1df8a2ec9e0eb698cbb792c0180213d8da/0_618_1390_1111/master/1390.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=3cf2f40c4a6eb1400f043509bdd9b947">
+        <media:credit scheme="urn:ebu">Photograph: CHRISTIE’S IMAGES LTD. 2026 undefined</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/e6ccea1df8a2ec9e0eb698cbb792c0180213d8da/0_618_1390_1111/master/1390.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=0db8e7857af9b11a549011a8b6d585b1">
+        <media:credit scheme="urn:ebu">Photograph: CHRISTIE’S IMAGES LTD. 2026 undefined</media:credit>
+      </media:content>
+      <dc:creator>Niha Masih</dc:creator>
+      <dc:date>2026-11-03T15:24:53Z</dc:date>
+    </item>
+    <item>
+      <title>UK ministers told not to engage formally with Indian mega-zoo after lobbying</title>
+      <link>https://www.theguardian.com/environment/2026/nov/03/uk-ministers-anant-ambani-indian-zoo-vantara-freedom-information-endangered-animals-cites</link>
+      <description>&lt;p&gt;Guardian and Mongabay reveal approaches to officials and MPs on behalf of  Vantara zoo ahead of UK-chaired Cites meeting on endangered animal imports&lt;br&gt;&lt;/p&gt;&lt;p&gt;British government ministers were told not to engage formally with Vantara, the &lt;a href="https://www.theguardian.com/world/2025/aug/26/india-supreme-court-giant-zoo-son-asia-richest-person-vantara"&gt;controversial mega-zoo&lt;/a&gt; run by the Indian billionaire Anant Ambani, after lobbying efforts by the private animal sanctuary in the run-up to a UK-chaired meeting on the trade in endangered species, according to documents.&lt;/p&gt;&lt;p&gt;This week, the UK heads a 32-country committee meeting in Geneva of Cites, the United Nations body that regulates trade in endangered species. The meeting will examine how India has responded to compliance concerns about imports of endangered animals.&lt;/p&gt; &lt;a href="https://www.theguardian.com/environment/2026/nov/03/uk-ministers-anant-ambani-indian-zoo-vantara-freedom-information-endangered-animals-cites"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/environment/conservation">Conservation</category>
+      <category domain="https://www.theguardian.com/world/south-and-central-asia">South and central Asia</category>
+      <category domain="https://www.theguardian.com/world/zoos">Zoos</category>
+      <category domain="https://www.theguardian.com/world/animal-welfare">Animal welfare</category>
+      <category domain="https://www.theguardian.com/environment/endangeredspecies">Endangered species</category>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/world/animals">Animals</category>
+      <category domain="https://www.theguardian.com/environment/wildlife">Wildlife</category>
+      <category domain="https://www.theguardian.com/world/unitednations">United Nations</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/environment/illegal-wildlife-trade">Illegal wildlife trade</category>
+      <pubDate>Tue, 03 Nov 2026 06:00:39 GMT</pubDate>
+      <guid>https://www.theguardian.com/environment/2026/nov/03/uk-ministers-anant-ambani-indian-zoo-vantara-freedom-information-endangered-animals-cites</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/076de5bb7166059a75c6e25a62ae64a4e33e5120/0_0_6148_4919/master/6148.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8a89bedee2d9070c71ac01c9314cf5ac">
+        <media:credit scheme="urn:ebu">Photograph: Idrees Mohammed/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/076de5bb7166059a75c6e25a62ae64a4e33e5120/0_0_6148_4919/master/6148.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=a73b3c29d59381d1ce4978d47a3221ca">
+        <media:credit scheme="urn:ebu">Photograph: Idrees Mohammed/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/076de5bb7166059a75c6e25a62ae64a4e33e5120/0_0_6148_4919/master/6148.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=d7216e84d6937cd133de0af18f0e35f8">
+        <media:credit scheme="urn:ebu">Photograph: Idrees Mohammed/AFP/Getty Images</media:credit>
+      </media:content>
+      <dc:creator>Patrick Greenfield, Elisângela Mendonça and Phoebe Weston and Spoorthy Raman</dc:creator>
+      <dc:date>2026-11-03T06:00:39Z</dc:date>
+    </item>
+    <item>
+      <title>Tens of thousands protest against Narendra Modi regime in Delhi</title>
+      <link>https://www.theguardian.com/world/2026/nov/01/india-opposition-protest-rally-delhi</link>
+      <description>&lt;p&gt;Led by Congress party, India’s opposition alliance channels anger over removal of 130 million names from voter roll&lt;/p&gt;&lt;p&gt;Thousands of opposition supporters have gathered in Delhi as protests against the Narendra Modi government continue to gather momentum.&lt;/p&gt;&lt;p&gt;Led by the Congress party, India’s opposition alliance has brought together supporters from across the country, amid &lt;a href="https://www.theguardian.com/world/2026/oct/11/cockroach-party-leader-released-delhi-protests-second-day"&gt;growing anger&lt;/a&gt; over a large-scale revision of the country’s voter roll that has seen 130 million names erased.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/nov/01/india-opposition-protest-rally-delhi"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/world/protest">Protest</category>
+      <category domain="https://www.theguardian.com/world/south-and-central-asia">South and central Asia</category>
+      <category domain="https://www.theguardian.com/world/rahul-gandhi">Rahul Gandhi</category>
+      <category domain="https://www.theguardian.com/world/narendra-modi">Narendra Modi</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/delhi">Delhi</category>
+      <pubDate>Sun, 01 Nov 2026 16:11:50 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/nov/01/india-opposition-protest-rally-delhi</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/85ebfc268b05d8953c7e260e77d281e7aeb8c85e/0_0_3588_2871/master/3588.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b19e5e8c00516e63199f4a94c903727a">
+        <media:credit scheme="urn:ebu">Photograph: Vipin/AP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/85ebfc268b05d8953c7e260e77d281e7aeb8c85e/0_0_3588_2871/master/3588.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=36ee34df09a081cd8355e343415b1672">
+        <media:credit scheme="urn:ebu">Photograph: Vipin/AP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/85ebfc268b05d8953c7e260e77d281e7aeb8c85e/0_0_3588_2871/master/3588.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=cb873526fa6ebe4a7f097b78ef49e8b6">
+        <media:credit scheme="urn:ebu">Photograph: Vipin/AP</media:credit>
+      </media:content>
+      <dc:creator>Hannah Ellis-Petersen in Delhi</dc:creator>
+      <dc:date>2026-11-01T16:11:50Z</dc:date>
+    </item>
+    <item>
+      <title>What Marco Rubio’s sidestepping of New Delhi says about the US’s stance on India</title>
+      <link>https://www.theguardian.com/world/2026/oct/26/marco-rubio-us-secretary-of-state-india-visit-mumbai</link>
+      <description>&lt;p&gt;Rubio’s decision not to meet Narendra Modi last week was seen by some as a snub – but by focusing on business leaders and oil, the secretary of state made American priorities clear. Plus: the artist bringing a female perspective to men’s clothing&lt;/p&gt;&lt;p&gt;&lt;strong&gt;• &lt;/strong&gt;&lt;a href="https://www.theguardian.com/world/2026/jul/30/sign-up-for-this-is-india-our-free-weekly-newsletter-on-life-in-the-subcontinent"&gt;&lt;strong&gt;Don’t get This is India delivered to your inbox? Sign up here&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;When the US secretary of state, Marco Rubio, visited India for the second time this year, headlines concentrated on who he met and where he went.&lt;/p&gt;&lt;p&gt;The fact that Rubio bypassed New Delhi and did not meet the prime minister, Narendra Modi, during his trip last week, and instead traveled to the financial capital, Mumbai, where he met India’s foreign minister, Subrahmanyam Jaishankar (pictured top with Rubio), and business leaders, did not go unnoticed. Nor did his decision to travel to Jamnagar, the small Gujarati town that is home to Reliance Industries’ colossal oil refinery complex.&lt;/p&gt; &lt;a href="https://www.theguardian.com/world/2026/oct/26/marco-rubio-us-secretary-of-state-india-visit-mumbai"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/world/india">India</category>
+      <category domain="https://www.theguardian.com/world/south-and-central-asia">South and central Asia</category>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/us-news/marco-rubio">Marco Rubio</category>
+      <category domain="https://www.theguardian.com/us-news/us-politics">US politics</category>
+      <pubDate>Tue, 27 Oct 2026 09:21:33 GMT</pubDate>
+      <guid>https://www.theguardian.com/world/2026/oct/26/marco-rubio-us-secretary-of-state-india-visit-mumbai</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/1feda1d03fd340d455bf7e59753f9cbfd2d7b3e0/427_0_4914_3933/master/4914.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=f7d62b0a58fc04cb49dafd4be4e9a7e3">
+        <media:credit scheme="urn:ebu">Photograph: Kylie Cooper/Pool Reuters/AP</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/1feda1d03fd340d455bf7e59753f9cbfd2d7b3e0/427_0_4914_3933/master/4914.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e703ccfd91d4d38b19542a4907574f65">
+        <media:credit scheme="urn:ebu">Photograph: Kylie Cooper/Pool Reuters/AP</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/1feda1d03fd340d455bf7e59753f9cbfd2d7b3e0/427_0_4914_3933/master/4914.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=ec3aaee6bd4d95d9cb4984a549bcb064">
+        <media:credit scheme="urn:ebu">Photograph: Kylie Cooper/Pool Reuters/AP</media:credit>
+      </media:content>
+      <dc:creator>Niha Masih</dc:creator>
+      <dc:date>2026-10-27T09:21:33Z</dc:date>
+    </item>
+    <item>
+      <title>Prosecution calls for long jail term as Russell Brand is sentenced for rape and sexual assault – latest updates</title>
+      <link>https://www.theguardian.com/uk-news/live/2026/nov/09/russell-brand-sentencing-rape-sexual-assault-live-news-updates</link>
+      <description>&lt;p&gt;Prosecuting barrister asks for a ‘category one’ sentencing length which ranges from 10 to 15 years&lt;/p&gt;&lt;p&gt;Proceedings are beginning now. Chief prosecutor Riel Karmy-Jones KC is up on her feet. She’ll be the first to deliver remarks.&lt;/p&gt;&lt;p&gt;The sentencing has been pushed back as court staff attempt to rearrange the courtroom so one of the victims can be protected, PA reports.&lt;/p&gt; &lt;a href="https://www.theguardian.com/uk-news/live/2026/nov/09/russell-brand-sentencing-rape-sexual-assault-live-news-updates"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/news/russell-brand">Russell Brand</category>
+      <pubDate>Mon, 09 Nov 2026 12:36:56 GMT</pubDate>
+      <guid>https://www.theguardian.com/uk-news/live/2026/nov/09/russell-brand-sentencing-rape-sexual-assault-live-news-updates</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/f0e10b04191082319bbd3f7199555e5030cffac1/46_0_3188_2551/master/3188.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=3b2281da79a9d6f0ce33eab731c6160a">
+        <media:credit scheme="urn:ebu">Photograph: Neil Hall/EPA</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/f0e10b04191082319bbd3f7199555e5030cffac1/46_0_3188_2551/master/3188.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=08b2998114bab599735108a4088a230c">
+        <media:credit scheme="urn:ebu">Photograph: Neil Hall/EPA</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/f0e10b04191082319bbd3f7199555e5030cffac1/46_0_3188_2551/master/3188.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=2714c8a8ade5bc4f4ebf9b6662cce4fb">
+        <media:credit scheme="urn:ebu">Photograph: Neil Hall/EPA</media:credit>
+      </media:content>
+      <dc:creator>Frances Mao</dc:creator>
+      <dc:date>2026-11-09T12:36:56Z</dc:date>
+    </item>
+    <item>
+      <title>Polanski says Labour has ‘shocking record’ on climate issues as ministers expected to cut EV targets for car industry – UK politics live</title>
+      <link>https://www.theguardian.com/politics/live/2026/nov/09/polanski-greens-labour-andy-burnham-climate-crisis-ev-targets-uk-politics-latest-news</link>
+      <description>&lt;p&gt;Louise Haigh is expected to agree to cut a target for EV sales by about a quarter&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Andy Burnham&lt;/strong&gt; has a commanding lead over all the other main UK party leaders on polling on who would be the best PM, according to &lt;a href="https://yougov.com/en-gb/articles/55919-who-would-make-the-best-prime-minister-november-2026"&gt;new figures&lt;/a&gt; from YouGov. In head to head polling, Burnham has a 12-point lead over Kemi Badenoch, and much bigger leads over Nigel Farage, Ed Davey and Zack Polanski.&lt;/p&gt;&lt;p&gt;Badenoch is ahead of all the other leaders apart from Burnham on this measure. Davey only beats Farage and Polanski. Polanski loses to all four other leaders featured in this polling, and Farage only beats one of them, Polanski, but only by a one-point margin.&lt;/p&gt;&lt;p&gt;Such is the scale of Burnham’s advantage over his fellow progressive leaders that those who backed the Greens in 2024 are divided 43% to 35% in his favour over whether he or Polanski would make the better PM, while 2024 Lib Dem voters actually back the Labour leader over Davey by a decisive margin of 58% to 17%.&lt;/p&gt;&lt;p&gt;In May, by contrast, Lib Dem voters favoured Davey over Starmer on this question by a 30 point margin (with Labour voters only favouring Starmer by 24 points), while Polanski’s lead among Green voters was 51 points.&lt;/p&gt; &lt;a href="https://www.theguardian.com/politics/live/2026/nov/09/polanski-greens-labour-andy-burnham-climate-crisis-ev-targets-uk-politics-latest-news"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/politics/politics">Politics</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/politics/labour">Labour</category>
+      <category domain="https://www.theguardian.com/environment/electric-cars">Electric, hybrid and low-emission cars</category>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/politics/andyburnham">Andy Burnham</category>
+      <category domain="https://www.theguardian.com/politics/zack-polanski">Zack Polanski</category>
+      <category domain="https://www.theguardian.com/politics/green-party">Green party</category>
+      <pubDate>Mon, 09 Nov 2026 12:23:13 GMT</pubDate>
+      <guid>https://www.theguardian.com/politics/live/2026/nov/09/polanski-greens-labour-andy-burnham-climate-crisis-ev-targets-uk-politics-latest-news</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/7a02db80a099b48fdc379f25b678f9698ce1e84a/477_0_4751_3803/master/4751.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=78597f9fc767a9b19d8bdfb978002b35">
+        <media:credit scheme="urn:ebu">Photograph: Vuk Valcic/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/7a02db80a099b48fdc379f25b678f9698ce1e84a/477_0_4751_3803/master/4751.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6b9f548eec81cf998a90265535faf950">
+        <media:credit scheme="urn:ebu">Photograph: Vuk Valcic/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/7a02db80a099b48fdc379f25b678f9698ce1e84a/477_0_4751_3803/master/4751.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=2b298965fa4f8683edd226fa3359d515">
+        <media:credit scheme="urn:ebu">Photograph: Vuk Valcic/ZUMA Press Wire/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Andrew Sparrow</dc:creator>
+      <dc:date>2026-11-09T12:23:13Z</dc:date>
+    </item>
+    <item>
+      <title>Thames Water asks creditors for more time to help repay £20bn debt pile</title>
+      <link>https://www.theguardian.com/business/2026/nov/09/thames-water-asks-creditors-more-time-repay-debt-pile</link>
+      <description>&lt;p&gt;Troubled utility lobbies for deadline on part of the debt to be extended to March 2028&lt;/p&gt;&lt;p&gt;Thames Water has asked its creditors for more time to pay back billions of pounds in debt, as the water company scrambles to keep itself afloat.&lt;/p&gt;&lt;p&gt;The UK’s largest water company said it had proposed an “interim” deal under which the deadline to pay off an unspecified portion of the £20bn of debt on its balance sheet would be extended from 2027 to March 2028.&lt;/p&gt; &lt;a href="https://www.theguardian.com/business/2026/nov/09/thames-water-asks-creditors-more-time-repay-debt-pile"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/business/water-industry">Water industry</category>
+      <category domain="https://www.theguardian.com/business/business">Business</category>
+      <category domain="https://www.theguardian.com/business/thames-water">Thames Water</category>
+      <category domain="https://www.theguardian.com/politics/andyburnham">Andy Burnham</category>
+      <category domain="https://www.theguardian.com/politics/nationalisation">Nationalisation</category>
+      <category domain="https://www.theguardian.com/business/utilities">Utilities</category>
+      <category domain="https://www.theguardian.com/money/water-bills">Water bills</category>
+      <category domain="https://www.theguardian.com/politics/politics">Politics</category>
+      <category domain="https://www.theguardian.com/money/household-bills">Household bills</category>
+      <category domain="https://www.theguardian.com/money/consumer-affairs">Consumer affairs</category>
+      <category domain="https://www.theguardian.com/environment/pollution">Pollution</category>
+      <category domain="https://www.theguardian.com/environment/environment">Environment</category>
+      <category domain="https://www.theguardian.com/business/corporate-governance">Corporate governance</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <pubDate>Mon, 09 Nov 2026 10:32:43 GMT</pubDate>
+      <guid>https://www.theguardian.com/business/2026/nov/09/thames-water-asks-creditors-more-time-repay-debt-pile</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/535318ddf017dc682b293bfcd483a717eefaf8a0/247_0_4583_3667/master/4583.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=fea5ea819b06767f490c86405124d198">
+        <media:credit scheme="urn:ebu">Photograph: Toby Shepheard/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/535318ddf017dc682b293bfcd483a717eefaf8a0/247_0_4583_3667/master/4583.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6cc03a1b751c6513b378195e672b5f87">
+        <media:credit scheme="urn:ebu">Photograph: Toby Shepheard/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/535318ddf017dc682b293bfcd483a717eefaf8a0/247_0_4583_3667/master/4583.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=94a9d5d469340390a0d95137a652e287">
+        <media:credit scheme="urn:ebu">Photograph: Toby Shepheard/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Lauren Almeida</dc:creator>
+      <dc:date>2026-11-09T10:32:43Z</dc:date>
+    </item>
+    <item>
+      <title>Fog shrouding swathes of UK likely to disrupt transport early this week</title>
+      <link>https://www.theguardian.com/uk-news/2026/nov/09/fog-uk-weather-transport-disruption</link>
+      <description>&lt;p&gt;Drivers warned to take care as ‘perfect’ weather conditions for mist affect areas of England, Wales and Northern Ireland&lt;/p&gt;&lt;p&gt;• &lt;a href="https://www.theguardian.com/uk-news/gallery/2026/nov/09/fog-envelopes-large-parts-of-england-and-wales-in-pictures"&gt;In pictures: Fog envelops large parts of England and Wales&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Thick fog will shroud much of the southern half of England, the eastern half of Wales and most of Northern Ireland throughout the early part of the week, forecasters have said, as commuters are told to expect delays.&lt;/p&gt;&lt;p&gt;There was disruption to flights at Heathrow airport on Monday, while an incident involving 30 vehicles closed a major road in Kent on Saturday evening.&lt;/p&gt; &lt;a href="https://www.theguardian.com/uk-news/2026/nov/09/fog-uk-weather-transport-disruption"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/uk/weather">UK weather</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <pubDate>Mon, 09 Nov 2026 10:29:28 GMT</pubDate>
+      <guid>https://www.theguardian.com/uk-news/2026/nov/09/fog-uk-weather-transport-disruption</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/e4373257336cc1e14105474b52f279db99ed33cb/331_0_4155_3322/master/4155.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=a6ebae1fad109cb619f26c09cf09a9e7">
+        <media:credit scheme="urn:ebu">Photograph: Toby Melville/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/e4373257336cc1e14105474b52f279db99ed33cb/331_0_4155_3322/master/4155.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9fd29346e2ada45c76369beb248932d8">
+        <media:credit scheme="urn:ebu">Photograph: Toby Melville/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/e4373257336cc1e14105474b52f279db99ed33cb/331_0_4155_3322/master/4155.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5d37bbfc46fff53a9db1abb1e6b7a8df">
+        <media:credit scheme="urn:ebu">Photograph: Toby Melville/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Kevin Rawlinson and agency</dc:creator>
+      <dc:date>2026-11-09T10:29:28Z</dc:date>
+    </item>
+    <item>
+      <title>‘It’s a feeling of being screwed over’: once-quiet village despairs over ‘monster’ warehouse</title>
+      <link>https://www.theguardian.com/uk-news/2026/nov/09/astley-village-despair-monster-warehouse-inquiry</link>
+      <description>&lt;p&gt;Residents of Astley in Greater Manchester will tell public inquiry next week of ‘cacophony’ of noise causing sleep deprivation and depression&lt;/p&gt;&lt;p&gt;When Stephen Retford retired from the police in 2006, he looked forward to a quiet life after nearly three decades catching villains. But now the former detective has landed another big case – one that is extremely close to home.&lt;/p&gt;&lt;p&gt;“It’s the total injustice of it,” the 70-year-old seethed, staring up at the 18-metre-high mega-warehouse that looms over the quiet village of Astley in Greater Manchester. Residents are up in arms about the “monster” construction, likening it to having a “cruise ship in our back garden”.&lt;/p&gt; &lt;a href="https://www.theguardian.com/uk-news/2026/nov/09/astley-village-despair-monster-warehouse-inquiry"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/uk/greater-manchester">Greater Manchester</category>
+      <category domain="https://www.theguardian.com/society/communities">Communities</category>
+      <category domain="https://www.theguardian.com/society/localgovernment">Local government</category>
+      <category domain="https://www.theguardian.com/politics/planning">Planning policy</category>
+      <category domain="https://www.theguardian.com/business/couriers-delivery">Couriers/delivery industry</category>
+      <category domain="https://www.theguardian.com/uk-news/north-of-england">North of England</category>
+      <category domain="https://www.theguardian.com/uk-news/england">England</category>
+      <category domain="https://www.theguardian.com/uk/uk">UK news</category>
+      <category domain="https://www.theguardian.com/society/society">Society</category>
+      <pubDate>Mon, 09 Nov 2026 07:00:03 GMT</pubDate>
+      <guid>https://www.theguardian.com/uk-news/2026/nov/09/astley-village-despair-monster-warehouse-inquiry</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/8ad529e476ab9f8aaa4b519c77862c07cc74a4d3/584_0_7200_5760/master/7200.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6649e00763035cd3304c1a0e12dfc6a9">
+        <media:credit scheme="urn:ebu">Photograph: Christopher Thomond/The Guardian</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/8ad529e476ab9f8aaa4b519c77862c07cc74a4d3/584_0_7200_5760/master/7200.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=24786e2e7e49f073505bd9d0037126cb">
+        <media:credit scheme="urn:ebu">Photograph: Christopher Thomond/The Guardian</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/8ad529e476ab9f8aaa4b519c77862c07cc74a4d3/584_0_7200_5760/master/7200.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=e6429a447e9127784ad6d100bba74d51">
+        <media:credit scheme="urn:ebu">Photograph: Christopher Thomond/The Guardian</media:credit>
+      </media:content>
+      <dc:creator>Josh Halliday North of England editor</dc:creator>
+      <dc:date>2026-11-09T07:00:03Z</dc:date>
+    </item>
+    <item>
+      <title>Deportation policy ‘might have been too tough’, says Trump, as Miller starts chief-of-staff role – US politics live</title>
+      <link>https://www.theguardian.com/us-news/live/2026/nov/09/donald-trump-stephen-miller-immigration-midterms-iran-qatar-economy-latest-news-updates</link>
+      <description>&lt;p&gt;President’s admission appears at odds with the elevation of immigration hardliner&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/us-news/2026/nov/09/trump-tells-60-minutes-deportation-policy-too-tough-ice-immigration"&gt;Trump admits deportation policy was ‘too tough’ despite Miller promotion &lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/news/2026/feb/17/sign-up-for-the-breaking-news-us-email-to-get-newsletter-alerts-direct-to-your-inbox?utm_medium=ACQUISITIONS_STANDFIRST&amp;amp;utm_campaign=BN22326&amp;amp;utm_content=signup&amp;amp;utm_term=standfirst&amp;amp;utm_source=GUARDIAN_WEB"&gt;Sign up for US Breaking News email&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;strong&gt;Public health leaders and politicians &lt;a href="https://www.theguardian.com/us-news/2026/jun/02/doctors-midterm-election-trump-policies-health"&gt;who&lt;/a&gt; &lt;a href="https://www.theguardian.com/us-news/2026/oct/27/michigan-abdul-el-sayed-medicare-for-all"&gt;made&lt;/a&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/08/democrats-congress-trump-midterms"&gt;healthcare&lt;/a&gt; a central part of their platforms swept into office in the &lt;a href="https://www.theguardian.com/us-news/us-midterm-elections-2026"&gt;US midterm elections&lt;/a&gt; last week, setting the stage for national, state and local changes.&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Voters, faced with an unprecedented rise in vaccine-preventable diseases such as measles, alongside devastating outbreaks of &lt;a href="https://www.theguardian.com/us-news/2026/sep/13/maha-movement-food-illness-funding-cuts-layoffs"&gt;foodborne illnesses&lt;/a&gt;, chose national candidates who prioritized public health, healthcare affordability, reproductive health and the impeachment of &lt;a href="https://www.theguardian.com/us-news/robert-f-kennedy-jr"&gt;Robert F Kennedy Jr&lt;/a&gt;, among other key issues.&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/live/2026/nov/09/donald-trump-stephen-miller-immigration-midterms-iran-qatar-economy-latest-news-updates"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/us-news/trump-administration">Trump administration</category>
+      <category domain="https://www.theguardian.com/us-news/us-politics">US politics</category>
+      <category domain="https://www.theguardian.com/us-news/us-senate">US Senate</category>
+      <category domain="https://www.theguardian.com/us-news/house-of-representatives">House of Representatives</category>
+      <category domain="https://www.theguardian.com/us-news/republicans">Republicans</category>
+      <category domain="https://www.theguardian.com/us-news/democrats">Democrats</category>
+      <category domain="https://www.theguardian.com/us-news/usimmigration">US immigration</category>
+      <category domain="https://www.theguardian.com/us-news/us-midterm-elections-2026">US midterm elections 2026</category>
+      <category domain="https://www.theguardian.com/world/us-israel-war-on-iran">US-Israel war on Iran</category>
+      <category domain="https://www.theguardian.com/world/qatar">Qatar</category>
+      <pubDate>Mon, 09 Nov 2026 12:17:25 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/live/2026/nov/09/donald-trump-stephen-miller-immigration-midterms-iran-qatar-economy-latest-news-updates</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/504caf7a8beabc9cfbb463552ee9cf0ddc2dc130/468_0_5419_4335/master/5419.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9ab62ecdd8ff6faabb2959dfeb53c20d">
+        <media:credit scheme="urn:ebu">Photograph: Evelyn Hockstein/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/504caf7a8beabc9cfbb463552ee9cf0ddc2dc130/468_0_5419_4335/master/5419.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=14dd216f9694c12b7c640938ffc69151">
+        <media:credit scheme="urn:ebu">Photograph: Evelyn Hockstein/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/504caf7a8beabc9cfbb463552ee9cf0ddc2dc130/468_0_5419_4335/master/5419.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=8b9b1845576bebc1a772885a1ea1f315">
+        <media:credit scheme="urn:ebu">Photograph: Evelyn Hockstein/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Tom Ambrose</dc:creator>
+      <dc:date>2026-11-09T12:17:25Z</dc:date>
+    </item>
+    <item>
+      <title>Nvidia stocks tumble as CEO investigated over spy claims | First Thing</title>
+      <link>https://www.theguardian.com/us-news/2026/nov/09/first-thing-nvidia-stocks-tumble-as-ceo-investigated-over-spy-claims</link>
+      <description>&lt;p&gt;Jensen Huang reportedly had close relationship ‌with Chinese businesswoman accused of passing information to ‌Beijing. Plus, tennis legend Billie Jean King tells all&lt;/p&gt;&lt;p&gt;• &lt;a href="https://www.theguardian.com/info/2018/sep/17/guardian-us-morning-briefing-sign-up-to-stay-informed"&gt;&lt;strong&gt;Don’t already get First Thing in your inbox? Sign up here&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Good morning. Nvidia’s chief executive, Jensen Huang, has been &lt;a href="https://www.theguardian.com/us-news/2026/nov/08/nvidia-jensen-huang-investigation"&gt;placed under “independent investigation”&lt;/a&gt; by the tech company after reports emerged he had been “the target of a foreign intelligence effort”, namely a close relationship ‌with a Chinese businesswoman who is accused of passing information to ‌Beijing. Nvidia stock is down 5% in pre-market trading as a result.&lt;/p&gt;&lt;p&gt;The company’s board said in a statement that while it had no reason to believe that either US national security or Nvidia secrets were compromised, its inquiry would examine all available information. Republican lawmakers have expressed alarm, asking Huang to give the House foreign affairs and intelligence committees a closed-door briefing next week on Nvidia’s “security protocols against foreign adversary espionage”.&lt;/p&gt;&lt;p&gt;&lt;em&gt;The Guardian will have extensive coverage of the Cop31 conference, including a &lt;a href="https://www.theguardian.com/environment/live/2026/nov/09/cop31-climate-crisis-talks-turkey-latest-news-updates"&gt;daily live blog&lt;/a&gt;, and these explainers on &lt;a href="https://www.theguardian.com/environment/2026/nov/08/cop31-what-is-at-stake-at-the-un-climate-summit-and-what-can-it-achieve"&gt;what is at stake and what the talks can achieve&lt;/a&gt;, and &lt;a href="https://www.theguardian.com/environment/2026/nov/08/cop31-key-players-climate-talks"&gt;who the key players are&lt;/a&gt;. Find &lt;a href="https://www.theguardian.com/environment/cop31"&gt;all of our Cop31 coverage here&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/09/first-thing-nvidia-stocks-tumble-as-ceo-investigated-over-spy-claims"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <pubDate>Mon, 09 Nov 2026 11:54:21 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/2026/nov/09/first-thing-nvidia-stocks-tumble-as-ceo-investigated-over-spy-claims</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/91b819bcc74a87ba2158e7bae518801fb140af52/692_369_3154_2523/master/3154.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=c442afe3c3d4d785ea938fdf46018042">
+        <media:credit scheme="urn:ebu">Photograph: Dpa Picture Alliance/Alamy Stock Photo/Alamy Live News.</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/91b819bcc74a87ba2158e7bae518801fb140af52/692_369_3154_2523/master/3154.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=cb390706135aa22c5da68ff730b9e9f1">
+        <media:credit scheme="urn:ebu">Photograph: Dpa Picture Alliance/Alamy Stock Photo/Alamy Live News.</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/91b819bcc74a87ba2158e7bae518801fb140af52/692_369_3154_2523/master/3154.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=5fb1ea0bd2ba07a3f2883ff9d8509cd5">
+        <media:credit scheme="urn:ebu">Photograph: Dpa Picture Alliance/Alamy Stock Photo/Alamy Live News.</media:credit>
+      </media:content>
+      <dc:creator>Martin Belam</dc:creator>
+      <dc:date>2026-11-09T11:54:21Z</dc:date>
+    </item>
+    <item>
+      <title>Trump admits deportation policy was ‘too tough’ despite promotion of Stephen Miller</title>
+      <link>https://www.theguardian.com/us-news/2026/nov/09/trump-tells-60-minutes-deportation-policy-too-tough-ice-immigration</link>
+      <description>&lt;p&gt;President makes unusual acknowledgment that one of defining policies of his second administration had become a political liability&lt;/p&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/us-news/donaldtrump"&gt;Donald Trump&lt;/a&gt; has admitted that his deportation policy was “too tough” and has offered to strike an immigration deal with Democrats in a concession after the Republicans’ disastrous defeat in the midterm elections.&lt;/p&gt;&lt;p&gt;In an &lt;a href="https://www.cbsnews.com/news/read-the-full-transcript-of-ross-douthats-interview-with-president-trump/"&gt;interview on the CBS network’s 60 Minutes&lt;/a&gt; broadcast on Sunday, the president acknowledged that the aggressive crackdown had hurt him politically and said he was open to an arrangement to allow some undocumented immigrants to remain in the US.&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/09/trump-tells-60-minutes-deportation-policy-too-tough-ice-immigration"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/us-news/us-politics">US politics</category>
+      <category domain="https://www.theguardian.com/us-news/republicans">Republicans</category>
+      <category domain="https://www.theguardian.com/media/media">Media</category>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/us-news/ice-us-immigration-and-customs-enforcement">ICE (US Immigration and Customs Enforcement)</category>
+      <category domain="https://www.theguardian.com/world/world">World news</category>
+      <category domain="https://www.theguardian.com/us-news/usimmigration">US immigration</category>
+      <category domain="https://www.theguardian.com/us-news/trump-administration">Trump administration</category>
+      <category domain="https://www.theguardian.com/us-news/us-midterm-elections-2026">US midterm elections 2026</category>
+      <category domain="https://www.theguardian.com/us-news/democrats">Democrats</category>
+      <pubDate>Mon, 09 Nov 2026 08:32:32 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/2026/nov/09/trump-tells-60-minutes-deportation-policy-too-tough-ice-immigration</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/d2da9c964ff03b1b8443aa38f9c263277095235f/342_0_6827_5464/master/6827.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9ae8ba5f3541258c3c8258fbdbdcf373">
+        <media:credit scheme="urn:ebu">Photograph: Charly Triballeau/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/d2da9c964ff03b1b8443aa38f9c263277095235f/342_0_6827_5464/master/6827.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9ef0bc9a053cd1733718355e8f0b8bb1">
+        <media:credit scheme="urn:ebu">Photograph: Charly Triballeau/AFP/Getty Images</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/d2da9c964ff03b1b8443aa38f9c263277095235f/342_0_6827_5464/master/6827.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=b3ab287c8794ee40f7158799f6aa473d">
+        <media:credit scheme="urn:ebu">Photograph: Charly Triballeau/AFP/Getty Images</media:credit>
+      </media:content>
+      <dc:creator>David Smith in Washington</dc:creator>
+      <dc:date>2026-11-09T08:32:32Z</dc:date>
+    </item>
+    <item>
+      <title>Trump says he was ‘only kidding’ about making UFC’s Dana White next press secretary</title>
+      <link>https://www.theguardian.com/us-news/2026/nov/08/trump-dana-white-press-secretary</link>
+      <description>&lt;p&gt;President says it was ‘just a little fun’ to picture White, UFC boss and Trump’s friend, in briefing room with fighters&lt;/p&gt;&lt;p&gt;&lt;a href="https://www.theguardian.com/us-news/donaldtrump"&gt;Donald Trump&lt;/a&gt; said on Sunday that he “was only kidding” when &lt;a href="https://www.theguardian.com/us-news/2026/nov/07/donald-trump-dana-white-press-secretary"&gt;he announced&lt;/a&gt; a day earlier that he had offered the job of White House press secretary to Dana White, the chief executive of the Ultimate Fighting Championship (&lt;a href="https://www.theguardian.com/sport/ufc"&gt;UFC&lt;/a&gt;).&lt;/p&gt;&lt;p&gt;Speaking to reporters on his way back the White House from his beach club in Florida, Trump explained the premise of his joke, that if the UFC boss, who is a devoted fan of the president, took over the briefing room, flanked by six fighters, reporters “wouldn’t mess around with him so much”.&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/08/trump-dana-white-press-secretary"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/us-news/donaldtrump">Donald Trump</category>
+      <category domain="https://www.theguardian.com/us-news/trump-administration">Trump administration</category>
+      <category domain="https://www.theguardian.com/sport/ufc">UFC</category>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/sport/sport">Sport</category>
+      <category domain="https://www.theguardian.com/us-news/us-politics">US politics</category>
+      <category domain="https://www.theguardian.com/media/media">Media</category>
+      <category domain="https://www.theguardian.com/media/us-press-publishing">US press and publishing</category>
+      <category domain="https://www.theguardian.com/sport/us-sport">US sports</category>
+      <pubDate>Mon, 09 Nov 2026 01:10:55 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/2026/nov/08/trump-dana-white-press-secretary</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/bd59d8bbfe95eb6a46d7a98c6c485d6c246d296c/1023_574_3265_2613/master/3265.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=6f79b9b2de71d5627a16c8f3746aa578">
+        <media:credit scheme="urn:ebu">Photograph: Evan Vucci/Reuters</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/bd59d8bbfe95eb6a46d7a98c6c485d6c246d296c/1023_574_3265_2613/master/3265.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=9f636a7f5ab0b707951ce47c5e36aeea">
+        <media:credit scheme="urn:ebu">Photograph: Evan Vucci/Reuters</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/bd59d8bbfe95eb6a46d7a98c6c485d6c246d296c/1023_574_3265_2613/master/3265.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=62e28937fb0be3d329c66f28a2c027b6">
+        <media:credit scheme="urn:ebu">Photograph: Evan Vucci/Reuters</media:credit>
+      </media:content>
+      <dc:creator>Robert Mackey</dc:creator>
+      <dc:date>2026-11-09T01:10:55Z</dc:date>
+    </item>
+    <item>
+      <title>‘Seismic shift’: Native American women made significant gains in US midterms</title>
+      <link>https://www.theguardian.com/us-news/2026/nov/08/native-american-women-midterm-elections</link>
+      <description>&lt;p&gt;Nationwide, voters elected at least 75 Native women or non-binary candidates in Tuesday’s elections, report says&lt;/p&gt;&lt;p&gt;The US midterm elections saw voters &lt;a href="https://www.theguardian.com/us-news/2026/nov/04/us-midterms-historic-firsts"&gt;elect a slew of historic representatives&lt;/a&gt; – from the country’s first Muslim senator to the first Black female governor – but among the most significant gains were those for Native American women.&lt;/p&gt;&lt;p&gt;On Tuesday, voters elected the first Native American woman governor, senator and leaders of two tribal nations. Nationwide, &lt;a href="https://datastudio.google.com/u/0/reporting/4a3c6635-0bab-4426-9b45-57cef799c991/page/p_fimkm0s1qd"&gt;voters elected at least 75 Native women or non-binary and Two Spirit candidates&lt;/a&gt; in the November midterms, according to Advance Native Political Leadership and the news site &lt;a href="https://ictnews.org/"&gt;ICT&lt;/a&gt;.&lt;/p&gt; &lt;a href="https://www.theguardian.com/us-news/2026/nov/08/native-american-women-midterm-elections"&gt;Continue reading...&lt;/a&gt;</description>
+      <category domain="https://www.theguardian.com/world/native-americans">Native Americans</category>
+      <category domain="https://www.theguardian.com/us-news/midterm2006">US midterm elections 2006</category>
+      <category domain="https://www.theguardian.com/world/indigenous-peoples">Indigenous peoples</category>
+      <category domain="https://www.theguardian.com/us-news/us-politics">US politics</category>
+      <category domain="https://www.theguardian.com/us-news/us-news">US news</category>
+      <category domain="https://www.theguardian.com/us-news/newmexico">New Mexico</category>
+      <category domain="https://www.theguardian.com/us-news/new-york">New York</category>
+      <category domain="https://www.theguardian.com/us-news/minnesota">Minnesota</category>
+      <pubDate>Sun, 08 Nov 2026 21:04:49 GMT</pubDate>
+      <guid>https://www.theguardian.com/us-news/2026/nov/08/native-american-women-midterm-elections</guid>
+      <media:content width="140" url="https://i.guim.co.uk/img/media/d5136ba6cc395069555a94fc1fa69c5b198f8bf2/197_0_4321_3457/master/4321.jpg?width=140&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=01770a9983b1230f8e62416df55f9929">
+        <media:credit scheme="urn:ebu">Photograph: Steven Garcia/NurPhoto/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="460" url="https://i.guim.co.uk/img/media/d5136ba6cc395069555a94fc1fa69c5b198f8bf2/197_0_4321_3457/master/4321.jpg?width=460&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=230b46bd9c30ccf4cc8f263609ef8dbd">
+        <media:credit scheme="urn:ebu">Photograph: Steven Garcia/NurPhoto/Shutterstock</media:credit>
+      </media:content>
+      <media:content width="700" url="https://i.guim.co.uk/img/media/d5136ba6cc395069555a94fc1fa69c5b198f8bf2/197_0_4321_3457/master/4321.jpg?width=700&amp;quality=85&amp;auto=format&amp;fit=max&amp;s=50ab0e5c66656bd57de77d6198007082">
+        <media:credit scheme="urn:ebu">Photograph: Steven Garcia/NurPhoto/Shutterstock</media:credit>
+      </media:content>
+      <dc:creator>Cecilia Nowell</dc:creator>
+      <dc:date>2026-11-08T21:04:49Z</dc:date>
+    </item>
+  </channel>
+</rss>
+

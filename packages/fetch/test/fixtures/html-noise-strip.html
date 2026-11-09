@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+  Hand-written fixture: the noise a card page ships inside the item, and the
+  strip list that has to survive it. Pinned: a `<script>` and a `<style>` inside
+  the item (measured: cheerio's `.text()` returns their content), a
+  `<noscript>` prompt, a responsive `<picture>` with `srcset` candidates,
+  a `<time datetime>` with **no** date selector in the source (the parser finds
+  the attribute by convention), and a `.live-blog` slot that churns every poll
+  and is in the source's `strip` list.
+  The source in the test strips `.live-blog, .weather`; the strip runs on a
+  clone, because a strip selector may also match what `fields.title` points at.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Noise and strip</title>
+  </head>
+  <body>
+    <div class="stories">
+      <article class="story">
+        <h3 class="head"><a href="/live/one">Live blog entry</a></h3>
+        <p class="deck">The paragraph that is the story.</p>
+        <div class="live-blog">Updated 12 seconds ago — tick 4471</div>
+        <div class="weather">London 8°C, light rain</div>
+        <picture>
+          <source srcset="wide.avif 1200w" type="image/avif" />
+          <img class="photo" srcset="small.jpg 640w, large.jpg 1920w" src="small.jpg" alt="" />
+        </picture>
+        <time datetime="2026-11-08T21:30:00Z">yesterday</time>
+        <script>
+          window.liveTick = 4471;
+        </script>
+        <style>
+          .live-blog {
+            animation: blink 1s;
+          }
+        </style>
+        <noscript><p>Enable JavaScript to see the live blog.</p></noscript>
+      </article>
+      <article class="story">
+        <h3 class="head"><a href="/live/two">Second entry</a></h3>
+        <p class="deck">Second paragraph.</p>
+        <div class="live-blog">Updated 40 seconds ago — tick 4472</div>
+        <time datetime="2026-11-08T20:00:00Z">yesterday</time>
+      </article>
+    </div>
+  </body>
+</html>

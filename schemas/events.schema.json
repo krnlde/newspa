@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/krnlde/newspa/main/schemas/events.schema.json",
+  "title": "newspa server event",
+  "description": "One newspa server-sent event frame payload, discriminated by kind.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "cycle:start"
+        },
+        "at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "at"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "cycle:done"
+        },
+        "at": {
+          "type": "string"
+        },
+        "fetched": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "newItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "editedItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "at",
+        "fetched",
+        "newItems",
+        "editedItems"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "item:new"
+        },
+        "at": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "at",
+        "sourceId",
+        "title",
+        "link",
+        "score"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "item:edited"
+        },
+        "at": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "added": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "removed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "at",
+        "sourceId",
+        "title",
+        "link",
+        "added",
+        "removed"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "source:health"
+        },
+        "at": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "unknown",
+            "ok",
+            "blocked",
+            "no-matches",
+            "restructured",
+            "error",
+            "stale"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "at",
+        "source",
+        "state",
+        "note"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "edition:updated"
+        },
+        "at": {
+          "type": "string"
+        },
+        "edition": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "at",
+        "edition"
+      ]
+    }
+  ]
+}

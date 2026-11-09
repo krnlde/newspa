@@ -1,0 +1,11 @@
+{
+  "_comment": "Hand-written fixture (2026-11-09): a payload where `itemsPath` does not reach an array of objects — the shape of a publisher's redesign. `data.posts` is an object, `data.stories` is absent, `data.count` is a number. Every one of them must be a named fault naming the path and the keys that are there, never an empty item list (rule 5).",
+  "data": {
+    "posts": {
+      "one": { "title": "Not an array", "url": "https://example.invalid/one" }
+    },
+    "count": 2,
+    "byline": "Ann Example"
+  },
+  "meta": { "version": 3 }
+}

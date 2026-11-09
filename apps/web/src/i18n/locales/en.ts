@@ -1,0 +1,225 @@
+/**
+ * UI chrome strings — the paper's own voice. Story text is never here: a
+ * headline comes from its publisher, in the publisher's language, and
+ * translating one is editing one (D-019).
+ *
+ * A TS module, not JSON: the type of `en` is what `de` is checked against in
+ * `test/i18n.test.ts`, so a missing translation is a type error and a test
+ * failure, not a silent English fallback at runtime.
+ */
+export const en = {
+  masthead: {
+    fallback: 'The Daily',
+    tagline: 'As it happens, on your own machine',
+    loading: 'Waking the presses…',
+  },
+  nav: {
+    paper: 'The paper',
+    sources: 'Sources',
+    watchlist: 'Watchlist',
+    search: 'Search',
+    health: 'Health',
+    language: 'Language',
+    theme: { light: 'Light', dark: 'Dark', auto: 'System' },
+  },
+  section: {
+    world: 'World',
+    politics: 'Politics',
+    business: 'Business',
+    technology: 'Technology',
+    science: 'Science & Health',
+    sport: 'Sport',
+    culture: 'Culture',
+    opinion: 'Opinion',
+    top: 'Top Stories',
+  },
+  story: {
+    lead: 'Lead story',
+    edited: 'edited',
+    edits_one: '1 edit',
+    edits_other: '{{count}} edits',
+    new: 'new',
+    gone: 'no longer listed',
+    read: 'read',
+    markUnread: 'Mark unread',
+    source: 'Source',
+    published: 'Published',
+    firstSeen: 'First seen',
+    openStory: 'Open the story at {{source}}',
+    noTeaser: 'No summary from this source.',
+    changed: 'What changed',
+    added: 'added',
+    removed: 'removed',
+  },
+  time: {
+    now: 'just now',
+    today: 'today',
+    yesterday: 'yesterday',
+  },
+  health: {
+    strip_one: '{{count}} source needs attention',
+    strip_other: '{{count}} sources need attention',
+    allOk: 'All sources reporting',
+    noSources: 'No sources yet',
+    state: {
+      unknown: 'not polled yet',
+      ok: 'reporting',
+      blocked: 'blocked',
+      'no-matches': 'selector matches nothing',
+      restructured: 'page changed shape',
+      error: 'failing',
+      stale: 'gone quiet',
+    },
+    lastOk: 'Last good poll',
+    lastTry: 'Last try',
+    since: 'since',
+    paused: 'paused',
+    relaxHint: 'Polling slowed to {{cadence}} after failures',
+  },
+  cadence: {
+    everyMinute: 'every minute',
+    minutes_one: '{{count}} minute',
+    minutes_other: '{{count}} minutes',
+    hours_one: '{{count}} hour',
+    hours_other: '{{count}} hours',
+    daily: 'daily',
+    weekly: 'weekly',
+    days_one: '{{count}} day',
+    days_other: '{{count}} days',
+  },
+  onboarding: {
+    title: 'Nothing has been fetched yet',
+    lead: 'newspa reads the pages you point it at, remembers what they said, and prints what changes. It starts with an empty page on purpose: the sources are yours.',
+    step1: 'Add a source',
+    step1Body:
+      'The picker writes the source file: `pnpm pick -- https://example.com` opens a browser you click the headlines in, then saves `sources/example.json`.',
+    step2: 'Start the cycle',
+    step2Body:
+      '`pnpm start` fetches every source once, then keeps to its own schedule. The page fills in as the first cycle finishes.',
+    step3: 'Keep what matters',
+    step3Body:
+      'Watchwords push a story up, blockwords keep it out. `pnpm export --watchlist > watchlist.json` takes the whole thing with you.',
+    noSources: 'No source files in `sources/`.',
+    sourcesFound_one: '{{count}} source file',
+    sourcesFound_other: '{{count}} source files',
+    cycleRunning: 'First cycle running: {{done}} of {{total}} sources polled.',
+    openSources: 'Open the sources page',
+  },
+  sources: {
+    title: 'Sources',
+    add: 'Add a source',
+    kind: 'Kind',
+    cadence: 'Every',
+    weight: 'Weight',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    items_one: '{{count}} item',
+    items_other: '{{count}} items',
+    render: 'Renders JavaScript',
+    profile: 'Uses a login profile',
+    notes: 'Notes',
+    empty: 'No sources. `pnpm pick -- <url>` writes the first file.',
+    pickHint: 'The picker opens a browser, you click the items, and newspa writes `sources/<id>.json`.',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove',
+    confirmRemove: 'Remove {{label}}? The source file is deleted; the history stays.',
+    issues: 'Source files with problems',
+  },
+  watchlist: {
+    title: 'Watchlist',
+    explain:
+      'Watchwords raise a story, blockwords remove it. Terms match at word boundaries, so “ai” never fires on “said”.',
+    global: 'Everywhere',
+    perSource: 'For {{source}}',
+    termPlaceholder: 'transit budget',
+    add: 'Add',
+    weight: 'Source weight',
+    export: 'Export',
+    import: 'Import',
+    merge: 'Merge',
+    replace: 'Replace',
+    empty: 'No terms yet.',
+  },
+  search: {
+    title: 'Search the archive',
+    placeholder: 'Everything newspa has ever seen',
+    results_one: '{{count}} result',
+    results_other: '{{count}} results',
+    searching: 'Searching…',
+    empty: 'Nothing matched.',
+    recent: 'Recent items',
+  },
+  paper: {
+    loading: 'Waking the presses…',
+    failed: 'The paper is not answering.',
+    failedHint: 'pnpm start',
+    theme: { toLight: 'Light', toDark: 'Dark' },
+    kicker: { new: 'New', edited: 'Edited', changed: 'Changed' },
+    byline: 'By {{author}}',
+    opensInNewTab: 'Open the {{source}} story in a new tab',
+    editSummary_one: '{{added}} characters added, {{removed}} removed',
+    editSummary_other: '{{added}} characters added, {{removed}} removed',
+    edited: { headline: 'Edited' },
+    stats: {
+      items_one: '{{value}} story',
+      items_other: '{{value}} stories',
+      new_one: '{{value}} new',
+      new_other: '{{value}} new',
+      edited_one: '{{value}} edited',
+      edited_other: '{{value}} edited',
+      sources_one: '{{value}} source',
+      sources_other: '{{value}} sources',
+      unhealthy_one: '{{value}} unhealthy',
+      unhealthy_other: '{{value}} unhealthy',
+    },
+    health: {
+      headline: 'Sources',
+      allWell_one: '{{value}} source, all reporting',
+      allWell_other: '{{value}} sources, all reporting',
+      state: {
+        ok: 'ok',
+        blocked: 'blocked',
+        noMatches: 'matches nothing',
+        restructured: 'restructured',
+        error: 'error',
+        stale: 'stale',
+        unknown: 'unknown',
+      },
+      cadence_one: 'every {{value}} min',
+      cadence_other: 'every {{value}} min',
+      items_one: '{{value}} story',
+      items_other: '{{value}} stories',
+      neverFetched: 'never fetched',
+      lastPoll: 'last poll {{ago}}',
+      matches: 'matched {{seen}} of {{expected}} elements',
+    },
+    onboarding: {
+      title: 'Nothing on the wire yet',
+      lead: 'newspa prints what changed since the last poll. Add a source, and the presses start.',
+      step1: 'Pick a source in a browser: pnpm pick -- https://example.com',
+      step2: 'Or write sources/example.json by hand.',
+      step3: 'Open http://127.0.0.1:8787. The paper updates itself.',
+      command: 'pnpm pick -- https://example.com',
+    },
+  },
+  errors: {
+    load: 'The page could not load its state.',
+    retry: 'Try again',
+    offline: 'The server is not running. Start it with `pnpm start`.',
+    schema: 'The server sent a shape this build does not understand.',
+  },
+} as const;
+
+/**
+ * The shape every locale must have, with `string` at the leaves. `typeof en`
+ * cannot be the contract: `as const` makes each leaf its own literal type, so a
+ * German string would fail to satisfy an English literal. This keeps the key
+ * tree — which is the thing that can go missing — and forgets the text.
+ *
+ * The recursion lives in its own generic, not inside `Locale`: a mapped type
+ * that mentions `Locale` in its own body is a circular reference (TS2615).
+ */
+type DeepStrings<T> = T extends string ? string : { readonly [K in keyof T]: DeepStrings<T[K]> };
+
+export type Locale = DeepStrings<typeof en>;

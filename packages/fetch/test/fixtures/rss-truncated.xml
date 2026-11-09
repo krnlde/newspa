@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-written fixture: a feed cut off **inside** an element, the shape of a
+  response that hit a byte cap, a proxy timeout, or a truncated `maxBytes`.
+  fast-xml-parser 5.12.0 does not throw on this: measured, the truncated item
+  came back with an empty title, which is a silent zero (rule 5) and is why
+  `XMLValidator.validate` runs first and its `InvalidXml` code becomes
+  `reason: 'truncated'`.
+-->
+<rss version="2.0">
+  <channel>
+    <title>Truncated feed</title>
+    <link>https://example.invalid/</link>
+    <description>The bytes stop mid-item.</description>
+    <pubDate>Sun, 09 Nov 2025 10:00:00 GMT</pubDate>
+    <item>
+      <title>Whole item, must not be published from a truncated document</title>
+      <link>https://example.invalid/whole</link>
+      <guid isPermaLink="false">whole-1</guid>
+      <description>Complete.</description>
+    </item>
+    <item>
+      <title>Half an item

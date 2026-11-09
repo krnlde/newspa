@@ -1,0 +1,31 @@
+{
+  "name": "newspa-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "start": "node src/cli.ts start"
+  },
+  "dependencies": {
+    "newspa-config": "workspace:*",
+    "newspa-core": "workspace:*",
+    "newspa-db": "workspace:*",
+    "newspa-fetch": "workspace:*",
+    "newspa-paper": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/krnlde/newspa/main/schemas/appconfig.schema.json",
+  "title": "newspa app config",
+  "description": "newspa runtime configuration (newspa.config.json). Every section is optional; defaults fill in.",
+  "type": "object",
+  "properties": {
+    "masthead": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "name": {
+          "default": "The Daily",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "tagline": {
+          "default": "As it happens, on your own machine",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "dayStartHour": {
+          "default": 7,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "timezone": {
+          "default": "local",
+          "type": "string"
+        }
+      }
+    },
+    "server": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "host": {
+          "default": "127.0.0.1",
+          "type": "string"
+        },
+        "port": {
+          "default": 8787,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "openBrowser": {
+          "default": true,
+          "type": "boolean"
+        }
+      }
+    },
+    "scheduler": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "maxConcurrentFetches": {
+          "default": 4,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "maxConcurrentRenderers": {
+          "default": 1,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "jitterSpanMs": {
+          "default": 120000,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000
+        },
+        "backoffBaseMs": {
+          "default": 60000,
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 600000
+        },
+        "backoffMaxMs": {
+          "default": 3600000,
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 86400000
+        },
+        "maxFailuresBeforePause": {
+          "default": 6,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "staleAfterMinutes": {
+          "default": 2880,
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 10080
+        }
+      }
+    },
+    "scoring": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "watchwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "blockwords": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "recencyHalfLifeHours": {
+          "default": 24,
+          "type": "number",
+          "minimum": 1,
+          "maximum": 336
+        }
+      }
+    },
+    "burst": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "newRatioThreshold": {
+          "default": 0.4,
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1
+        }
+      }
+    },
+    "retention": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "snapshotsPerSource": {
+          "default": 10,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "editsPerItem": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "historyDays": {
+          "default": 120,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        }
+      }
+    },
+    "notify": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "toasts": {
+          "default": true,
+          "type": "boolean"
+        },
+        "toastTitle": {
+          "default": "newspa",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "minScoreForToast": {
+          "default": 6,
+          "type": "number",
+          "minimum": 0
+        },
+        "maxToastsPerCycle": {
+          "default": 3,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "quietHours": {
+          "type": "object",
+          "properties": {
+            "startHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            },
+            "endHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            }
+          },
+          "required": [
+            "startHour",
+            "endHour"
+          ]
+        }
+      }
+    }
+  }
+}

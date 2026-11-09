@@ -1,0 +1,58 @@
+<!doctype html>
+<!--
+  Hand-written fixture: the JSON island a page ships its data in (D-008: the
+  BBC probe found 91 KB of `__NEXT_DATA__` inside a 370 KB page, and a JSON path
+  is the one source shape that survives a redesign). The island's JSON is
+  written the way Next.js writes it, under `props.pageProps`, with wrapped
+  fields (`headline.en`, `image.url`) and a `topStories` array.
+  The `&amp;` inside the JSON is real: a page that escapes the island's content
+  is a page the parser has to read as-is, because inside `<script>` the HTML
+  parser does not decode entities.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Island page</title>
+    <script id="EMPTY" type="application/json"></script>
+    <script id="__NEXT_DATA__" type="application/json">
+      {
+        "buildId": "deadbeef",
+        "props": {
+          "pageProps": {
+            "topStories": [
+              {
+                "id": "one",
+                "headline": { "en": "Story one &amp; its ampersand" },
+                "url": "/world/one",
+                "publishedAt": "2026-11-09T10:00:00Z",
+                "image": { "url": "https://example.invalid/hero-one.jpg" },
+                "deck": { "en": "Deck one" },
+                "author": { "name": "Ann Example" }
+              },
+              {
+                "id": "two",
+                "headline": { "en": "Story two" },
+                "url": "https://example.invalid/world/two",
+                "publishedAt": "not a date",
+                "image": { "url": "https://example.invalid/hero-two.jpg" },
+                "deck": { "en": "Deck two" },
+                "credit": "Ben Example"
+              },
+              {
+                "id": "three",
+                "headline": { "en": "" },
+                "url": "/world/three",
+                "publishedAt": "2026-11-09T08:00:00Z"
+              }
+            ],
+            "ticker": ["live", "blog"],
+            "ticker": ["live", "blog"]
+          }
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="__next">A page whose article list lives in the island, not in the markup.</div>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "name": "newspa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A personal newspaper: fetches RSS feeds, HTML pages and JSON endpoints, diffs them against a cached baseline, and prints what changed.",
+  "engines": {
+    "node": ">=26.0.0",
+    "pnpm": ">=12.0.0"
+  },
+  "packageManager": "pnpm@12.18.0",
+  "scripts": {
+    "hooks:install": "husky",
+    "check:hooks": "node scripts/check-hooks.mjs",
+    "check:repo": "node scripts/check-repo-identity.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "dev": "pnpm -r --parallel --color run dev",
+    "build": "pnpm -r --stream run build",
+    "start": "node packages/server/src/cli.ts start",
+    "pick": "node packages/server/src/cli.ts pick",
+    "login": "node packages/server/src/cli.ts login",
+    "status": "node packages/server/src/cli.ts status",
+    "search": "node packages/server/src/cli.ts search",
+    "export": "node packages/server/src/cli.ts export",
+    "import": "node packages/server/src/cli.ts import",
+    "schemas:gen": "node scripts/generate-schemas.mjs gen",
+    "schemas:check": "node scripts/generate-schemas.mjs check",
+    "typecheck": "pnpm -r --stream run typecheck",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "lines": "node scripts/check-file-length.mjs",
+    "check:coverage-policy": "node scripts/check-coverage-policy.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:design": "vitest run --config vitest.design.config.ts",
+    "coverage": "pnpm -r --workspace-concurrency=1 exec vitest run --config vitest.coverage.ts --coverage --passWithNoTests",
+    "audit:check": "pnpm audit --audit-level=low",
+    "check": "pnpm lines && pnpm check:hooks && pnpm check:repo && pnpm check:secrets && pnpm check:coverage-policy && pnpm typecheck && pnpm lint && pnpm schemas:check && pnpm coverage && pnpm test:design && pnpm audit:check"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "happy-dom": "catalog:",
+    "husky": "catalog:",
+    "playwright": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  }
+}

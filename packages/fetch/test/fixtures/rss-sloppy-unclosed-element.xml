@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-written fixture: the tolerance arm. A publisher that puts raw HTML in
+  `<description>` makes the document not well-formed XML, measured on
+  fast-xml-parser 5.12.0: `XMLValidator.validate` reports `InvalidTag` ("Expected
+  closing tag 'br'"), while `XMLParser.parse` reads it anyway and hands back a
+  `description` whose children are elements. Rejecting the document would be
+  right by the spec and wrong about the web, so the parser notes the fault and
+  reads the items; the note is what makes it visible on the paper.
+
+  Two measured consequences of that tolerance are pinned by the tests: an item
+  whose text field opens an element that never closes swallows every element
+  after it (this document has **one** item, not two), and an element child's
+  text is read **before** the character data that preceded it, so the
+  description's line order is the parse order, not the publisher's.
+-->
+<rss version="2.0">
+  <channel>
+    <title>Sloppy feed</title>
+    <link>https://example.invalid/</link>
+    <description>Unclosed HTML inside a text field.</description>
+    <pubDate>Sun, 09 Nov 2025 10:00:00 GMT</pubDate>
+    <item>
+      <title>Paragraph break written as raw HTML</title>
+      <link>https://example.invalid/sloppy</link>
+      <guid isPermaLink="false">sloppy-1</guid>
+      <description>First line<br>Second line<p>A paragraph</p></description>
+    </item>
+    <item>
+      <title>Unclosed element</title>
+      <link>https://example.invalid/unclosed</link>
+      <guid isPermaLink="false">unclosed-1</guid>
+      <description><em>Emphasis that never closes</em></description>
+    </item>
+  </channel>
+</rss>

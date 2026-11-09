@@ -1,0 +1,221 @@
+/*
+ * The story block, and the two marks the paper allows itself: the `●` of an
+ * unread item, and the copy-editing marks of an edit diff. Loaded after
+ * `paper.css`, which owns the tokens.
+ */
+
+.story {
+  break-inside: avoid;
+  padding-block: 0 1.25rem;
+  margin-block-end: 1.25rem;
+  border-bottom: var(--hair) solid var(--rule);
+  position: relative;
+}
+
+.story:last-child {
+  border-bottom: 0;
+  margin-block-end: 0;
+}
+
+/* Kicker: uppercase, letterspaced, with the unread mark and the source. */
+.story__kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0 0 0.2rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+/* A mark, not a colour: the only ink the paper spends on state. */
+.story__mark::before {
+  content: '●';
+  font-size: 0.6em;
+  letter-spacing: 0;
+}
+
+.story__source {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.story__headline {
+  margin: 0 0 0.25rem;
+  /*
+   * 800, not 700: the boldness is the hierarchy. The one typeface stays (no
+   * webfont download, docs/design.md), and the weight plus the tight leading
+   * does what a display face would, so the page has one voice and five volumes.
+   */
+  font-weight: 800;
+  line-height: var(--lh-display);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  break-after: avoid;
+}
+
+.story__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * No hover underline. The headline carries no rule at rest, and adding one on
+ * hover is the one feedback a newspaper must not need: the whole block is
+ * clickable (`.story__link::after` above) and the link's own address is in the
+ * status bar. Keyboard focus is styled in `sheet.css`, and that is the affordance.
+ */
+
+.story--lead .story__headline {
+  font-size: clamp(1.9rem, 4.4vw, 3.4rem);
+}
+
+.story--leader .story__headline {
+  font-size: clamp(1.15rem, 2vw, 1.75rem);
+}
+
+.story__headline {
+  font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+}
+
+.story--brief .story__headline {
+  font-size: 1.12rem;
+}
+
+/* The one paragraph the paper shows (D-017: an index, not a mirror).
+ *
+ * Left-aligned, not justified. Print justifies because its columns are three
+ * inches wide; at this measure (a 20rem column, ~40 characters) justification
+ * stretches the spaces until the line is a set of islands, and the lead deck
+ * makes it worse — a floated drop cap steals two lines from the paragraph, so
+ * the line breaker has less to work with and justify has nothing left to fix.
+ * The measure and the leading do the readability work; the alignment does not.
+ */
+.story__deck {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+  line-height: var(--lh-read);
+  color: var(--ink-2);
+  text-wrap: pretty;
+  orphans: 2;
+  widows: 2;
+}
+
+/* Italic deck on the lead and section leaders only, as in print. */
+.story--lead .story__deck,
+.story--leader .story__deck {
+  font-size: 1.05rem;
+  font-style: italic;
+}
+
+/* Drop cap on the lead deck, two lines deep. */
+.story--lead .story__deck::first-letter {
+  float: left;
+  font-size: 3.1em;
+  font-weight: 700;
+  line-height: 0.85;
+  padding-right: 0.08em;
+  margin-top: 0.04em;
+}
+
+.story__meta {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: var(--lh-meta);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* No image, no box: the component does not render a figure it cannot fill.
+ *
+ * A newspaper **crops** a photograph; it does not paste the file. A lead photo
+ * that is taller than the screen pushes the headline off the page, and an index
+ * page whose first screen is a picture is a blog. So the height is capped and
+ * `cover` crops — the width stays the column's.
+ */
+.story__figure {
+  margin: 0 0 0.6rem;
+}
+
+.story__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: grayscale(1) contrast(1.06) brightness(1.02);
+  border-bottom: var(--hair) solid var(--rule-strong);
+}
+
+.story--lead .story__image {
+  height: min(24rem, 46vh);
+  object-fit: cover;
+  object-position: 50% 25%;
+}
+
+.story--leader .story__image {
+  height: 11rem;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.story__caption {
+  padding-block-start: 0.2rem;
+  font-size: 0.66rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* The edit diff, marked as print marks it: no colour needed. */
+.diff {
+  margin: 0.2rem 0 0;
+  font-size: 0.86rem;
+  line-height: var(--lh-read);
+  color: var(--ink-2);
+}
+
+.diff__count {
+  display: block;
+  margin-block-end: 0.25rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.diff ins {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  color: var(--ink);
+}
+
+.diff del {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+/*
+ * An SSE update flashes the kicker once: the rule thickens for 300ms. A colour
+ * flash would be a dashboard; this is a nudge on a mark that is already there.
+ */
+@keyframes flash-rule {
+  from {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--ink);
+  }
+
+  to {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--rule);
+  }
+}
+
+.story[data-flash='true'] .story__kicker {
+  border-bottom: 1px solid var(--rule);
+  animation: flash-rule 300ms ease-out 1;
+}

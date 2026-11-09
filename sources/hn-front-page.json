@@ -1,0 +1,16 @@
+{
+  "id": "hn-front-page",
+  "label": "Hacker News",
+  "url": "https://hn.algolia.com/api/v1/search?tags=front_page",
+  "kind": "json",
+  "cadenceMinutes": 20,
+  "weight": 2,
+  "section": "Technology",
+  "itemsPath": "hits",
+  "fields": {
+    "title": "title",
+    "link": "url",
+    "date": "created_at",
+    "image": "thumbnail"
+  }
+}

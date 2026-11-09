@@ -1,0 +1,9 @@
+{
+  "id": "node-releases",
+  "label": "Node.js releases",
+  "url": "https://github.com/nodejs/node/releases.atom",
+  "kind": "rss",
+  "cadenceMinutes": 60,
+  "weight": 5,
+  "section": "Software"
+}
