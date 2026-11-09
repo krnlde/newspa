@@ -15,7 +15,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: var(--lh-meta);
+  line-height: var(--leading-meta);
   /*
    * Sticky: the section label floats over its own column while the column
    * scrolls, so a reader three stories down always knows which section they are
@@ -48,14 +48,14 @@
 .section__blurb {
   margin: 0 0 0.75rem;
   font-size: 0.9rem;
-  line-height: var(--lh-read);
+  line-height: var(--leading-read);
   font-style: italic;
   color: var(--ink-2);
 }
 
 /* Columns enforce the measure (45–75 characters); the rule between them is a hairline. */
 .section__columns {
-  column-gap: var(--measure-gap);
+  column-gap: var(--measure);
   column-rule: 1px solid var(--rule);
   column-width: 20rem;
 }
@@ -219,7 +219,7 @@
   padding: 0.5rem 0.75rem;
   border: var(--hair) solid var(--rule-strong);
   background: var(--paper-2);
-  font-family: var(--font);
+  font-family: var(--font-paper);
   font-size: 0.8rem;
   white-space: pre-wrap;
 }

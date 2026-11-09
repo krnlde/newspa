@@ -51,7 +51,7 @@
    * does what a display face would, so the page has one voice and five volumes.
    */
   font-weight: 800;
-  line-height: var(--lh-display);
+  line-height: var(--leading-display);
   letter-spacing: -0.018em;
   text-wrap: balance;
   break-after: avoid;
@@ -98,7 +98,7 @@
 .story__deck {
   margin: 0 0 0.3rem;
   font-size: 0.95rem;
-  line-height: var(--lh-read);
+  line-height: var(--leading-read);
   color: var(--ink-2);
   text-wrap: pretty;
   orphans: 2;
@@ -127,7 +127,7 @@
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  line-height: var(--lh-meta);
+  line-height: var(--leading-meta);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -174,7 +174,7 @@
 .diff {
   margin: 0.2rem 0 0;
   font-size: 0.86rem;
-  line-height: var(--lh-read);
+  line-height: var(--leading-read);
   color: var(--ink-2);
 }
 

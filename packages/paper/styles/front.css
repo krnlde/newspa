@@ -17,7 +17,7 @@
 .paper__front {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr);
-  gap: 0 var(--measure-gap);
+  gap: 0 var(--measure);
   align-items: start;
   padding-block-start: 0.75rem;
 }
@@ -37,7 +37,7 @@
   grid-column: 2;
   grid-row: 1;
   border-inline: var(--hair) solid var(--rule);
-  padding-inline: var(--measure-gap);
+  padding-inline: var(--measure);
 }
 
 .front__rail {
