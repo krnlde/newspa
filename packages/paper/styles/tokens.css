@@ -33,6 +33,13 @@
   /* Hairline, and the gap that enforces the measure between columns. */
   --hair: 0.5px;
   --measure: 1.75rem;
+  /*
+   * Box padding, copied from tailwindcss.com's own panels (`p-4 sm:p-8`), at
+   * their breakpoint. A box's content is never flush to its rule, which is the
+   * complaint every hand-written version of this page has had.
+   */
+  --spacing-box: 1rem;
+  --spacing-box-wide: 2rem;
 }
 
 [data-theme='dark'] {

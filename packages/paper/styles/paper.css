@@ -25,6 +25,7 @@
 @import 'tailwindcss';
 @import './tokens.css';
 @import './base.css';
+@import './marks.css';
 
 /*
  * The last four files are the paper mid-migration: BEM rules from the

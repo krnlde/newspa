@@ -1,0 +1,125 @@
+/*
+ * The sketch layer: the dot grid, the diagonal crossings, the guidelines, the
+ * crop marks.
+ *
+ * The geometry here is **copied** from tailwindcss.com, read out of its live
+ * stylesheet (CSSOM, 2026-11-09) rather than eyeballed:
+ *
+ *   crossings  repeating-linear-gradient(315deg, var(--pattern-fg) 0,
+ *              var(--pattern-fg) 1px, transparent 0, transparent 50%)
+ *              with background-size: 10px 10px
+ *   dots       radial-gradient(var(--pattern-fg) 1px, transparent 0)
+ *              with background-size: 10px 10px
+ *   guideline  `after:inset-ring` => box-shadow: inset 0 0 0 1px <colour>
+ *   padding    `p-4 sm:p-8` => 1rem, and 2rem from 40rem up
+ *   ink        `oklab(1 0 0 / .1)` — the pattern is the foreground at 10%
+ *
+ * What changes is the palette, not the geometry: the pattern ink is the paper's
+ * own ink at 10%, the ring is the paper's hairline, and there is no radius and
+ * no fill (docs/design.md: no cards, no rounded corners, grayscale on yellowed
+ * stock). So the crossings read as the cross-hatch a newspaper prints where a
+ * photograph is missing, the ring as a boxed story, and the dots as a press
+ * registration sheet — a layout drawn on the page, in newsprint.
+ *
+ * Each recipe is a custom property **and** a utility that uses it, because the
+ * paper is mid-migration: an un-migrated block uses the property in a
+ * stylesheet, a migrated component writes the class on the element, and both
+ * read one definition (AGENTS.md rule 11).
+ */
+
+:root {
+  /* Their token name, kept: the pattern is drawn in the foreground colour,
+     faded. `--paper-ink` at 10% in light mode; the dark theme rebinds --ink,
+     so the pattern follows the theme with no extra rule. */
+  --pattern-fg: color-mix(in oklab, var(--ink) 10%, transparent);
+  --pattern-tile: 10px;
+  --pattern-line: 1px;
+
+  /* Guidelines. Their ring is 1px; the paper's rules are hairlines, and
+     `prefers-contrast: more` thickens --hair to 1px, which thickens the ring
+     with it. */
+  --guide: var(--rule);
+  --guide-strong: var(--rule-strong);
+  --ring: var(--hair);
+
+  /* Crop marks. */
+  --mark-size: 11px;
+  --mark-offset: 7px;
+
+  --crossing-image: repeating-linear-gradient(
+    315deg,
+    var(--pattern-fg) 0,
+    var(--pattern-fg) var(--pattern-line),
+    transparent 0,
+    transparent 50%
+  );
+
+  --dot-image: radial-gradient(var(--pattern-fg) 1px, transparent 0);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --pattern-fg: color-mix(in oklab, var(--ink) 22%, transparent);
+    --guide: var(--ink-2);
+  }
+}
+
+@utility pattern-crossings {
+  background-image: var(--crossing-image);
+  background-size: var(--pattern-tile) var(--pattern-tile);
+}
+
+@utility pattern-dots {
+  background-image: var(--dot-image);
+  background-size: var(--pattern-tile) var(--pattern-tile);
+}
+
+/*
+ * A box the paper shows you: a guideline on all four sides (their inset ring,
+ * at the paper's hairline), their padding, and their dot grid inside. No
+ * radius, no shadow, no fill: a newspaper boxes a story with rules.
+ */
+@utility panel {
+  box-shadow: inset 0 0 0 var(--ring) var(--guide-strong);
+  padding: var(--spacing-box);
+  background-image: var(--dot-image);
+  background-size: var(--pattern-tile) var(--pattern-tile);
+}
+
+/* The container's edges, drawn so the measure has a visible start and end. */
+@utility guide-frame {
+  border-inline: var(--hair) solid var(--guide-strong);
+}
+
+/*
+ * Crop marks: the printer's registration ticks, in the waste area outside the
+ * box. Two corners come from the box's own pseudo-elements; a
+ * `[data-part='marks']` span buys the other two. They never shift the content:
+ * the padding stays the padding, and content is never flush to a rule.
+ */
+@utility cropmarks {
+  position: relative;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: var(--mark-size);
+    height: var(--mark-size);
+    pointer-events: none;
+  }
+
+  &::before {
+    inset-inline-start: calc(var(--mark-offset) * -1);
+    inset-block-start: calc(var(--mark-offset) * -1);
+    border-inline-start: var(--hair) solid var(--guide-strong);
+    border-block-start: var(--hair) solid var(--guide-strong);
+  }
+
+  &::after {
+    inset-inline-end: calc(var(--mark-offset) * -1);
+    inset-block-end: calc(var(--mark-offset) * -1);
+    border-inline-end: var(--hair) solid var(--guide-strong);
+    border-block-end: var(--hair) solid var(--guide-strong);
+  }
+}
