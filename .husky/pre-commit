@@ -38,15 +38,15 @@ node scripts/generate-schemas.mjs check
 # broken tree, and 2 seconds is not a reason to let one exist.
 pnpm typecheck
 
-# The suite: measured 6.0s for 78 files. Rule 12 makes a test part of every
-# behaviour, so the suite is the behaviour - committing a red one is how a red
-# main becomes normal. The design suite (real Edge) is NOT here: see the last
-# comment. Coverage is not here either, because a coverage run is minutes and a
-# hook must not be.
-pnpm test
+# The suite: measured 7.4s for `test:fast` (core, db, web, fetch). Rule 12 makes a
+# test part of every behaviour, so the suite is the behaviour - committing a red
+# one is how a red main becomes normal. The browser projects are NOT here: they
+# launch a real Edge, 10.1s with them, and a hook that needs Edge installed cannot
+# commit on a machine without it - and a hook that cannot pass gets bypassed.
+pnpm test:fast
 
-# Deliberately NOT `pnpm check`: that chain ends in `pnpm test:design`, and the
-# real-Edge design suite under apps/web/test/design is not written yet, so
-# `check` is red at HEAD. A hook that is always red is a hook that gets bypassed.
-# `check` stays the gate before declaring work done (AGENTS.md); this is the
-# few-second floor that has to be green for a commit to exist at all.
+# Deliberately NOT `pnpm check`: that chain is minutes (per-package coverage, the
+# Edge browser projects, `test:design`, the audit). It is green at HEAD now that
+# the design suite exists, and it stays the gate before declaring work done
+# (AGENTS.md); this is the few-second floor that has to be green for a commit to
+# exist at all.

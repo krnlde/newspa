@@ -32,6 +32,7 @@
     "lines": "node scripts/check-file-length.mjs",
     "check:coverage-policy": "node scripts/check-coverage-policy.mjs",
     "test": "vitest run",
+    "test:fast": "vitest run --project core --project db --project web --project fetch",
     "test:watch": "vitest",
     "test:design": "vitest run --config vitest.design.config.ts",
     "coverage": "pnpm -r --workspace-concurrency=1 exec vitest run --config vitest.coverage.ts --coverage --passWithNoTests",

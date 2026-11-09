@@ -86,11 +86,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     (`feat(fetch): …`). One commit per behaviour change; the log is the changelog.
 16. **The pre-commit gate is a floor, and activating it is a command.**
     `.husky/pre-commit` runs `biome check --staged`, the 300-line scan, the secret
-    scan, `schemas:check`, `pnpm typecheck` and `pnpm test` (measured: 9.5 s),
+    scan, `schemas:check`, `pnpm typecheck` and `pnpm test:fast` — the four fast
+    projects, core/db/web/fetch, no browser project (whole hook: 10.8 s) —
     under `set -e` — without it husky runs every command and only the **last**
     exit code decides, so a lint failure commits anyway. It never runs
-    `pnpm check`: that chain ends in `pnpm test:design`, which is red until the
-    real-Edge design suite exists, and an always-red hook is a bypassed hook.
+    `pnpm check`: minutes (per-package coverage, the Edge browser projects, the
+    audit), and it ends in `pnpm test:design`, which is red at HEAD —
+    `apps/web/test/design/**` holds no tests yet — and an always-red hook is a hook
+    that gets bypassed. The browser projects stay out of the floor for the same
+    reason: a hook that needs Edge installed cannot pass on every machine.
     Warnings are allowed (the tree carries 10); promoting them to errors teaches
     `--no-verify`. Husky activates from a `prepare` script, and `ignoreScripts:
     true` (rule 8) suppresses that — measured — so **a fresh clone has no hook**
