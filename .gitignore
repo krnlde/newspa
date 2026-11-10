@@ -15,10 +15,15 @@ Thumbs.db
 
 # Runtime state. The corpus (SQLite, snapshots) and the login profiles are not
 # sources: a profile directory is plaintext cookies on disk, and the DB is
-# rebuildable from `sources/` + a first poll. Sources and fixtures ARE sources
-# and stay in git.
+# rebuildable from `sources/` + a first poll.
 /data/
 /profiles/
+
+# Your reading list. A source definition says what a reader cares about — URL
+# set, watchwords, section labels, notes — and this repository is public, so the
+# definitions stay local and unversioned. `sources.example/` is what ships; the
+# backup is `pnpm export --bundle`. See AGENTS rule 18 / D-025.
+/sources/
 
 # The dev paper: `pnpm seed` writes it out of the parser fixtures, and the dev
 # Vite plugin serves it. Generated, machine-local, never authored by hand.

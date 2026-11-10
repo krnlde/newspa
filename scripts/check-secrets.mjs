@@ -21,7 +21,9 @@ import { readFileSync } from 'node:fs';
  * cap: `packages/fetch/test/fixtures/**` are third-party payloads captured byte
  * for byte, and editing one to satisfy a scanner destroys the only proof that the
  * parser handles what the real site sent. The CNN fixture carries CNN's own
- * publishable key and the jwt.io example header for exactly that reason.
+ * publishable key and the jwt.io example header for exactly that reason. Capture
+ * fixtures **logged out**: the exemption is symmetric, and a payload from a
+ * signed-in page carries the reader's data into a public file.
  *
  * Plain JavaScript, no annotations: Node strips types from `.ts`, never from
  * `.mjs`, and the scripts run with no build step (rule 3).
@@ -122,10 +124,31 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxB
   .split('\0')
   .filter((file) => file.length > 0);
 
+/**
+ * Path rules: files that must never be tracked, whatever their contents. A
+ * source definition is a statement about what the reader cares about (URL set,
+ * watchwords, section labels, notes), and this repository is public, so
+ * `sources/` is gitignored by D-025. The content scan below cannot catch that:
+ * the file is innocuous, the *fact that it is published* is the leak.
+ */
+const TRACKED_PATH_RULES = [
+  {
+    pattern: /^sources(\/|$)/,
+    label: 'tracked source definition',
+    why: 'the reading list is local - ship sources.example/, never sources/ (AGENTS rule 18, D-025)',
+  },
+];
+
 const findings = [];
 const warnings = [];
 let scanned = 0;
 let exempt = 0;
+
+for (const file of tracked) {
+  for (const rule of TRACKED_PATH_RULES) {
+    if (rule.pattern.test(file)) findings.push(`${file}  ${rule.label} - ${rule.why}`);
+  }
+}
 
 for (const file of tracked) {
   if (EXEMPT.some((test) => test(file))) {

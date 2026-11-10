@@ -8,7 +8,9 @@ the diff, render at pick time, JSON sources, scoring, notifications, source
 files in git, exports, and change detection.
 
 Tooling, dependency, testing and paper-shape decisions live in
-`decisions-tooling.md`.
+`decisions-tooling.md`. Detection, selector language, `gone`, identity for pages
+and the measured cost of the browser live in `decisions-detection.md` (shared
+numbering; D-026 … D-033 there revise parts of D-005, D-006, D-007 and D-020).
 
 ## D-001 — One hard-coded pipeline, not an agent graph
 
@@ -129,11 +131,14 @@ One `node:child_process` call to PowerShell's toast API; no third party, no
 account, no keys. Remote push (ntfy) is the obvious next notifier and is
 deliberately deferred rather than half-built.
 
-## D-011 — Sources in git, state in SQLite, one-way
+## D-011 — Sources in files, state in SQLite, one-way
 
-`sources/*.json` is the only source of truth; the web UI writes files, never
-rows. Selector history is `git log`; fixtures replay past editions. Two-way sync
-between UI and git is how corpora get lost.
+A source definition file is the only source of truth; the web UI writes files,
+never rows. The picker writes them, the scheduler reads them, and the DB holds
+what the paper _learns_ — items, events, snapshots, validators, health — which
+is rebuildable from `sources/` + a first poll. Two-way sync between UI and the
+definition files is how corpora get lost. **Which directory is public is D-025's
+question; this decision is about files being truth and the DB being derived.**
 
 ## D-014 — Exports are file formats, validated on the way in
 
@@ -175,6 +180,12 @@ below it. **The rule that makes it safe: a cheap signal may skip work, it may
 never suppress an item** - a `304` and a matching body hash prove no new bytes
 exist; a matching declared stamp only skips scoring, after items were extracted.
 
+**Revised 2026-11-10 for HTML** (D-027, `decisions-detection.md`): the HTML
+ladder is `304` → body hash → **selection hash** → parse, and the
+declared-timestamp skip is **not a rung for HTML** - it fired after the body was
+already in hand, saved ~50 ms of a 1 171 ms poll, and suppressed items on
+stealth edits. It stays a feed optimization, where the stamp is the publish time.
+
 Two consequences are load-bearing, and they are why this is a decision and not
 just a speed-up: a fast path that never fires must be **visible** (pages that
 embed a build nonce never produce identical bytes, so per-source
@@ -193,3 +204,23 @@ for diagnosis), the document-tag list, and the DB state it requires - is
 
 **Reverse if:** the counters show a rung earns nothing on the sources you watch,
 then delete that rung. The order is the contract, the rungs are not.
+
+## D-025 — The reading list stays local; the repo ships examples
+
+The repository is public. A source definition is not a config detail, it is a
+statement about a person: the URL set, `watchwords`/`blockwords`, the `section`
+labels in the reader's own words, the free-text `notes`, and the fact that a
+source needs `profile: true` at all. Publish that and the tool has published its
+reader. So:
+
+|                        |                                                                                                                                                                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`sources/`**         | gitignored, local, **not version-controlled**. The loader takes a directory (`config/src/load.ts`), so D-011 is untouched — only which tree is public changed.                                                                                                                                                           |
+| **`sources.example/`** | tracked, placeholder definitions, so a fresh clone boots and the editor's `$schema` association resolves. `.vscode/settings.json` matches both directories.                                                                                                                                                              |
+| **Backup**             | `pnpm export --bundle` already carries `sources/` (D-014), and `export --watchlist` / `--opml` are the portable forms.                                                                                                                                                                                                   |
+| **Enforcement**        | `scripts/check-secrets.mjs` fails the build when a path under `sources/` is tracked — the same posture as rule 17: the floor enforces it, so a helpful future agent cannot re-add a reading list.                                                                                                                        |
+| **History**            | none, deliberately. Selector history in `git log` was D-011's stated benefit; it is given up here on purpose. The answer to "did the source change shape, or did I edit the selector?" is the `matchCount` a poll compares against (`no-matches` names the recorded count) and the `snapshots` row per poll, not a diff. |
+
+**Capture fixtures logged out.** `packages/fetch/test/fixtures/**` is exempt from
+the secret scan for rule 1's reason, and the exemption is symmetric: a payload
+captured from a signed-in page carries the reader's own data into a public file.

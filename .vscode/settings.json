@@ -5,7 +5,7 @@
   "json.validate.enable": true,
   "json.schemas": [
     {
-      "fileMatch": ["sources/*.json"],
+      "fileMatch": ["sources/*.json", "sources.example/*.json"],
       "url": "./schemas/source.schema.json"
     },
     {

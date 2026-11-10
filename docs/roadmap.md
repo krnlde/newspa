@@ -156,7 +156,8 @@ and `src/pick/launch.ts`, so the gate expects them.
 parser, with a hard timeout and a `HealthState` on failure. `pick.ts`: the
 headed session where the reader points at the nodes, producing a source
 definition (`render: true` is a pick-time decision, D-007) — the output is a
-`sources/*.json` fragment the reader pastes, never a write to git.
+`sources/<id>.json` the reader pastes into the local, gitignored source dir
+(D-025) — the picker never writes to git.
 
 **Accept.** A render test runs the real Edge against a local fixture page
 (browser project, so not in the pre-commit floor); a blocked page yields

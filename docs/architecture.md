@@ -13,7 +13,7 @@ newspa (one node process)
 ├── db             node:sqlite, WAL, FTS5  (synchronous: bounded queries only)
 ├── http           node:http on 127.0.0.1:8787
 │                  /api/state  /api/items  /api/search  /api/health
-│                  /api/sources (GET, POST=write sources/*.json)
+│                  /api/sources (GET, POST=write a sources/*.json file — local dir, D-025)
 │                  /api/events (SSE)  / (apps/web/dist)
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
@@ -92,7 +92,8 @@ sources is not, which is why the JS tier is deliberately capped in the config.
 
 | Path                              | Contents                                                          | In git |
 | --------------------------------- | ----------------------------------------------------------------- | ------ |
-| `sources/*.json`                  | source definitions — the only source of truth                     | yes    |
+| `sources/*.json`                  | source definitions — the only source of truth                     | **no** |
+| `sources.example/*.json`          | placeholder definitions, so a clone boots (D-025)                 | yes    |
 | `packages/fetch/test/fixtures/`   | captured payloads for parser tests                                | yes    |
 | `data/newspa.db` (+`-wal`,`-shm`) | items, events, snapshots, health, read markers                    | no     |
 | `profiles/<sourceId>/`            | persistent Edge profiles (login cookies live here, not in the DB) | no     |

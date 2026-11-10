@@ -51,7 +51,8 @@ a root `vitest run --coverage` prints a confident 0 % and gates nothing.
 `relativeParts` / `editionDate` (the locale-free i18n parts, rule 13).
 
 **config**: zod schemas for sources and the app, file loading, watchlist and
-OPML. `sources/*.json` in git is the truth (D-011).
+OPML. The source files are the truth (D-011); the directory is local and
+gitignored (D-025), and `loadSources(dir)` is what makes that a parameter.
 
 **db**: `node:sqlite` behind a driver, `openDatabase` / `openInMemory`,
 migrations (`MIGRATIONS`, `migrate`, `CURRENT_VERSION`), a cooperative lock

@@ -17,6 +17,7 @@
     "dev": "pnpm -r --parallel --color run dev",
     "build": "pnpm -r --stream run build",
     "start": "node packages/server/src/cli.ts start",
+    "sources:init": "node scripts/init-sources.mjs",
     "pick": "node packages/server/src/cli.ts pick",
     "login": "node packages/server/src/cli.ts login",
     "status": "node packages/server/src/cli.ts status",

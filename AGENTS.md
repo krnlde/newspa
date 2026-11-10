@@ -125,6 +125,16 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     rule 1 exempts it — a captured payload edited to satisfy a scanner stops
     proving the parser handles the real site. A value that reaches a public
     commit is public **forever, including after a squash** — rotate it.
+18. **Your reading list is not a public artifact.** The repository is public, and
+    a source definition is a statement about what a reader cares about: the URL
+    set, `watchwords`/`blockwords`, `section`, `notes`, the `profile: true` fact.
+    So `sources/` is **gitignored** — local files, deliberately **not
+    version-controlled** — and `sources.example/` is what ships (D-025). The
+    loader takes a directory, so D-011's one-way rule is unchanged; only which
+    tree is public changed. The backup is `pnpm export --bundle`, which carries
+    `sources/`. `scripts/check-secrets.mjs` fails the build when a source
+    definition is _tracked_. Capture fixtures **logged out**: a payload from a
+    signed-in page carries the reader's data into a public file.
 
 ## Layout
 
@@ -136,10 +146,14 @@ packages/config   zod source/app schemas + file loading + watchlist/OPML (source
 packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
 packages/fetch    http, rss, html, json, render (msedge), pick (headed picker), fixtures
 packages/server   CLI (start/pick/login/status/search/export/import), scheduler, pipeline, SSE, static, toasts
-sources/*.json    Source definitions in git. data/ and profiles/ are gitignored.
+sources.example/  Example source definitions (public). `sources/` is your reading
+                  list: local, gitignored, not version-controlled; the backup is
+                  `pnpm export --bundle`. data/ and profiles/ are gitignored too.
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
-docs/             architecture.md, state.md, roadmap.md, decisions.md, decisions-tooling.md,
-                  fetching.md, design.md, testing.md, tooling.md
+docs/             architecture.md, state.md, roadmap.md, decisions.md,
+                  decisions-tooling.md, decisions-detection.md (selectors, the
+                  ladder, `gone`, measured cost), fetching.md, design.md,
+                  testing.md, tooling.md
 ```
 
 ## Commands
@@ -147,6 +161,7 @@ docs/             architecture.md, state.md, roadmap.md, decisions.md, decisions
 ```
 pnpm install            pnpm dev            pnpm build
 pnpm start              pnpm pick -- <url>  pnpm login -- <url>
+pnpm sources:init       # once per clone: copies sources.example/ into sources/ (D-025)
 pnpm check              pnpm typecheck      pnpm lint    pnpm format
 pnpm test               pnpm coverage       pnpm test:design
 pnpm shots              # the paper in real Edge: 1440x900, 1024x768, 390x844

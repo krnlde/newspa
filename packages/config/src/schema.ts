@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 /**
- * Source definitions are files in git (`sources/*.json`), never rows edited
- * through the UI. Selector history is then `git log`, and a redesign is a
- * reviewable diff instead of a silent database mutation.
+ * Source definitions are files in the reader's own directory (`sources/`,
+ * gitignored by D-025), never rows edited through the UI. The definition stays
+ * reviewable - the picker prints what it wrote and `pnpm export --bundle` backs
+ * the directory up - and a redesign is an authored change instead of a silent
+ * database mutation.
  *
  * `kind` is discriminated because the web probe proved article data lives in
  * three places: HTML, JSON islands (`__NEXT_DATA__` on BBC was 91 KB of a
