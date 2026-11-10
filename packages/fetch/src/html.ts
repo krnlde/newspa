@@ -1,5 +1,6 @@
 import type { CheerioAPI } from 'cheerio';
 import type { HtmlSource } from 'newspa-config';
+import { capPageBody } from 'newspa-core';
 import { challengeOf, noscriptOnly } from './challenge.ts';
 import { pageFields } from './htmlPage.ts';
 import type { NodeSet } from './htmlSelectors.ts';
@@ -16,8 +17,9 @@ import type { Sniffed } from './sniff.ts';
  *
  * Two modes, decided by the source: **item mode** (`list` present) reads a
  * repeating node list; **page mode** (`list` absent) treats the whole document
- * as one item keyed by its text (`htmlPage.ts`) — the shape of a version page,
- * a status page, a changelog.
+ * as one item at a stable address (`htmlPage.ts`, D-028) — the shape of a
+ * version page, a status page, a changelog. Page mode stores a wider body
+ * window, because for it the stored text is what the diff compares.
  *
  * `render: true` is the source saying its selectors were authored against a
  * hydrated DOM. The parser cannot fetch, so all it can do is say so: a
@@ -220,7 +222,7 @@ const parsePage = ($: CheerioAPI, text: string, spec: HtmlSource, sniffed: Sniff
   }
   notes.push(`the page is one item: ${String(page.chars)} characters of text, keyed by content`);
   return succeed({
-    items: [buildItem(spec, page.fields, page.key)],
+    items: [buildItem(spec, page.fields, page.key, capPageBody)],
     kind: spec.kind,
     sniffed: 'html',
     marker: sniffed.marker,

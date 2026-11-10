@@ -159,17 +159,19 @@ export const htmlSourceSchema = z.object({
    *
    * **Absent (or `null`) means the page is the item.** That is the rule for a
    * page with no repeating structure — a download/version page, a status page,
-   * a changelog: the item's identity is the hash of the **page's text
-   * content** (core's `contentKey`), so "the text differs from the cache" is
-   * the whole change model. The link is the page's own URL.
+   * a changelog: the item sits at a **stable address** (`<id>:page`, core's
+   * `pageKey`), so "the text differs from the cache" is the whole change model
+   * and a change is reported as an edit of that one item (D-028). The link is
+   * the page's own URL.
    */
   list: cssPathSchema.nullable().default(null),
   fields: htmlFieldsSchema.default(PAGE_FIELDS),
   /**
    * Selectors for content that must never reach the paper: timestamps that
    * print "3 minutes ago", ad slots, live-blog ticks. These churn the diff —
-   * and in page mode they churn the page's own identity, which is why they
-   * are stripped before the text is hashed.
+   * and in page mode they churn the page's one item, which reports an edit on
+   * every poll, so they are stripped before the text is compared. Page mode has
+   * no selection: `strip` is the only noise knob it has.
    */
   strip: z.array(cssPathSchema).default([]),
 });

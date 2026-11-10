@@ -1,4 +1,4 @@
-import { contentKey, itemId } from 'newspa-core';
+import { itemId, pageKey } from 'newspa-core';
 import { describe, expect, it } from 'vitest';
 import type { RawFields } from '../src/item.ts';
 import { buildItem, emptyFields } from '../src/item.ts';
@@ -236,10 +236,14 @@ describe('the key a PickedItem gets', () => {
     expect(buildItem(spec, emptyFields()).key).toBe(itemId('src', '', '', null));
   });
 
-  it('is the caller’s key when one is given — the page-level source', () => {
-    // The page parser keys a document by its text, and must pass the key in:
-    // `body` is capped here, so the hash cannot be taken from the stored body.
-    const key = contentKey('src', 'v24.10.0 (LTS) Security update');
+  it('is the caller’s key and cap when they are given — the page-level source', () => {
+    // The page parser owns both: identity is an address (core's `pageKey`,
+    // D-028), and the body window is `capPageBody`, because for that source the
+    // stored text is what the diff compares.
+    const key = pageKey('src');
     expect(buildItem(spec, raw, key).key).toBe(key);
+    const long = { ...raw, body: 'x'.repeat(9000) };
+    expect(buildItem(spec, long).body).toHaveLength(1201);
+    expect(buildItem(spec, long, key, (text) => text).body).toHaveLength(9000);
   });
 });

@@ -9,9 +9,10 @@ Scope split: pipeline/data/behaviour in `decisions.md`, tooling and dependencies
 in `decisions-tooling.md`, detection in this file. Numbering is shared, so
 D-025 (reading list local) lives in `decisions.md` and is referenced here.
 
-**Status rule.** D-026 … D-033 are **agreed, not yet implemented**; each entry
-says what is not built. `docs/fetching.md` and `docs/state.md` describe what the
-code does _today_, and are amended by the commit that lands each rung, not by
+**Status rule.** D-026 … D-033 are **agreed**; D-028 is **implemented**
+(page-mode identity, 2026-11-11) and the rest are not built — each entry says
+what. `docs/fetching.md` and `docs/state.md` describe what the code does
+_today_, and are amended by the commit that lands each rung, not by
 this document. Every number below is measured in this session (Node 26.2.0,
 cheerio 1.9.2, playwright-core 1.60.1 + Edge 142, real pages, local).
 
@@ -61,25 +62,23 @@ ten new items yields one item, and the reader finds the other nine on the site.
 - `strip` stays first-class: **page mode has no selection**, so `strip` is the
   only knob the whole-page rung has.
 
-## D-028 — HTML identity is stable: `<id>:page` / `<id>:sel<hash>`
+## D-028 — The page's identity is an address: `<id>:page`  _(implemented 2026-11-11)_
 
-Today an HTML item's key is `contentKey(url, title, publishedAt)`, and for a page
-with no per-item URL the url is the **tracked page**, so the key is a hash of the
-page — which changes when the page changes. Measured on the real row:
-`nodejs:hfc60fe36` → `nodejs:h0c339c75` → `nodejs:hd3d6989d`, twelve `new` events
-for one slot, twelve read markers. (Feeds/JSON are stable: the key is the guid,
-e.g. `node-releases:tag:...releases/tag/v0.2.13`, 17 chars.)
+The measured defect: a page-mode source (HTML with **no `list`**) was keyed by
+`contentKey(sourceId, pageText)` — a hash of the page's own text — so the key
+moved every time the page moved. On the real row: `nodejs:hfc60fe36` →
+`nodejs:h0c339c75` → `nodejs:hd3d6989d` — twelve `new` events for one slot, and
+twelve read markers asked of the reader.
 
-- **The key becomes an address**: `<sourceId>:page`, or
-  `<sourceId>:sel<sha1(list).slice(8)>` — the same 8-hex shape `itemKey`
-  produces, so the DB shape, the `WITHOUT ROWID` PK and the join need no change.
-- A page's slot is **one item that gets edited**; the events say
-  `edited, edited, edited`, which is the truth, and it matches how the reader
-  uses it ("I read it, it is read").
-- Changing the selector is a **new key** by construction (`sel<hash>`), which is
-  the honest answer to "did I edit the selector, or did the site change?" —
-  the old item goes `gone` by D-029's rules. The old item's events stay.
-- Feeds and JSON keep D-005 unchanged.
+|                              |                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **The fix**                  | `pageKey(sourceId)` → `<id>:page`. The key is an **address**, so the slot is **one item that gets edited**: `pollItems` finds the previous row by key and compares its text (`textOf` + `minEditRatio`), so the paper says _edited_ with a word diff.                                                                                                              |
+| **The consequence, settled** | Page-mode change detection now reads the **stored** text, which `capBody` cut at 1 200 chars — a window on the page, not a page. So page mode stores `capPageBody` (6 000). Rule 7 survives: the text is evidence, never content (`ItemView` has no `body`, so nothing reaches the browser), and it is one row per page source, edited in place, not one per poll. |
+| **Item mode needs nothing**  | An HTML source **with** a `list` keys on the item's canonical link (D-005) and was already stable — `node-releases:tag:…releases/tag/v0.2.13`. Under D-026 (one node) that item's link is the newest entry's, so a new entry is a **new item**, which is correct, and the vacated slot is D-029's `moved`/`removed`.                                               |
+| **No `sel<hash>`**           | The first draft of this decision proposed keying a selector slot as `<id>:sel<sha1(list)>`. Not needed: item mode already has a stable per-item key, and page mode has one address. Inventing a third key shape would be identity churn with better branding.                                                                                                      |
+| **What `strip` is now**      | The noise knob, not the identity knob. Ticking text in the compared text reports an edit every poll — the same failure as the reprinting hash, in a quieter shape.                                                                                                                                                                                                 |
+| **Existing rows**            | A page source's old `:h…` row stops being updated the first poll after this lands; it stays in the paper as history. No migration: the DB is derived (D-011), and deleting `data/` is allowed.                                                                                                                                                                     |
+| **Reverse if**               | The reader wants a page's edits to arrive as separate stories (a changelog read as a feed). Then it wants a `list`, not a page source — item mode is that shape.                                                                                                                                                                                                   |
 
 ## D-029 — `gone` is a fact about the world, and a failed poll is never evidence
 

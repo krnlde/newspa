@@ -12,20 +12,25 @@ export const hashKey = (text: string): string => {
 };
 
 /**
- * Identity for a whole document, from its **text content** — the rule for an
- * HTML source with no item selectors (a version page, a status page): there
- * is no repeating item to key on, so the page itself is the item, and "the
- * text differs from the cache" is the whole change model. Equal normalized
- * text → equal key → the diff reports an *edit*; changed text → new key →
- * the paper prints it as new.
+ * Identity for a whole document — the rule for an HTML source with no `list`
+ * (a version page, a status page, a changelog): there is no repeating item to
+ * key on, so the page itself is the item.
  *
- * The hash runs on **whitespace-normalized text only**, deliberately:
- * `normalizeText` folds runs of whitespace, which a human reads as "the same
- * page" even when the publisher re-indented the markup. The parser strips
- * noise elements (ticking timestamps, ad slots) **before** handing text here,
- * because those churn; that is a policy decision, and so is this one.
+ * The key is an **address**, deliberately not a hash of the page's text. Keying
+ * on the text was measured on a real source: `nodejs:hfc60fe36` →
+ * `nodejs:h0c339c75` → `nodejs:hd3d6989d`, so every edit of one slot printed as
+ * a **new** story and asked for a fresh read marker (D-028). With an address the
+ * slot is one item that **gets edited**, which is what the reader acts on:
+ * `pollItems` looks the previous item up by key and compares its text
+ * (`textOf` + `minEditRatio`), so the change signal never needs the key to move.
+ * No page-text hash is a rung either: rung 2's bytes hash is strictly stronger
+ * for "nothing moved".
+ *
+ * `strip` is what keeps this honest: ticking text ("last updated 3 minutes ago")
+ * in the compared text reports an edit on every poll, for the same reason it
+ * churned the hash.
  */
-export const contentKey = (sourceId: string, text: string): string => `${sourceId}:h${hashKey(normalizeText(text))}`;
+export const pageKey = (sourceId: string): string => `${sourceId}:page`;
 
 /**
  * Tracking params stripped from every link before it becomes an identity.

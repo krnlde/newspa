@@ -27,9 +27,11 @@ export interface PickedItem {
   image: string | null;
   author: string | null;
   /**
-   * Evidence, not content. Capped at `BODY_MAX_CHARS` by `capBody`, used only
-   * for stealth-edit detection and scoring. It is deliberately absent from
-   * `ItemView`: the browser never receives full text (docs/decisions-tooling.md D-017).
+   * Evidence, not content. Capped at `BODY_MAX_CHARS` by `capBody` — wider
+   * (`PAGE_BODY_MAX_CHARS`, `capPageBody`) for a page-mode source, whose stable
+   * address (D-028) makes this text the diff input. Used only for stealth-edit
+   * detection and scoring. It is deliberately absent from `ItemView`: the
+   * browser never receives full text (docs/decisions-tooling.md D-017).
    */
   body: string;
 }

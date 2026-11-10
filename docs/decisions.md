@@ -78,13 +78,18 @@ information the paper would print anyway, and every software feed publishes a
 link per release.
 
 **Page identity** (the same decision, in the shape a software source needs): an
-HTML source with **no `list`** is one item, keyed by
+HTML source with **no `list`** is one item at a **stable address**,
+`pageKey(sourceId)` → `<id>:page`. **Revised 2026-11-11 (D-028):** it used to be
 `contentKey(sourceId, pageText)` — the hash of its whitespace-normalized text,
-taken before the body cap. "The text differs from the cache" is the whole change
-model, which is the change model: a version page, a status page, a changelog.
-Re-indenting the markup is not a change; a new version line is. `strip` runs
-**before** hashing, because a ticking "last updated" would otherwise reprint the
-page on every poll.
+taken before the body cap — and that made one slot a **new story on every edit**,
+with a fresh read marker each time (measured: three keys for one page slot).
+"The text differs from the cache" is still the whole change model; it is now
+reported as an **edit** of the page's one item, which is what the reader acts on,
+and the compared text gets a wider window (`capPageBody`, 6 000) than an
+article's evidence, so a change below the display fold is visible to the diff.
+Re-indenting the markup is not a change, because `normalizeText` folds it; a new
+version line is. `strip` runs **before** the text is compared, because a ticking
+"last updated" would otherwise report an edit on every poll.
 
 ## D-006 — Diff the normalized item set, never raw HTML
 

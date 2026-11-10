@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   BODY_MAX_CHARS,
   capBody,
+  capPageBody,
   firstParagraph,
   isBoilerplateTeaser,
+  PAGE_BODY_MAX_CHARS,
   TEASER_MAX_CHARS,
   teaserFor,
   truncate,
@@ -45,6 +47,18 @@ describe('capBody', () => {
     expect(capBody('a'.repeat(5000))).toHaveLength(BODY_MAX_CHARS + 1);
     expect(capBody('a'.repeat(5000)).endsWith('a…')).toBe(true);
     expect(capBody('Ten words only here.')).toBe('Ten words only here.');
+  });
+});
+
+describe('capPageBody', () => {
+  it('is the page-mode window: the whole page, not a 1 200-char fold (D-028)', () => {
+    expect(PAGE_BODY_MAX_CHARS).toBeGreaterThan(BODY_MAX_CHARS);
+    // A version line below the 1 200-char fold must survive, because since the
+    // page's key is a stable address the stored text *is* the diff input.
+    const page = `${'intro '.repeat(300)}v24.10.3 (LTS) Security release.`;
+    expect(capBody(page)).not.toContain('v24.10.3');
+    expect(capPageBody(page)).toContain('v24.10.3');
+    expect(capPageBody('a'.repeat(20000)).length).toBeLessThanOrEqual(PAGE_BODY_MAX_CHARS + 1);
   });
 });
 

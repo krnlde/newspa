@@ -1,25 +1,30 @@
 import type { CheerioAPI } from 'cheerio';
 import type { HtmlSource } from 'newspa-config';
-import { contentKey, normalizeText } from 'newspa-core';
+import { normalizeText, pageKey } from 'newspa-core';
 import type { NodeSet } from './htmlSelectors.ts';
 import { markupToText, NOISE_SELECTOR } from './htmlText.ts';
 import type { RawFields } from './item.ts';
 
 /**
  * The page-level HTML parser: the source has **no `list`**, so the document
- * itself is the item and its identity is the **hash of its text content**
- * (core's `contentKey`).
+ * itself is the item, at a stable address (`node-versions:page`, core's
+ * `pageKey`).
  *
  * That is the rule for a page with no repeating structure — a download page
- * (the nodejs.org release list, where a new version is a line of text), a
- * status page, a changelog. It is also the user's change model in its
- * simplest form: compare the text with the cache, and when it differs, print
- * it. A re-indented page is not a change, because the hash runs on
- * whitespace-normalized text; a new version line is one.
+ * (the nodejs.org release list, where a new version is a line of text), a status
+ * page, a changelog. It is also the user's change model in its simplest form:
+ * compare the text with the cache, and when it differs, report the edit.
  *
- * `strip` is applied **before** hashing, which is what makes the model work on
- * a page that prints "last updated 3 minutes ago": ticking text would churn
- * the identity on every poll and the paper would reprint the page forever.
+ * The address is **not** a hash of the text, and that is the fix (D-028): the
+ * hash moved on every edit, so one slot printed as a new story twelve times and
+ * asked the reader to mark it read twelve times. `pollItems` now finds the same
+ * row by key and compares its text, so the paper says *edited* — which is what
+ * the reader acts on — and `capPageBody` keeps the compared text wide enough to
+ * contain a new version line below the display window.
+ *
+ * `strip` is applied **before** the text is compared, which is what makes the
+ * model work on a page that prints "last updated 3 minutes ago": ticking text
+ * would report an edit on every poll.
  */
 
 /** The document's own body, falling back to the root for a fragment. */
@@ -62,8 +67,9 @@ const DATE_SELECTORS = ['[property="article:published_time"]', 'meta[name=date]'
  * never "no news" (rule 5).
  *
  * The link is the source's own URL: the paper links out to the page it read.
- * The body is the **full** text, uncapped here, so the key sees the bottom of
- * the page as well as the top; `buildItem` caps what is stored.
+ * The body is the **full** stripped text, uncapped here; the page-mode caller
+ * applies `capPageBody`, so the compared text reaches well past the display
+ * window (`body` on a `PickedItem` is 6 000 chars for this mode, D-028).
  *
  * `meta` fields are read from `content`, never from text: a `meta` element has
  * no text node, so a description read as text is `''` on every page on the web.
@@ -82,7 +88,7 @@ export const pageFields = (
   const title = firstText($, TITLE_SELECTORS) || (firstAttr($, TITLE_META_SELECTORS, 'content') ?? '');
   const summary = firstAttr($, DESCRIPTION_SELECTORS, 'content') ?? '';
   return {
-    key: contentKey(spec.id, text),
+    key: pageKey(spec.id),
     fields: {
       title: title.length > 0 ? title : spec.label,
       link: spec.url,

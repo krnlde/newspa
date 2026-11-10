@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   canonicalizeUrl,
   compareIso,
-  contentKey,
   hashKey,
   itemId,
   normalizeText,
+  pageKey,
   resolveLink,
   TRACKING_PARAMS,
 } from '../src/normalize.ts';
@@ -130,21 +130,14 @@ describe('itemId', () => {
   });
 });
 
-describe('contentKey', () => {
-  it('is the page identity from its text: same words, same key', () => {
-    const a = contentKey('node', 'Node.js Releases\n  v24.10.0   (LTS)\n\n  Security update');
-    const b = contentKey('node', 'Node.js Releases v24.10.0 (LTS) Security update');
-    expect(b).toBe(a);
-    expect(a.startsWith('node:h')).toBe(true);
+describe('pageKey', () => {
+  it('is an address, not a text hash: one slot, one key, for every edit (D-028)', () => {
+    expect(pageKey('node-versions')).toBe('node-versions:page');
+    expect(pageKey('node-versions')).toBe(pageKey('node-versions'));
   });
 
-  it('is sensitive to the words, and namespaces by source', () => {
-    expect(contentKey('node', 'v24.10.0')).not.toBe(contentKey('node', 'v24.10.1'));
-    expect(contentKey('a', 'same page')).not.toBe(contentKey('b', 'same page'));
-  });
-
-  it('the empty page is a key, not null: the parser decides whether to ask', () => {
-    expect(contentKey('x', '')).toBe(contentKey('x', '   \n  '));
+  it('namespaces by source, so two pages never share a slot', () => {
+    expect(pageKey('a')).not.toBe(pageKey('b'));
   });
 });
 

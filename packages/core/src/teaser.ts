@@ -23,6 +23,19 @@ import { normalizeText } from './normalize.ts';
 /** Cap on stored body text: enough to notice a rewrite, far below an article. */
 export const BODY_MAX_CHARS = 1_200;
 
+/**
+ * The window for a **page-mode** source (no `list`): the version page, the
+ * status page, the changelog. D-028 made its identity a stable address, so the
+ * stored text is now what the diff compares — `textOf` decides "edited" from
+ * `body`. At 1 200 chars that is a window on the page, not the page: a new
+ * version line printed below the fold would change nothing the paper can see.
+ *
+ * Rule 7's purpose survives: the text is evidence, never content (`ItemView`
+ * has no `body` field, so nothing here reaches the browser), and the rows are
+ * bounded — one per page source, edited in place, not one per poll.
+ */
+export const PAGE_BODY_MAX_CHARS = 6_000;
+
 /** Teaser length: roughly the first paragraph, which is what print shows. */
 export const TEASER_MAX_CHARS = 240;
 
@@ -39,6 +52,9 @@ export const truncate = (value: string, maxChars: number): string => {
 };
 
 export const capBody = (value: string): string => truncate(value, BODY_MAX_CHARS);
+
+/** The page-mode window: see `PAGE_BODY_MAX_CHARS` for why it is wider. */
+export const capPageBody = (value: string): string => truncate(value, PAGE_BODY_MAX_CHARS);
 
 /**
  * First paragraph of a body. Paragraphs are blank-line separated in RSS

@@ -70,11 +70,11 @@ export {
   type CanonicalizeOptions,
   canonicalizeUrl,
   compareIso,
-  contentKey,
   emptyStats,
   hashKey,
   itemId,
   normalizeText,
+  pageKey,
   resolveLink,
   TRACKING_PARAMS,
 } from './normalize.ts';
@@ -99,8 +99,10 @@ export { type PageSignals, pageSignals } from './signals.ts';
 export {
   BODY_MAX_CHARS,
   capBody,
+  capPageBody,
   firstParagraph,
   isBoilerplateTeaser,
+  PAGE_BODY_MAX_CHARS,
   TEASER_MAX_CHARS,
   type TeaserInput,
   teaserFor,

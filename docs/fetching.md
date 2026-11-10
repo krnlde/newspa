@@ -102,14 +102,15 @@ The paper covers software updates as readily as news, and the two shapes are:
   to notice a rewritten release note.
 - **A page with no list** — `https://nodejs.org/en/download`, a status page, a
   version table. Configure it as HTML with **no `list`**: the document is one
-  item keyed by its text (D-005), the paper shows its `<title>` and description,
-  and the link is the page itself.
+  item at a stable address (`<id>:page`, D-005/D-028), the paper shows its
+  `<title>` and description, and the link is the page itself.
 
 For the second shape `strip` is not cosmetic. A page that prints "last updated 3
-minutes ago", a build timestamp, or a rotating sponsor changes its own identity
-every poll, and the paper prints the same page as new each time — the loudest
-failure this design can produce. Name those selectors in `strip` (the picker's
-"never show this" list); they are removed before the text is hashed.
+minutes ago", a build timestamp, or a rotating sponsor changes its own **text**
+every poll, and the paper reports an edit of that one item every poll — the
+loudest failure this design can produce. Name those selectors in `strip` (the
+picker's "never show this" list); they are removed before the text is compared.
+Page mode has no selection, so `strip` is the only knob it has.
 
 ## Timestamp parsing is not `Date.parse`
 

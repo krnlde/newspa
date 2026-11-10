@@ -12,7 +12,9 @@ import { decodeEntities } from './htmlText.ts';
  *   zone-less stamp is UTC here, always, so a story's age does not depend on
  *   which machine opens the paper).
  * - **`body` is capped** by core (`capBody`, 1 200 characters): evidence for
- *   edit detection and scoring, never display (D-017).
+ *   edit detection and scoring, never display (D-017). The page-mode caller
+ *   passes `capPageBody` (6 000) instead, because since D-028 its stored text
+ *   *is* the diff input and 1 200 characters is a window on the page, not a page.
  *
  * No clock is read. A parser that called `Date.now()` could not be tested
  * deterministically, and nothing in this slice needs to know what time it is.
@@ -63,15 +65,23 @@ export const toIsoDate = (value: string | null): string | null => parseHttpDate(
 /**
  * Fields → a `PickedItem`.
  *
- * `key` overrides the identity, and only the page-level HTML parser passes it:
- * a whole document is keyed by its **text content** (core's `contentKey`), and
- * that hash has to be taken on the **full** text — `body` is capped to 1 200
- * characters here, so a key derived from the stored body would ignore the
- * bottom of the page. Every other parser leaves it out and gets D-005's key
- * (canonical link, else title+day). A feed's `guid` / Atom `id` is not part of
- * any key: identity is one rule, no configuration.
+ * `key` overrides the identity, and only the page-level HTML parser passes it: a
+ * whole document is one item at a **stable address** (core's `pageKey`, D-028),
+ * not a hash of its text — the hash made one slot print as a new story on every
+ * edit. Every other parser leaves it out and gets D-005's key (canonical link,
+ * else title+day). A feed's `guid` / Atom `id` is not part of any key: identity
+ * is one rule, no configuration.
+ *
+ * `cap` is the body window, and only the page-level parser passes it: that
+ * source's stored text is what the diff compares once the key stopped moving, so
+ * it gets `capPageBody` rather than the 1 200-char display window.
  */
-export const buildItem = (spec: Pick<SourceSpec, 'id' | 'url'>, raw: RawFields, key?: string): PickedItem => {
+export const buildItem = (
+  spec: Pick<SourceSpec, 'id' | 'url'>,
+  raw: RawFields,
+  key?: string,
+  cap: (text: string) => string = capBody,
+): PickedItem => {
   const title = normalizeText(raw.title);
   const link = raw.link.length > 0 ? absoluteLink(raw.link, spec.url) : '';
   const publishedAt = toIsoDate(raw.publishedAt);
@@ -83,7 +93,7 @@ export const buildItem = (spec: Pick<SourceSpec, 'id' | 'url'>, raw: RawFields, 
     summary: clean(raw.summary),
     image: raw.image === null ? null : clean(absoluteLink(raw.image, spec.url)),
     author: clean(raw.author),
-    body: capBody(normalizeText(raw.body)),
+    body: cap(normalizeText(raw.body)),
   };
 };
 

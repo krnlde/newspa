@@ -4,10 +4,11 @@ import { parsePayload } from '../src/index.ts';
 import { failed, fixture, itemAt, okItems, pageSource } from './support.ts';
 
 /**
- * Page mode: an HTML source with **no `list`**. The document is one item and
- * its identity is the hash of its text, so the whole change model is "the text
- * differs from the cache". The fixture is a version page — a page with no
- * repeating article list, where what the paper needs is the *text*, not a list.
+ * Page mode: an HTML source with **no `list`**. The document is one item at a
+ * stable address (`<id>:page`), so the whole change model is "the text differs
+ * from the cache", reported as an **edit**. The fixture is a version page — a
+ * page with no repeating article list, where what the paper needs is the
+ * *text*, not a list.
  */
 const page = fixture('html-page-version.html');
 const first = (text: string, overrides: Record<string, unknown> = {}) =>
@@ -16,13 +17,28 @@ const first = (text: string, overrides: Record<string, unknown> = {}) =>
 describe('the page as one item', () => {
   const result = parsePayload(page, pageSource());
 
-  it('is exactly one item, keyed by content', () => {
+  it('is exactly one item, at an address', () => {
     const items = okItems(result);
     expect(items).toHaveLength(1);
     if (result.ok === false) return;
     expect(result.matchCount).toBe(1);
-    expect(items[0]?.key.startsWith('node-versions:h')).toBe(true);
+    expect(items[0]?.key).toBe('node-versions:page');
     expect(result.notes.some((note) => note.startsWith('the page is one item:'))).toBe(true);
+  });
+
+  it('is the same address for every edit, and its stored text is the page (D-028)', () => {
+    // The key used to be a hash of the page's text, so every edit printed a new
+    // story and asked for a fresh read marker. It is an address now, and the diff
+    // compares the **stored text** — which is why that text gets `capPageBody`
+    // (6 000) and not the 1 200-char display window: a version line below the
+    // window has to be visible to the diff, not only to the reader.
+    const filler = '<p>The runtime keeps a long index of downloads for old platforms.</p>'.repeat(60);
+    const text = `<html><head><title>Node.js downloads</title></head><body>${filler}<p>Node.js v99.0.0 (LTS) Security release.</p></body></html>`;
+    const item = first(text);
+    expect(item.key).toBe('node-versions:page');
+    expect(first(page).key).toBe(item.key);
+    expect(item.body.length).toBeGreaterThan(1200);
+    expect(item.body).toContain('v99.0.0');
   });
 
   it('carries the page’s own title, description, image, date and URL', () => {
@@ -58,32 +74,45 @@ describe('the page as one item', () => {
   });
 });
 
-describe('what is a change, and what is not', () => {
+describe('what is a change, and what is not: the address is stable, the text is the signal', () => {
   const keyOf = (text: string, overrides: Record<string, unknown> = {}): string => first(text, overrides).key;
+  const bodyOf = (text: string, overrides: Record<string, unknown> = {}): string => first(text, overrides).body;
 
-  it('a re-indented page is the same item: the hash runs on normalized text', () => {
-    expect(keyOf(page.replace('</td><td>', '</td>\n      <td>'))).toBe(keyOf(page));
+  it('a re-indented page is the same item, and the same text', () => {
+    const reindented = page.replace('</td><td>', '</td>\n      <td>');
+    expect(keyOf(reindented)).toBe(keyOf(page));
+    expect(bodyOf(reindented)).toBe(bodyOf(page));
   });
 
-  it('a new version line is a new item', () => {
-    expect(keyOf(page.replace('Node.js v25.3.0', 'Node.js v25.4.0'))).not.toBe(keyOf(page));
+  it('a new version line is the same item, edited — the text carries the news', () => {
+    // D-028 replaced this contract on purpose: the key used to move, so a page
+    // edit printed a new story and asked for a fresh read marker. `pollItems`
+    // finds the row by key and compares `textOf`, so this is now an edit with a
+    // word diff, which is what the reader acts on.
+    const next = page.replace('Node.js v25.3.0', 'Node.js v25.4.0');
+    expect(keyOf(next)).toBe(keyOf(page));
+    expect(bodyOf(next)).toContain('Node.js v25.4.0');
+    expect(bodyOf(next)).not.toBe(bodyOf(page));
   });
 
-  it('a ticking timestamp churns the identity until `strip` names it', () => {
+  it('a ticking timestamp churns the compared text until `strip` names it', () => {
+    // The identity no longer moves, so this is not a reprinted page — it is an
+    // edit reported on every poll: the same noise, in a new shape. `strip` is
+    // therefore not a nicety in page mode, it is the only knob there is.
     const later = page.replace('Last updated 3 minutes ago', 'Last updated 9 minutes ago');
-    expect(keyOf(later)).not.toBe(keyOf(page));
+    expect(keyOf(later)).toBe(keyOf(page));
+    expect(bodyOf(later)).not.toBe(bodyOf(page));
     const strip = { strip: ['.updated'] };
-    expect(keyOf(later, strip)).toBe(keyOf(page, strip));
+    expect(bodyOf(later, strip)).toBe(bodyOf(page, strip));
   });
 
-  it('the key covers the whole page, not the stored body', () => {
+  it('the compared text reaches far past the window an item-mode body gets', () => {
     const tail = (text: string) => `<!doctype html><html><body><p>head</p><p>${text}</p></body></html>`;
-    const long = tail(`x${'y'.repeat(2_000)}tail`);
-    // The stored body is capped evidence: it cannot see the end of the page.
-    expect(first(long).body).not.toContain('tail');
-    // The key can, because it is taken before the cap. A key derived from the
-    // stored body would report "no change" for a page that changed.
-    expect(keyOf(tail(`x${'y'.repeat(2_000)}changed`))).not.toBe(keyOf(long));
+    const deep = `x${'y'.repeat(2_000)}tail`;
+    // 1 200 chars is the display window for an article's evidence; for a page
+    // source the stored text is the diff input, so `capPageBody` (6 000) keeps a
+    // change below the fold visible to the diff, not only to the reader.
+    expect(bodyOf(tail(deep))).toContain('tail');
   });
 });
 
