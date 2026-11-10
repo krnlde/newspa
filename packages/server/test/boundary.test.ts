@@ -26,7 +26,18 @@ const SRC_DIR = fileURLToPath(new NodeUrl('../src/', import.meta.url));
 const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
 
 /** The modules that exist today; a new file has to be listed here, on purpose. */
-const SRC_FILES: readonly string[] = ['edition.ts', 'index.ts', 'state.ts'];
+const SRC_FILES: readonly string[] = [
+  'edition.ts',
+  'index.ts',
+  'poll.ts',
+  'pollBaseline.ts',
+  'pollDeps.ts',
+  'pollHealth.ts',
+  'pollItems.ts',
+  'pollTypes.ts',
+  'pollVerdicts.ts',
+  'state.ts',
+];
 
 /** The pure assembler: rows in, wire out. No language, no clock, no translation library. */
 const ASSEMBLER = 'edition.ts';
@@ -91,6 +102,41 @@ describe('the assembler', () => {
     expect(sourceOf('state.ts')).toContain('new Date()');
     expect(sourceOf('state.ts')).toContain('Intl.DateTimeFormat');
     expect(sourceOf('edition.ts')).not.toContain('Intl');
+  });
+});
+
+describe('the pipeline', () => {
+  /** The rungs and the item pass: every instant they use is handed to them. */
+  const PURE_PIPELINE: readonly string[] = [
+    'pollVerdicts.ts',
+    'pollBaseline.ts',
+    'pollHealth.ts',
+    'pollItems.ts',
+    'pollTypes.ts',
+    'pollDeps.ts',
+  ];
+
+  it('reads the clock in one place, so one poll’s rows all carry one instant', () => {
+    // `pollOne` reads `now` once and passes that instant to the snapshot, the
+    // items, the events and the scorer. A rung that read the clock itself would
+    // stamp a poll over two instants, and every test would drift by a second.
+    for (const file of PURE_PIPELINE) {
+      const text = sourceOf(file);
+      for (const needle of ['new Date(', 'Date.now()'])
+        expect(text, `${file} contains ${needle}`).not.toContain(needle);
+    }
+    // Non-vacuous: the clock lives in the composition root, as it does for `state.ts`.
+    expect(sourceOf('poll.ts')).toContain('new Date()');
+  });
+
+  it('writes from one file, so a poll cannot leave half a paper behind', () => {
+    // One transaction, one snapshot, one validator row, one health patch. A
+    // second call site for any of these is a second write path to keep in step.
+    const writers = ['snapshots.record(', 'validators.write(', 'countFastPath(', 'setHealth('];
+    for (const needle of writers) {
+      const writersOf = SRC_FILES.filter((file) => sourceOf(file).includes(needle));
+      expect(writersOf, `${needle} has more than one call site`).toEqual(['poll.ts']);
+    }
   });
 });
 

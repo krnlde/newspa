@@ -8,6 +8,8 @@
 import { describe, expect, it } from 'vitest';
 import { editionOf } from '../src/edition.ts';
 import * as server from '../src/index.ts';
+import { pollOne } from '../src/poll.ts';
+import { pollDepsOf } from '../src/pollDeps.ts';
 import { DEFAULT_STATE_EVENT_LIMIT, DEFAULT_STATE_ITEM_LIMIT, datelineFor, stateOf } from '../src/state.ts';
 
 /** Every runtime value the barrel owes its consumers: the CLI, the tests, the next slice. */
@@ -17,6 +19,8 @@ const VALUE_EXPORTS: readonly string[] = [
   'datelineFor',
   'DEFAULT_STATE_ITEM_LIMIT',
   'DEFAULT_STATE_EVENT_LIMIT',
+  'pollOne',
+  'pollDepsOf',
 ];
 
 describe('the server barrel', () => {
@@ -41,5 +45,7 @@ describe('the server barrel', () => {
     expect(server.datelineFor).toBe(datelineFor);
     expect(server.DEFAULT_STATE_ITEM_LIMIT).toBe(DEFAULT_STATE_ITEM_LIMIT);
     expect(server.DEFAULT_STATE_EVENT_LIMIT).toBe(DEFAULT_STATE_EVENT_LIMIT);
+    expect(server.pollOne).toBe(pollOne);
+    expect(server.pollDepsOf).toBe(pollDepsOf);
   });
 });
