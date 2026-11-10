@@ -11,7 +11,10 @@
  * answer `same-body`, skip the parse that has to happen, and the source would
  * sit at zero items with a healthy-looking ladder.
  */
+
+import { fetchSource, NO_BASELINE, refusalOf } from 'newspa-fetch';
 import { describe, expect, it } from 'vitest';
+import { refusalFailure } from '../src/pollVerdicts.ts';
 import { fixture, okResponse, pollHarness, storedState, TAKEN_AT } from './pollSupport.ts';
 import { aJsonSpec, anHtmlSpec, anRssSpec } from './support.ts';
 
@@ -158,5 +161,27 @@ describe('a source that is not reporting says so (rule 5)', () => {
     // And the ladder's baseline is still the body that produced them: the next
     // poll has to parse again, not answer `same-body` about a broken feed.
     expect(storedState(h.db, 'bbc').bodyHash).toBe(state.bodyHash);
+  });
+});
+
+describe('the narrowing the pipeline refuses to cast through', () => {
+  it('names the state a refusal builder cannot produce, instead of pretending', async () => {
+    // `refusalOf` builds a `TransportFailure` for all three refusals, and the
+    // barrel types its answer as the union. The pipeline narrows with this
+    // helper, whose throw is the honest answer to a builder that changed.
+    // A real success — built by the real transport, not by hand — is the state
+    // that must not reach the failure path.
+    const ok = await fetchSource(anRssSpec(), NO_BASELINE, {
+      fetch: async () => okResponse(fixture(FEED)),
+      now: () => new Date('2026-11-09T10:00:00.000Z'),
+    });
+    expect(ok.state).toBe('ok');
+    expect(() => refusalFailure(ok)).toThrow(/a refusal is a failure by construction/u);
+
+    // And the real refusal narrows to a failure with the request never made:
+    // `attempts: 0` is what keeps it from reading as a network fault.
+    const refusal = refusalOf(anRssSpec({ render: true }));
+    if (refusal === null) throw new Error('render: true must be refused');
+    expect(refusalFailure(refusal)).toMatchObject({ state: 'failure', reason: 'render-required', attempts: 0 });
   });
 });

@@ -76,6 +76,39 @@ describe('the ladder: a cheap signal may skip work, never suppress an item', () 
     expect(afterSecond.fastPathMisses).toBe(1);
   });
 
+  it('a 304 that speaks refreshes the validators and the freshness, and keeps the body’s hints', async () => {
+    const h = pollHarness(anRssSpec(), (_call, request) =>
+      request.headers.get('if-none-match') === null
+        ? okResponse(fixture(FEED))
+        : new Response(null, {
+            status: 304,
+            headers: { 'cache-control': 'max-age=120, must-revalidate', vary: 'Accept-Encoding', etag: '"cap-2"' },
+          }),
+    );
+    await h.poll();
+    expect(h.calls).toHaveLength(1);
+    const before = storedState(h.db, 'bbc');
+
+    const second = await h.pollAt(FIXED_LATER);
+    expect(second.outcome).toBe('not-modified');
+
+    // RFC 9110 §15.4.5: a 304 updates the stored response's **validators**, and
+    // §4.2.1: the freshness lifetime of the updated entry is the 304's. The rest
+    // of the hint set describes the stored body, which the 304 never sent, so
+    // `cache` stays what the 200 said.
+    const after = storedState(h.db, 'bbc');
+    expect(after.etag).toBe('"cap-2"');
+    expect(after.vary).toEqual(['accept-encoding']);
+    expect(after.freshnessSeconds).toBe(120);
+    expect(after.cache.maxAgeSeconds).toBe(before.cache.maxAgeSeconds);
+    expect(after.cache.mustRevalidate).toBe(before.cache.mustRevalidate);
+    // And the body it never sent stays exactly as the parse left it.
+    expect(after.bodyHash).toBe(before.bodyHash);
+    expect(after.declaredModifiedAt).toBe(before.declaredModifiedAt);
+    expect(after.generator).toBe(before.generator);
+    expect(after.ttlMinutes).toBe(before.ttlMinutes);
+  });
+
   it('a 304 that repeats no validators keeps the stored ones, so the fast path survives a sloppy CDN', async () => {
     const bare = pollHarness(anRssSpec(), (_call, request) =>
       request.headers.get('if-none-match') === null ? okResponse(fixture(FEED)) : new Response(null, { status: 304 }),
