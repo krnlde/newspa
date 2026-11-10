@@ -11,6 +11,9 @@
  * `node:*` is allowed, and `node:sqlite` is reached only through `newspa-db`.
  */
 export { type EditionInput, editionOf } from './edition.ts';
+export { pollOne } from './poll.ts';
+export { pollDepsOf } from './pollDeps.ts';
+export type { ItemPass, PollDeps, PollResult } from './pollTypes.ts';
 export {
   DEFAULT_STATE_EVENT_LIMIT,
   DEFAULT_STATE_ITEM_LIMIT,
