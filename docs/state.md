@@ -17,9 +17,9 @@ hard-coded: `fetch → parse → normalize → diff → score → publish` (D-00
 
 ## Green, right now
 
-`pnpm test` — 87 files, **1 064 tests, all passing**, 8.9 s. `pnpm typecheck`
+`pnpm test` — 93 files, **1 105 tests, all passing**, 8.4 s. `pnpm typecheck`
 clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
-`pnpm lines` passes — 278 files, every one ≤ 300 lines.
+`pnpm lines` passes — 292 files, every one ≤ 300 lines.
 `pnpm test:design` — 13 assertions in real Edge, green.
 
 | package           | src                   | tests                   | project tests  |
@@ -29,13 +29,15 @@ clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
 | `packages/db`     | 15, 2 323             | 16, 2 763               | 154            |
 | `packages/fetch`  | 24, 3 440             | 22, 3 969 + 29 fixtures | 309            |
 | `packages/paper`  | 10, 850               | 10, 1 541               | 108            |
-| `packages/server` | 3, 356                | 7, 1 082                | 52             |
+| `packages/server` | 10, 1 267             | 13, 2 096               | 93             |
 | `apps/web`        | 6, 366                | 12, 1 588               | 105 (+13 Edge) |
 
 Coverage gate is 95 % per package (`vitest.coverage.json`); core measures
 99.39 / 95.74 / 100 / 99.85, paper **100** on all four metrics, web
-99.06 / 95.78 / 100 / 99.45. Run it **per package** — a root
-`vitest run --coverage` prints a confident 0 % and gates nothing.
+99.06 / 95.78 / 100 / 99.45, server 100 / 95.54 / 100 / 100 (the four
+uncovered branches are the `globalThis.fetch` default a test cannot reach,
+and the shape of a note longer than the 200-char cap). Run it **per package** —
+a root `vitest run --coverage` prints a confident 0 % and gates nothing.
 
 ## What each package can do
 
@@ -62,10 +64,14 @@ full parse, where a cheap signal may skip work and **never** suppress an item �
 charset detection, RSS/Atom parsing, HTML and JSON parsing, and 29 captured
 fixtures under `test/fixtures/`.
 
-**server**: the read side only. `index.ts` re-exports `editionOf` (rows →
-`Edition`) and `stateOf` (+ `StateDeps`, `datelineFor`, the item/event limits).
-Everything that writes — pipeline, scheduler, routes, SSE, static, toasts — is
-absent.
+**server**: the read side **and** the poll. `index.ts` re-exports `editionOf`
+(rows → `Edition`), `stateOf` (+ `StateDeps`, `datelineFor`, the item/event
+limits), and `pollOne` with `pollDepsOf` (the composition seam: a `Database` in,
+the repositories, the transaction and the test seams out). `poll.ts` is the
+ladder and the single write path; the rungs' meanings, the ladder state, the
+publish step and the health mapping are each their own module (WP2 in
+`docs/roadmap.md` records the measurements). What is still absent: scheduler,
+routes, SSE, static, toasts, `cli.ts`.
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

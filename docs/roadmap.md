@@ -4,12 +4,13 @@ What is **not** built, in the order that unblocks the most. Each package states
 the measured gap, the acceptance test, and the rules it is answerable to.
 `docs/state.md` is the inventory of what exists; `AGENTS.md` is the law.
 
-The dependency spine is `WP2 → WP3 → WP4 → WP5`, then everything else.
-Seven root scripts (`start`, `pick`, `login`, `status`, `search`, `export`,
-`import`) point at `packages/server/src/cli.ts`, which **does not exist**, so
-`pnpm start` fails today — the shortest path from "a package that passes tests"
-to "an app you can run" is WP2 → WP4 → WP5. WP12 is retired: read it before
-reopening the same two files.
+The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else; **WP2 is
+closed** (below), so it is `WP3 → WP4 → WP5`. Seven root scripts (`start`,
+`pick`, `login`, `status`, `search`, `export`, `import`) point at
+`packages/server/src/cli.ts`, which **does not exist**, so `pnpm start` fails
+today — and the poll that writes the database now exists, so the shortest path
+from "a package that passes tests" to "an app you can run" is WP3 → WP4 → WP5.
+WP12 is retired: read it before reopening the same two files.
 
 ## WP1 — closed: the styling migration is finished (2026-11-10)
 
@@ -37,29 +38,49 @@ assertions.
 (`docs/handoff-tailwind-rewrite.md`, `docs/handoff-style-table.md`) are deleted —
 a stale handoff is a lie in the tree.
 
-## WP2 — The poll: one source, end to end
+## WP2 — closed: the poll writes one source end to end (2026-11-10)
 
-**Gap.** `packages/fetch` can fetch (`fetchSource(spec, baseline, deps)`) and
-`packages/db` can store, and `packages/server/src/edition.ts` + `state.ts` can
-read it back, but nothing joins them: no code writes a poll result.
+**What landed.** `pollOne(spec, deps)` in `packages/server`, and the pipeline is
+hard-coded as planned: `fetch → parse → normalize → diff → score → publish`
+(D-001). Seven modules, 1 267 lines of `src`: `poll.ts` (174) is the ladder and
+the **one** write path — a single `inTx` that writes the snapshot, the ladder
+state, the fast-path counters, the health patch and, on the slow path, the items
+and their events; `pollVerdicts.ts` (173) is each rung's meaning, as pure data;
+`pollBaseline.ts` (133) is the ladder's state, including the RFC 9110 §15.4.5
+rule that a `304` updates the stored **validators** and nothing about the body;
+`pollItems.ts` (161) is the publish step (score, section, the upsert's
+arithmetic, the `editReport`); `pollHealth.ts` (145) maps a fault to the
+`HealthState` the paper prints and the one line beside it; `pollTypes.ts` (92)
+and `pollDeps.ts` (30) are the seams.
 
-**Build.** `pollOne(source, deps)` in `packages/server`: `fetch → parse →
-normalize → diff → score → publish` (D-001, hard-coded, no agent graph). Write
-the item set (`itemsRepository`), the events (`itemEventsRepository`: new,
-edited, read), the baseline (etag/last-modified/body hash/declared timestamp for
-the ladder), one `PollSnapshot` row per poll with its **`outcome`** and the
-per-source fast-path counters, and the source's `HealthState`
-(`sourcesRepository`). A parse failure must produce a health state that reaches
-the paper — never `catch { return [] }` (rule 5).
+**The three numbers a reader judges it by.** `snapshots.item_count` is `null`
+when a rung skipped the parse — never a `0` the paper would read as a dead
+source. `fast_path_hits` / `fast_path_misses` are written on every poll that has
+a state row, so a ladder that never fires is visible. `lastSuccessAt` is written
+only on a success, so a failing source ages into `stale` instead of looking
+quiet.
 
-**Accept.** A fixture-backed poll of each source kind (`rss`, `html`, `json`)
-inserts items, records one snapshot with the right `outcome`, and produces an
-`Edition` through `editionOf` whose `edited`/`new` counts equal the diff.
-A second identical poll produces **zero** items and one snapshot whose
-`outcome` is `not-modified`, the source's stored health stays the **last good**
-one (that composition is the design: `transportHealth.test.ts:59`, and
-`edition-health.test.ts:127` keeps `matchCount` `null` instead of inventing a
-zero), and the paper prints no ghost stories.
+**Measured at acceptance.** `packages/server`: 13 test files, 93 tests (was 55),
+coverage 100 / 95.54 / 100 / 100. The repo: 93 files, 1 105 tests. A fixture poll
+of each source kind — the real BBC capture for `rss`, a card page and a table
+page for `html`, an items-path miss for `json` — writes items, one snapshot with
+the right `outcome`, and an `Edition` whose `new`/`edited` counts equal the diff.
+A second identical poll answers `not-modified` with **zero** items, keeps the
+source's last good health, and prints `matchCount: null` (never an invented
+zero). Layer 1 (`same-body`) and layer 2 (`declared-unchanged`) each have their
+own test, and so does layer 2's cost: an edit the feed does not declare is never
+parsed. Rule 5 is pinned from nine directions — a refused payload, a selector
+that matches nothing, a challenge wall, a `403`, a `500` (retried, waits
+recorded, `lastSuccessAt` untouched), a payload of the wrong kind, a
+`render: true` source (no request made), a body that stops parsing (the last
+good items survive, the baseline does not move), and an unregistered source,
+which **throws** and rolls the poll back.
+
+**Left in it, on purpose.** Two things the roadmap owns elsewhere: the `gone`
+event (decidable only with the source's complete key set — `items.list` is a
+page of 200, and inferring "gone" from "not on this page" is the silent zero) and
+`score_digest` (the digest pass's column; a poll writes `0` because no digest has
+run).
 
 ## WP3 — The scheduler
 
