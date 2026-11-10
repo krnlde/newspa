@@ -136,14 +136,19 @@ writer; the dev plugin stays for offline dev and is never in the bundle.
 all seven exit non-zero.
 
 **Build.** One file per command under `packages/server/src/cli/`, a thin argv
-dispatcher, and `start` = open the db, migrate, take the lock, start the
+dispatcher, and `start` = ensure the source dir (`ensureSourcesDir`, D-025: a
+fresh clone has no `sources/`, and creating it is boot's job, not a side effect
+of a read), load and report it, open the db, migrate, take the lock, start the
 scheduler, serve. `status` prints per source: state, last poll, outcome, item
 count, cadence — the health strip in a terminal (rule 5). Node builtins only
 (`node:sqlite` via `newspa-db`, `node:fs/promises`).
 
 **Accept.** Each command runs from a fresh `data/` and exits 0; `start` prints
 the URL, then serves a paper from a real poll; every command has a test that
-drives `main(argv)` with a temp db and asserts on stdout, no network.
+drives `main(argv)` with a temp db and asserts on stdout, no network. **From a
+fresh clone** — no `sources/` — `start` creates the directory, prints the
+`no-sources` report and the `pnpm sources:init` hint, and serves an empty paper
+without polling anything (rule 5: the emptiness is stated).
 
 ## WP6 — `render` and the headed picker
 

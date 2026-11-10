@@ -1,5 +1,6 @@
 export {
   type AppConfigResult,
+  ensureSourcesDir,
   loadAppConfig,
   loadSources,
   parseSourceJson,

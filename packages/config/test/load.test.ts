@@ -2,7 +2,15 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { loadAppConfig, loadSources, parseSourceJson, removeSource, sourcePath, writeSource } from '../src/load.ts';
+import {
+  ensureSourcesDir,
+  loadAppConfig,
+  loadSources,
+  parseSourceJson,
+  removeSource,
+  sourcePath,
+  writeSource,
+} from '../src/load.ts';
 import { defaultAppConfig, sourceSchema } from '../src/schema.ts';
 
 const htmlSource = {
@@ -107,10 +115,21 @@ describe('loadSources', () => {
     expect(result.issues[0]?.messages[0]).toBeTruthy();
   });
 
-  it('returns empty for a directory that does not exist, without throwing', async () => {
+  it('reports a source directory that does not exist: a fresh clone has none (D-025)', async () => {
     const result = await loadSources(path.join(dir, 'nope'));
     expect(result.sources).toEqual([]);
-    expect(result.issues).toEqual([]);
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]?.reason).toBe('missing-dir');
+    expect(result.issues[0]?.file).toContain('nope');
+    expect(result.issues[0]?.messages[0]).toContain('pnpm sources:init');
+  });
+
+  it('reports an existing directory with no sources, rather than printing an empty paper', async () => {
+    const result = await loadSources(dir);
+    expect(result.sources).toEqual([]);
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]?.reason).toBe('no-sources');
+    expect(result.issues[0]?.messages[0]).toContain('sources.example');
   });
 
   it('flags a duplicate id, and says which files collide', async () => {
@@ -121,6 +140,29 @@ describe('loadSources', () => {
     const duplicate = result.issues.find((issue) => issue.messages[0]?.includes('duplicate source id'));
     expect(duplicate?.file).toContain('same.json');
     expect(duplicate?.reason).toBe('schema');
+  });
+});
+
+describe('ensureSourcesDir', () => {
+  it('creates a missing directory and says it created it (D-025: a clone has none)', async () => {
+    const target = path.join(dir, 'sources');
+    const ensured = await ensureSourcesDir(target);
+    expect(ensured.created).toBe(true);
+    // Boot reads after creating, and an empty directory is still a report, not silence.
+    const result = await loadSources(target);
+    expect(result.sources).toEqual([]);
+    expect(result.issues[0]?.reason).toBe('no-sources');
+  });
+
+  it('is idempotent, creates parents, and never touches a file', async () => {
+    await writeFile(path.join(dir, 'treasury.json'), JSON.stringify(rssSource), 'utf8');
+    expect((await ensureSourcesDir(dir)).created).toBe(false);
+    expect((await ensureSourcesDir(dir)).created).toBe(false);
+    const nested = path.join(dir, 'deep', 'sources');
+    expect((await ensureSourcesDir(nested)).created).toBe(true);
+    const result = await loadSources(dir);
+    expect(result.sources.map((spec) => spec.id)).toEqual(['treasury']);
+    expect(result.issues).toEqual([]);
   });
 });
 

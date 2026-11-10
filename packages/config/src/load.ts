@@ -1,11 +1,11 @@
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { z } from 'zod';
 import { type AppConfig, appConfigSchema, type SourceSpec, sourceSchema } from './schema.ts';
 
 export interface SourceIssue {
   file: string;
-  reason: 'unreadable' | 'invalid-json' | 'schema';
+  reason: 'unreadable' | 'invalid-json' | 'schema' | 'missing-dir' | 'no-sources';
   messages: readonly string[];
 }
 
@@ -17,6 +17,10 @@ export interface SourceLoadResult {
 
 const issueMessages = (error: z.ZodError): string[] =>
   error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`);
+
+/** `ENOENT` is "you have no sources yet"; any other code is a real read failure. */
+const errorCodeOf = (cause: unknown): string =>
+  typeof cause === 'object' && cause !== null && 'code' in cause && typeof cause.code === 'string' ? cause.code : '';
 
 export const parseSourceJson = (
   text: string,
@@ -36,54 +40,90 @@ export const parseSourceJson = (
   return { ok: false, issue: { file, reason: 'schema', messages: issueMessages(parsed.error) } };
 };
 
-/**
- * `sources/*.json` is the only source of truth for definitions. The runtime
- * reads these files on boot and one-way syncs them into SQLite; the web UI
- * writes here (never into the DB), so selector changes are git-visible.
- */
-export const loadSources = async (dir: string): Promise<SourceLoadResult> => {
-  const sources: SourceSpec[] = [];
-  const issues: SourceIssue[] = [];
+/** `ENOENT` is "you have no sources yet"; any other code is a real read failure. */
+const missingDirIssue = (dir: string, cause: unknown): SourceIssue => {
+  const detail = cause instanceof Error ? cause.message : 'cannot read';
+  if (errorCodeOf(cause) !== 'ENOENT') return { file: dir, reason: 'unreadable', messages: [detail] };
+  return {
+    file: dir,
+    reason: 'missing-dir',
+    messages: [`no source directory here: ${detail}; copy the examples with pnpm sources:init, or add <id>.json`],
+  };
+};
 
-  let entries: string[];
+const emptyDirIssue = (dir: string): SourceIssue => ({
+  file: dir,
+  reason: 'no-sources',
+  messages: ['the directory exists and holds no .json source: pnpm sources:init copies sources.example/ (D-025)'],
+});
+
+/** One file: read, parse, validate. A failure is always an issue, never a skip (rule 5). */
+const loadOne = async (
+  dir: string,
+  entry: string,
+): Promise<{ ok: true; spec: SourceSpec } | { ok: false; issue: SourceIssue }> => {
+  let text: string;
   try {
-    entries = await readdir(dir);
-  } catch {
-    return { sources, issues, dir };
+    text = await readFile(path.join(dir, entry), 'utf8');
+  } catch (cause) {
+    return {
+      ok: false,
+      issue: { file: entry, reason: 'unreadable', messages: [cause instanceof Error ? cause.message : 'cannot read'] },
+    };
   }
+  const parsed = parseSourceJson(text, entry);
+  return parsed.ok ? { ok: true, spec: parsed.spec } : { ok: false, issue: parsed.issue };
+};
 
-  for (const entry of entries.sort()) {
-    if (!entry.endsWith('.json')) continue;
-    const file = path.join(dir, entry);
-    let text: string;
-    try {
-      text = await readFile(file, 'utf8');
-    } catch (cause) {
-      issues.push({
-        file: entry,
-        reason: 'unreadable',
-        messages: [cause instanceof Error ? cause.message : 'cannot read'],
-      });
-      continue;
-    }
-    const parsed = parseSourceJson(text, entry);
-    if (parsed.ok) sources.push(parsed.spec);
-    else issues.push(parsed.issue);
-  }
-
-  const seen = new Map<string, string>();
+/** Two files claiming one id: the second is ignored, and that is reported. */
+const duplicateIdIssues = (sources: readonly SourceSpec[]): SourceIssue[] => {
+  const issues: SourceIssue[] = [];
+  const seen = new Set<string>();
   for (const spec of sources) {
-    const previous = seen.get(spec.id);
-    if (previous !== undefined) {
+    if (seen.has(spec.id)) {
       issues.push({
-        file: `${previous}, ${spec.id}.json`,
+        file: `${spec.id}.json`,
         reason: 'schema',
         messages: [`duplicate source id "${spec.id}"; the second file was ignored`],
       });
     }
-    seen.set(spec.id, `${spec.id}.json`);
+    seen.add(spec.id);
+  }
+  return issues;
+};
+
+/**
+ * `sources/*.json` is the only source of truth for definitions. The runtime
+ * reads these files on boot and one-way syncs them into SQLite; the web UI
+ * writes files, never rows (D-011).
+ *
+ * The directory is a parameter, and that is what makes D-025 cheap: the reading
+ * list is local and gitignored, so **a fresh clone has no source directory at
+ * all.** That is the normal first-run state, not an error, and it is reported as
+ * an issue rather than answered with an empty list — rule 5. `pnpm sources:init`
+ * copies `sources.example/` in.
+ */
+export const loadSources = async (dir: string): Promise<SourceLoadResult> => {
+  const sources: SourceSpec[] = [];
+
+  let entries: string[];
+  try {
+    entries = await readdir(dir);
+  } catch (cause) {
+    return { sources, issues: [missingDirIssue(dir, cause)], dir };
   }
 
+  const json = entries.filter((entry) => entry.endsWith('.json')).sort();
+  if (json.length === 0) return { sources, issues: [emptyDirIssue(dir)], dir };
+
+  const issues: SourceIssue[] = [];
+  for (const entry of json) {
+    const loaded = await loadOne(dir, entry);
+    if (loaded.ok) sources.push(loaded.spec);
+    else issues.push(loaded.issue);
+  }
+
+  issues.push(...duplicateIdIssues(sources));
   return { sources, issues, dir };
 };
 
@@ -105,6 +145,34 @@ export const loadAppConfig = async (file: string): Promise<AppConfigResult> => {
   const parsed = appConfigSchema.safeParse(raw);
   if (parsed.success) return { config: parsed.data, file, messages };
   return { config: appConfigSchema.parse({}), file, messages: [...messages, ...issueMessages(parsed.error)] };
+};
+
+const isDirectory = async (dir: string): Promise<boolean> => {
+  try {
+    return (await stat(dir)).isDirectory();
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The creating step, and the only place that creates. `sources/` is gitignored
+ * (D-025), so a fresh clone has no source directory, and every writer needs one:
+ * `writeSource` makes it for itself, and boot needs it to exist before it can
+ * report that the directory is empty.
+ *
+ * Idempotent, and it never touches a file. A non-`ENOENT` stat failure falls
+ * through to `mkdir`, which raises the precise error — this swallow cannot
+ * become a silent zero.
+ *
+ * `loadSources` deliberately does **not** call this. Creating a directory inside
+ * a reader hides the side effect, and rule 5 wants the louder thing: the paper
+ * must *say* it has nothing to print. Boot calls this, then reads, then reports.
+ */
+export const ensureSourcesDir = async (dir: string): Promise<{ created: boolean }> => {
+  if (await isDirectory(dir)) return { created: false };
+  await mkdir(dir, { recursive: true });
+  return { created: true };
 };
 
 export const sourcePath = (dir: string, spec: SourceSpec): string => path.join(dir, `${spec.id}.json`);
