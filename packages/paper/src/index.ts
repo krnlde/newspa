@@ -1,6 +1,13 @@
 export { type HealthLabels, type HealthProps, HealthStrip } from './HealthStrip.tsx';
 export { Masthead } from './Masthead.tsx';
-export { type OnboardingCopy, Paper, type PaperLabels, type PaperProps } from './Paper.tsx';
+export {
+  Onboarding,
+  type OnboardingCopy,
+  Paper,
+  type PaperLabels,
+  type PaperProps,
+  sheetClass,
+} from './Paper.tsx';
 export { Section } from './Section.tsx';
 export { EditDiff, Story } from './Story.tsx';
 export type {

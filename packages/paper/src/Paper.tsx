@@ -1,28 +1,24 @@
-import type {
-  Edition,
-  EditionSection,
-  EditionStats,
-  EditReportView,
-  ItemView,
-  MastheadView,
-  SourceHealthView,
-} from 'newspa-core';
+import type { Edition, EditionStats, MastheadView, SourceHealthView } from 'newspa-core';
+import { EditedStrip } from './EditedStrip.tsx';
+import { FrontPage } from './FrontPage.tsx';
 import { type HealthLabels, HealthStrip } from './HealthStrip.tsx';
 import { Masthead } from './Masthead.tsx';
 import { Section } from './Section.tsx';
-import { EditDiff, Story } from './Story.tsx';
 import type { FormatProps, StoryLabels } from './types.ts';
 
 /**
- * The page: masthead, lead, sections, the edited strip, source health.
+ * The page: masthead, front page, sections, the edited strip, source health.
+ * This file owns **the order the page prints in** and nothing else; the front
+ * page's grid is `FrontPage.tsx`, the diff panel is `EditedStrip.tsx`, a
+ * section is `Section.tsx`, a story is `Story.tsx`, and the block label's
+ * vocabulary is `blockHead.ts`.
  *
  * There is **no edition** to pick (D-002): the page is the product, and it
  * shows what the last polls changed. Nothing here fetches, translates, formats
  * a date, or reads a clock — the app owns all four, and this file owns the
- * order things appear in and the class names the design contract styles.
- *
- * An empty paper is a state, not a blank page: onboarding, with the commands
- * that add a source.
+ * order things appear in and the utility classes that style every block. An
+ * empty paper is a state, not a blank page: onboarding, with the commands that
+ * add a source.
  */
 export interface OnboardingCopy {
   readonly title: string;
@@ -31,8 +27,16 @@ export interface OnboardingCopy {
   readonly command: string;
 }
 
-/** A rail is a pointer into the section below the fold, not a full index. */
-const RAIL_ITEMS = 4;
+/**
+ * The sheet's own class string, exported: a solid panel of paper on the
+ * patterned stock, framed by the guidelines and the printer's crop marks.
+ * `px-gutter` is the clamp that keeps a phone's edge air and a wide desk's edge
+ * measure. It is public because the app's loading and failure states are shells
+ * of the same page, and a class string copied into `App.tsx` is a second sheet
+ * definition that drifts on the first edit.
+ */
+export const sheetClass =
+  'mx-auto max-w-[104rem] px-gutter pt-box pb-16 min-[40rem]:pt-box-wide bg-paper guide-frame cropmarks relative';
 
 export interface PaperLabels extends StoryLabels {
   readonly health: HealthLabels;
@@ -54,7 +58,7 @@ export interface PaperProps {
 }
 
 export const Paper = ({ masthead, edition, sources, labels, format, theme, onToggleTheme, themeLabel }: PaperProps) => (
-  <div className="paper">
+  <div data-part="sheet" className={sheetClass}>
     <Masthead
       name={masthead.name}
       tagline={masthead.tagline}
@@ -65,11 +69,14 @@ export const Paper = ({ masthead, edition, sources, labels, format, theme, onTog
       themeLabel={themeLabel}
     />
     {sources.length === 0 ? (
-      <Onboarding labels={labels} />
+      <Onboarding copy={labels.onboarding} />
     ) : (
       <>
         <FrontPage lead={edition.lead} sections={edition.sections} labels={labels} format={format} />
-        <div className="paper__sections">
+        <div
+          data-part="sections"
+          className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] pt-4 max-[640px]:grid-cols-1"
+        >
           {edition.sections.map((section) => (
             <Section
               key={section.id}
@@ -82,7 +89,7 @@ export const Paper = ({ masthead, edition, sources, labels, format, theme, onTog
             />
           ))}
         </div>
-        <Edited items={edition.edited} labels={labels} format={format} />
+        <EditedStrip items={edition.edited} labels={labels} format={format} />
         <HealthStrip sources={sources} labels={labels.health} format={format} />
       </>
     )}
@@ -90,144 +97,33 @@ export const Paper = ({ masthead, edition, sources, labels, format, theme, onTog
 );
 
 /**
- * Above the fold: the lead in the centre, the two strongest sections as narrow
- * rails at its sides, then the ornament. Which sections are "strongest" is not
- * decided here — core orders sections by the score they carry, so `sections[0]`
- * and `sections[1]` **are** the two strongest. The paper chooses what is big;
- * the server decides what matters, and this is the first half of that sentence.
+ * The empty paper: what to run, in the order it works. Exported because the
+ * app's failure state is the same panel with the publisher's words in it —
+ * "the server answered 500" and "there are no sources" both end in the same
+ * reader question, *what do I run now* — and a panel built twice is two panels.
+ * The steps are optional: a failure has no recipe, and an empty `<ol>` is a
+ * strip of list-marker air above the command.
  */
-const FrontPage = ({
-  lead,
-  sections,
-  labels,
-  format,
-}: {
-  readonly lead: ItemView | null;
-  readonly sections: readonly EditionSection[];
-  readonly labels: PaperLabels;
-  readonly format: FormatProps;
-}) =>
-  lead === null ? null : (
-    <>
-      <section className="paper__front">
-        <div className="paper__lead front__lead">
-          <Story item={lead} slot="lead" labels={labels} format={format} showImage />
-        </div>
-        <Rail side="left" section={sections[0]} skipKey={lead.key} labels={labels} format={format} />
-        <Rail side="right" section={sections[1]} skipKey={lead.key} labels={labels} format={format} />
-      </section>
-      <p className="paper__ornament" aria-hidden="true">
-        ❦
-      </p>
-    </>
-  );
-
-/**
- * One rail: a section's items at `brief` volume, in the narrow column beside the
- * lead. Two rules make it honest:
- *
- *  - the centre story is **never** repeated here (`skipKey`): the same headline
- *    twice on one screen is not an index;
- *  - four items, no more: a rail is a pointer into the section below, and the
- *    full section is printed right under the fold.
- *
- * A rail with nothing left to show renders nothing, so the grid never grows an
- * empty column.
- */
-const Rail = ({
-  side,
-  section,
-  skipKey,
-  labels,
-  format,
-}: {
-  readonly side: 'left' | 'right';
-  readonly section: EditionSection | undefined;
-  readonly skipKey: string;
-  readonly labels: PaperLabels;
-  readonly format: FormatProps;
-}) => {
-  if (section === undefined) return null;
-  const items = section.items.filter((item) => item.key !== skipKey).slice(0, RAIL_ITEMS);
-  if (items.length === 0) return null;
-  return (
-    <section className={`front__rail front__rail--${side}`} aria-label={section.title}>
-      <h2 className="section__head rail__head">
-        {section.title}
-        <span className="section__rule" aria-hidden="true" />
-      </h2>
-      <ul className="rail__list">
-        {items.map((item) => (
-          <li key={item.key}>
-            <Story item={item} slot="brief" labels={labels} format={format} showImage={false} />
-          </li>
+export const Onboarding = ({ copy }: { readonly copy: OnboardingCopy }) => (
+  <section data-part="onboarding" className="mt-8 max-w-[34rem] panel">
+    <h2 data-part="onboarding-title" className="mb-2 text-title leading-display font-bold">
+      {copy.title}
+    </h2>
+    <p data-part="onboarding-lead" className="mb-4 text-deck italic text-ink-2">
+      {copy.lead}
+    </p>
+    {copy.steps.length > 0 ? (
+      <ol data-part="onboarding-steps" className="mb-4 ps-5 text-note">
+        {copy.steps.map((step) => (
+          <li key={step}>{step}</li>
         ))}
-      </ul>
-    </section>
-  );
-};
-
-/**
- * `Array.filter` cannot narrow, so the proof is written down. A row of the
- * edited strip **always** has a report, which is why the render below has no
- * `null` arm — and no branch that no test can reach.
- */
-const hasReport = (item: ItemView): item is ItemView & { readonly lastReport: EditReportView } =>
-  item.lastReport !== null;
-
-/**
- * The edited strip: stories whose text changed, with the word diff of the
- * teaser. A publisher rewriting a headline is news in a tool that shows what
- * changed, and the diff is the evidence.
- */
-const Edited = ({
-  items,
-  labels,
-  format,
-}: {
-  readonly items: readonly ItemView[];
-  readonly labels: PaperLabels;
-  readonly format: FormatProps;
-}) => {
-  const withReport = items.filter(hasReport);
-  if (withReport.length === 0) return null;
-  return (
-    <section className="edited">
-      <h2 className="edited__head">
-        {labels.editedHeadline}
-        <span className="edited__rule" aria-hidden="true" />
-      </h2>
-      {withReport.map((item) => (
-        <article className="edited__row" key={item.key}>
-          <h3 className="edited__headline">
-            <a
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={labels.opensInNewTab(item.sourceLabel)}
-            >
-              {item.title}
-            </a>
-            <span className="edited__source">{item.sourceLabel}</span>
-          </h3>
-          <EditDiff report={item.lastReport} summary={labels.editSummary} />
-          <p className="edited__meta">{format.published(item.lastChangedAt ?? item.publishedAt)}</p>
-        </article>
-      ))}
-    </section>
-  );
-};
-
-/** The empty paper: what to run, in the order it works. */
-const Onboarding = ({ labels }: { readonly labels: PaperLabels }) => (
-  <section className="onboarding">
-    <h2 className="onboarding__title">{labels.onboarding.title}</h2>
-    <p className="onboarding__lead">{labels.onboarding.lead}</p>
-    <ol className="onboarding__steps">
-      {labels.onboarding.steps.map((step) => (
-        <li key={step}>{step}</li>
-      ))}
-    </ol>
-    <pre className="onboarding__command">{labels.onboarding.command}</pre>
+      </ol>
+    ) : null}
+    <pre
+      data-part="onboarding-command"
+      className="m-0 p-box border border-[length:var(--hair)] border-rule-strong bg-paper-2 font-paper text-[0.8rem] whitespace-pre-wrap"
+    >
+      {copy.command}
+    </pre>
   </section>
 );

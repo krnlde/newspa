@@ -10,7 +10,9 @@ import { describe, expect, it } from 'vitest';
  * only stylesheets is now **half** the contract: `text-justify` (the utility for
  * `text-align: justify`) and `leading-[1.6rem]` are class strings in
  * `packages/paper/src/*.tsx`. Every scan here therefore runs over the CSS **and**
- * the components, which is the stronger version of the same rule.
+ * the components, which is the stronger version of the same rule. The four
+ * hand-written BEM sheets the entry file used to import are gone, so the
+ * components are the whole styling surface and the scan has no blind spot left.
  *
  * Geometry — columns, measure, the sticky head, print, what a box's padding
  * computes to — needs a layout engine and is asserted in real Edge by
@@ -25,7 +27,7 @@ import { describe, expect, it } from 'vitest';
 const STYLE_DIR = fileURLToPath(new NodeUrl('../styles/', import.meta.url));
 const SRC_DIR = fileURLToPath(new NodeUrl('../src/', import.meta.url));
 
-const CSS = ['tokens.css', 'marks.css', 'base.css', 'sheet.css', 'blocks.css', 'front.css', 'stories.css'];
+const CSS = ['tokens.css', 'marks.css', 'base.css'];
 
 const cssOf = (file: string): string => readFileSync(`${STYLE_DIR}${file}`, 'utf8');
 
@@ -85,7 +87,7 @@ describe('the paper contract, in CSS and in the components', () => {
    * /`tight`. A `px`/`rem` leading is a size committed twice — it stops tracking
    * the type when the size changes, which is how a page drifts back into
    * unreadable. Three values exist (`--leading-display|read|meta`) and a
-   * component may only reach for one of them.
+   * component may only reach for one of them, or a Tailwind default.
    */
   it('never sets an absolute line-height, in CSS or as a utility', () => {
     for (const file of CSS) {
@@ -121,6 +123,12 @@ describe('the paper contract, in CSS and in the components', () => {
     }
   });
 
+  /*
+   * A box vocabulary with no radius, and one shadow: the guideline ring (an
+   * inset ring, in `marks.css`) and the scroll edge under a sticky label
+   * (`--shadow-scroll`, docs/design.md). A component may cast the scroll edge
+   * and nothing else, because the utility is now where the shadow is written.
+   */
   it('keeps the box vocabulary honest: no radius, and the shadow is the scroll edge', () => {
     // Prose in a docstring may say "no rounded corners", so the radius rule is
     // read off declarations and utilities, never off the word.
@@ -129,10 +137,12 @@ describe('the paper contract, in CSS and in the components', () => {
     expect([...cssOf('tokens.css').matchAll(/--radius-[a-z0-9-]+/g)].map((m) => m[0])).toEqual(['--radius-none']);
     const shadows = patternScan(/box-shadow\s*:/u);
     for (const file of shadows) {
-      expect(['marks.css', 'blocks.css', 'tokens.css'], `${file} may not cast a shadow`).toContain(file);
+      expect(['marks.css', 'tokens.css'], `${file} may not cast a shadow`).toContain(file);
     }
     for (const { name, text } of components()) {
-      expect(text, `${name}: a component casts no shadow`).not.toMatch(/\bshadow-/u);
+      for (const cast of text.matchAll(/\bshadow-[a-z0-9-]+/g)) {
+        expect(cast[0], `${name}: the paper casts one shadow, the scroll edge`).toBe('shadow-scroll');
+      }
     }
   });
 
@@ -146,5 +156,25 @@ describe('the paper contract, in CSS and in the components', () => {
     }
     expect(cssOf('marks.css')).toContain('315deg');
     expect(cssOf('marks.css')).toContain('background-size: var(--pattern-tile)');
+  });
+
+  /*
+   * The structural contract: style may be rewritten, the hooks may not. Every
+   * BEM name (`foo__bar`, `foo--baz`) is a class the design suite, the print
+   * rules and the flash query cannot follow, so none survives in a component.
+   */
+  it('hooks structure to data-part, never to a BEM class name', () => {
+    for (const { name, text } of components()) {
+      expect(
+        [...text.matchAll(/['"`][a-z][a-z0-9]*(?:__|--)[a-z0-9-]+/g)].map((m) => m[0]),
+        `${name}: BEM name`,
+      ).toEqual([]);
+    }
+    for (const file of CSS) {
+      expect(
+        [...cssOf(file).matchAll(/^\s*\.[a-z][a-z0-9]*(?:__|--)/gmu)].map((m) => m[0]),
+        `${file}: BEM selector`,
+      ).toEqual([]);
+    }
   });
 });

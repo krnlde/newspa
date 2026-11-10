@@ -9,6 +9,9 @@ import {
   aSource,
   nthStory,
   one,
+  PART,
+  partsOf,
+  railOf,
   THE_FORMAT,
   THE_LABELS,
   THE_MASTHEAD,
@@ -43,7 +46,7 @@ const show = (over: Partial<PaperProps> = {}) =>
 
 /** A story in a rail, by key. A missing key is a loud string, never a silent `undefined`. */
 const railKeys = (container: HTMLElement): string[] =>
-  [...container.querySelectorAll<HTMLElement>('.front__rail article')].map((node) => node.dataset['key'] ?? '(no key)');
+  [...container.querySelectorAll<HTMLElement>(`${PART.rail} article`)].map((node) => node.dataset['key'] ?? '(no key)');
 
 describe('the front page', () => {
   it('puts the lead in the centre and the two strongest sections at its sides', () => {
@@ -57,13 +60,9 @@ describe('the front page', () => {
         ],
       }),
     });
-    expect([...one('.paper__front', container).children].map((node) => node.className)).toEqual([
-      'paper__lead front__lead',
-      'front__rail front__rail--left',
-      'front__rail front__rail--right',
-    ]);
+    expect(partsOf(one(PART.front, container))).toEqual(['lead', 'rail:left', 'rail:right']);
     expect(railKeys(container)).toEqual(['a:2', 'b:1']);
-    expect([...container.querySelectorAll('.front__rail .section__head')].map((node) => node.textContent)).toEqual([
+    expect([...container.querySelectorAll(`${PART.rail} ${PART.blockHead}`)].map((node) => node.textContent)).toEqual([
       'World',
       'Technology',
     ]);
@@ -80,10 +79,8 @@ describe('the front page', () => {
     });
     // That section's only item is the lead, so its rail has nothing to show and
     // renders nothing; the single real rail is the centre's neighbour.
-    expect([...one('.paper__front', container).children].map((node) => node.className)).toEqual([
-      'paper__lead front__lead',
-    ]);
-    expect(container.querySelectorAll('.front__rail')).toHaveLength(0);
+    expect(partsOf(one(PART.front, container))).toEqual(['lead']);
+    expect(container.querySelectorAll(PART.rail)).toHaveLength(0);
   });
 
   it('caps a rail at four items, because a rail points into the section below', () => {
@@ -113,20 +110,45 @@ describe('the front page', () => {
         ],
       }),
     });
-    const rail = one('.front__rail--left', container);
-    expect([...rail.querySelectorAll('article')].map((node) => node.className)).toEqual(['story story--brief']);
+    const rail = one(railOf('left'), container);
+    expect([...rail.querySelectorAll<HTMLElement>('article')].map((node) => node.dataset['slot'])).toEqual(['brief']);
     expect(rail.querySelector('figure')).toBeNull();
     // The lead keeps its photograph; the rails are words.
-    expect(one('.front__lead figure img', container).getAttribute('src')).toBe('https://x.test/p.jpg');
+    expect(one(`${PART.lead} ${PART.figure} ${PART.image}`, container).getAttribute('src')).toBe(
+      'https://x.test/p.jpg',
+    );
+  });
+
+  it('separates rail items with a rule on the list item, not on the story', () => {
+    const items = ['a:2', 'a:3', 'a:4'].map((key) => anItem({ key }));
+    const { container } = show({
+      edition: anEdition({
+        lead: anItem({ key: 'lead:1' }),
+        sections: [
+          aSection({ id: 'a', title: 'World', items }),
+          aSection({ id: 'b', items: [anItem({ key: 'b:1' })] }),
+        ],
+      }),
+    });
+    const list = one(`${railOf('left')} ${PART.railList}`, container);
+    expect([...list.children].map((node) => node.tagName)).toEqual(['LI', 'LI', 'LI']);
+    expect([...list.querySelectorAll<HTMLElement>(PART.story)].map((node) => node.dataset['slot'])).toEqual([
+      'brief',
+      'brief',
+      'brief',
+    ]);
   });
 
   it('prints no front page at all for an edition with no lead', () => {
     const { container } = show({
       edition: anEdition({ lead: null, sections: [aSection({ id: 'a', items: [anItem({ key: 'a:1' })] })] }),
     });
-    expect(container.querySelector('.paper__front')).toBeNull();
-    expect(container.querySelector('.paper__ornament')).toBeNull();
+    expect(container.querySelector(PART.front)).toBeNull();
+    expect(container.querySelector(PART.ornament)).toBeNull();
     // The sections list is still the paper: an edition with no lead is thin, not blank.
-    expect(nthStory(container, 0).className).toBe('story story--leader');
+    expect(nthStory(container, 0).dataset['slot']).toBe('leader');
+    expect([...one(PART.sections, container).children].map((node) => node.getAttribute('data-part'))).toEqual([
+      'section',
+    ]);
   });
 });

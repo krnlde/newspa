@@ -2,7 +2,7 @@ import { cleanup, render } from '@testing-library/react';
 import type { EditReportView } from 'newspa-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditDiff } from '../src/index.ts';
-import { aReport, one, THE_LABELS } from './support.ts';
+import { aReport, one, PART, THE_LABELS } from './support.ts';
 
 /**
  * The word diff of a story's **teaser** fields, marked the way print
@@ -22,13 +22,13 @@ const showDiff = (report: Partial<EditReportView> = {}): HTMLElement =>
 
 describe('the marked text', () => {
   it('marks an inserted run with an `ins` element', () => {
-    const ins = [...one('.diff', showDiff()).querySelectorAll('ins')];
+    const ins = [...one(PART.diff, showDiff()).querySelectorAll('ins')];
     expect(ins).toHaveLength(1);
     expect(ins[0]?.textContent).toBe('unchanged');
   });
 
   it('marks a deleted run with a `del` element', () => {
-    const del = [...one('.diff', showDiff()).querySelectorAll('del')];
+    const del = [...one(PART.diff, showDiff()).querySelectorAll('del')];
     expect(del).toHaveLength(1);
     expect(del[0]?.textContent).toBe('steady');
   });
@@ -36,23 +36,23 @@ describe('the marked text', () => {
   it('leaves unchanged text unmarked', () => {
     const container = showDiff();
     expect(container.querySelectorAll('ins, del')).toHaveLength(2);
-    expect(one('.diff', container).textContent).toContain('The bank kept rates ');
-    const equal = [...one('.diff', container).querySelectorAll(':scope > span:not(.diff__count)')];
+    expect(one(PART.diff, container).textContent).toContain('The bank kept rates ');
+    const equal = [...one(PART.diff, container).querySelectorAll(`:scope > span:not(${PART.count})`)];
     expect(equal.map((node) => node.textContent)).toEqual(['The bank kept rates ']);
   });
 
   it('keeps the runs in the order the diff reported them', () => {
-    expect(one('.diff', showDiff()).textContent).toBe('9 added, 5 removedThe bank kept rates unchangedsteady');
+    expect(one(PART.diff, showDiff()).textContent).toBe('9 added, 5 removedThe bank kept rates unchangedsteady');
   });
 });
 
 describe('the summary', () => {
   it('prints the added and removed counts as text a reader can see', () => {
-    expect(one('.diff__count', showDiff({ added: 3, removed: 1 })).textContent).toBe('3 added, 1 removed');
+    expect(one(PART.count, showDiff({ added: 3, removed: 1 })).textContent).toBe('3 added, 1 removed');
   });
 
   it('is not hidden behind an accessible name', () => {
-    const paragraph = one('.diff', showDiff({ added: 3, removed: 1 }));
+    const paragraph = one(PART.diff, showDiff({ added: 3, removed: 1 }));
     expect(paragraph.hasAttribute('aria-label')).toBe(false);
     expect(paragraph.textContent).toContain('3 added, 1 removed');
   });
@@ -61,7 +61,7 @@ describe('the summary', () => {
     const summary = vi.fn((added: number, removed: number) => `${String(added)}/${String(removed)}`);
     render(<EditDiff report={aReport({ added: 12, removed: 0 })} summary={summary} />);
     expect(summary).toHaveBeenCalledWith(12, 0);
-    expect(one('.diff__count').textContent).toBe('12/0');
+    expect(one(PART.count).textContent).toBe('12/0');
   });
 });
 
@@ -84,6 +84,15 @@ describe('ops that repeat', () => {
   it('prints the summary alone for an empty diff', () => {
     const container = showDiff({ ops: [], added: 0, removed: 0 });
     expect(container.querySelectorAll('ins, del')).toHaveLength(0);
-    expect(one('.diff', container).textContent).toBe('0 added, 0 removed');
+    expect(one(PART.diff, container).textContent).toBe('0 added, 0 removed');
+  });
+});
+
+describe('the shape of the paragraph', () => {
+  it('prints the count as its own span, first, and the runs after it in order', () => {
+    const diff = one(PART.diff, showDiff());
+    expect(diff.tagName).toBe('P');
+    expect(diff.children[0]?.getAttribute('data-part')).toBe('count');
+    expect([...diff.children].map((node) => node.tagName)).toEqual(['SPAN', 'SPAN', 'INS', 'DEL']);
   });
 });

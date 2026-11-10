@@ -31,6 +31,17 @@
 
   body {
     line-height: var(--leading-read);
+
+    /*
+     * The diagonal crossings, from `marks.css`'s own recipe: the stock the paper
+     * is printed on has a texture, and the sheet lies on it as a solid panel.
+     * `fixed`, so the pattern belongs to the page and not to the scroll. Never
+     * in print: the block below removes it, because a background costs the
+     * reader real ink.
+     */
+    background-image: var(--crossing-image);
+    background-size: var(--pattern-tile) var(--pattern-tile);
+    background-attachment: fixed;
   }
 
   /* A newspaper does not colour its links, and a headline carries no rule at
@@ -94,24 +105,32 @@
       print-color-adjust: exact;
     }
 
-    /* A printed page has no clicks and no theme switch. The BEM names are the
-       paper mid-migration: they go when the last component leaves them. */
-    [data-part='theme-switch'],
+    /*
+     * No pattern on paper: `html` asks for exact colour, so a background would
+     * spend the reader's ink on a texture. The crossings are on `body`, the dot
+     * grid is on the four panels, and both are the sketch layer's, not the
+     * page's.
+     */
+    body,
+    [data-part='rail'],
+    [data-part='edited'],
     [data-part='health'],
-    .masthead__switch,
-    .health {
+    [data-part='onboarding'] {
+      background-image: none;
+    }
+
+    /* A printed page has no clicks and no theme switch. */
+    [data-part='theme-switch'],
+    [data-part='health'] {
       display: none;
     }
 
-    [data-part='columns'],
-    .section__columns {
+    [data-part='columns'] {
       column-count: 3;
     }
 
     /* The address is the whole point of an index (D-017): print it. */
-    [data-part='headline'] a::after,
-    .story__headline a::after,
-    .edited__headline a::after {
+    [data-part='headline'] a::after {
       content: ' (' attr(href) ')';
       font-size: 0.6rem;
       font-weight: 400;
@@ -142,8 +161,7 @@
   }
 }
 
-[data-flash='true'] [data-part='kicker'],
-.story[data-flash='true'] .story__kicker {
+[data-flash='true'] [data-part='kicker'] {
   border-bottom: 1px solid var(--rule);
   animation: flash-rule 300ms ease-out 1;
 }

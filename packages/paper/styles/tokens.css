@@ -33,13 +33,6 @@
   /* Hairline, and the gap that enforces the measure between columns. */
   --hair: 0.5px;
   --measure: 1.75rem;
-  /*
-   * Box padding, copied from tailwindcss.com's own panels (`p-4 sm:p-8`), at
-   * their breakpoint. A box's content is never flush to its rule, which is the
-   * complaint every hand-written version of this page has had.
-   */
-  --spacing-box: 1rem;
-  --spacing-box-wide: 2rem;
 }
 
 [data-theme='dark'] {
@@ -110,6 +103,19 @@
   --spacing-gutter: clamp(0.75rem, 3vw, 2.5rem);
   --spacing-measure: var(--measure);
   --spacing-column: 20rem;
+
+  /*
+   * Box padding, copied from tailwindcss.com's own panels (`p-4 sm:p-8`), at
+   * their breakpoint. A box's content is never flush to its rule, which is the
+   * complaint every hand-written version of this page has had.
+   *
+   * These are theme keys, not `:root` properties, because the namespace is what
+   * makes the utility: `--spacing-box` in `@theme` is `p-box`, and the `panel`
+   * utility in `marks.css` reads the same variable the utility emits — so one
+   * definition pads both the migrated box and the utility that pads it.
+   */
+  --spacing-box: 1rem;
+  --spacing-box-wide: 2rem;
 
   /* The paper's one functional shadow: a scroll edge under a sticky label, not a
      card. docs/design.md records it as the exception to the no-shadow rule. */

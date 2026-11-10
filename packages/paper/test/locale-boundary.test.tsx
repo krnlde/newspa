@@ -28,13 +28,22 @@ import { describe, expect, it } from 'vitest';
 const SRC_DIR = fileURLToPath(new NodeUrl('../src/', import.meta.url));
 const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
 
-/** The modules that exist today; a new file has to be listed here, on purpose. */
+/**
+ * The modules that exist today; a new file has to be listed here, on purpose.
+ * `EditedStrip.tsx`, `FrontPage.tsx` and `blockHead.ts` are the split of the
+ * page's composition, and all three are markup: no string is formatted, no
+ * clock is read, so the boundary holds for the new files exactly as it did for
+ * the old ones.
+ */
 const SRC_FILES: readonly string[] = [
+  'EditedStrip.tsx',
+  'FrontPage.tsx',
   'HealthStrip.tsx',
   'Masthead.tsx',
   'Paper.tsx',
   'Section.tsx',
   'Story.tsx',
+  'blockHead.ts',
   'index.ts',
   'types.ts',
 ];

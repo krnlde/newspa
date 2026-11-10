@@ -15,7 +15,7 @@ import type {
 } from '../src/index.ts';
 import * as paper from '../src/index.ts';
 import { Masthead } from '../src/Masthead.tsx';
-import { Paper } from '../src/Paper.tsx';
+import { Onboarding, Paper, sheetClass } from '../src/Paper.tsx';
 import { Section } from '../src/Section.tsx';
 import { EditDiff, Story } from '../src/Story.tsx';
 
@@ -31,7 +31,23 @@ import { EditDiff, Story } from '../src/Story.tsx';
  * missing name is a typecheck failure.
  */
 
-const COMPONENTS: readonly string[] = ['EditDiff', 'HealthStrip', 'Masthead', 'Paper', 'Section', 'Story'];
+const COMPONENTS: readonly string[] = [
+  'EditDiff',
+  'HealthStrip',
+  'Masthead',
+  'Onboarding',
+  'Paper',
+  'Section',
+  'Story',
+];
+
+/**
+ * Non-component values in the surface. `sheetClass` is the shell's utility
+ * string, public because the app's loading and failure states are shells of the
+ * same page: a class string copied into `App.tsx` is a second sheet definition,
+ * and the second copy is the one that drifts.
+ */
+const VALUES: readonly string[] = ['sheetClass'];
 
 /** Every type the barrel declares, in the order `src/index.ts` lists them. */
 export type PublicTypeSurface = [
@@ -70,10 +86,14 @@ describe('the paper barrel', () => {
       expect(surface[name], name).toBeDefined();
       expect(typeof surface[name], name).toBe('function');
     }
+    for (const name of VALUES) {
+      expect(surface[name], name).toBeDefined();
+      expect(typeof surface[name], name).toBe('string');
+    }
   });
 
   it('exports nothing the barrel did not declare', () => {
-    const allowed = new Set(COMPONENTS);
+    const allowed = new Set([...COMPONENTS, ...VALUES]);
     const extras = Object.keys({ ...paper }).filter((name) => !allowed.has(name));
     expect(extras).toEqual([]);
   });
@@ -87,8 +107,10 @@ describe('the paper barrel', () => {
     expect(paper.EditDiff).toBe(EditDiff);
     expect(paper.HealthStrip).toBe(HealthStrip);
     expect(paper.Masthead).toBe(Masthead);
+    expect(paper.Onboarding).toBe(Onboarding);
     expect(paper.Paper).toBe(Paper);
     expect(paper.Section).toBe(Section);
     expect(paper.Story).toBe(Story);
+    expect(paper.sheetClass).toBe(sheetClass);
   });
 });

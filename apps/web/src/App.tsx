@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import 'newspa-paper/styles/paper.css';
-import { Paper } from 'newspa-paper';
+import { Onboarding, Paper, sheetClass } from 'newspa-paper';
 import { fetchState, openEvents } from './api.ts';
 import { formatFor } from './format.ts';
 import { paperLabelsOf } from './labels.ts';
@@ -74,20 +74,28 @@ export const App = () => {
 
   if (state.isPending) {
     return (
-      <div className="paper">
-        <p className="masthead__summary">{t('paper.loading')}</p>
+      <div data-part="sheet" className={sheetClass}>
+        <p data-part="summary" className="m-0 py-[0.15rem] text-kicker font-bold tracking-kicker uppercase text-muted">
+          {t('paper.loading')}
+        </p>
       </div>
     );
   }
 
   if (state.isError) {
+    // The failure state is the onboarding panel with the publisher's words in
+    // it: both end in the same reader question, and the panel is the paper's,
+    // not the app's (`sheetClass` and `Onboarding` are exported for this).
     return (
-      <div className="paper">
-        <section className="onboarding">
-          <h2 className="onboarding__title">{t('paper.failed')}</h2>
-          <p className="onboarding__lead">{state.error.message}</p>
-          <pre className="onboarding__command">{t('paper.failedHint')}</pre>
-        </section>
+      <div data-part="sheet" className={sheetClass}>
+        <Onboarding
+          copy={{
+            title: t('paper.failed'),
+            lead: state.error.message,
+            steps: [],
+            command: t('paper.failedHint'),
+          }}
+        />
       </div>
     );
   }

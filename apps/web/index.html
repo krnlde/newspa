@@ -6,6 +6,16 @@
     <title>The Daily</title>
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="A personal newspaper: what changed since the last poll." />
+    <!-- The tab's mark, inline: the paper's own ornament on its own stock. An
+         `href` is required, not optional — with none declared the browser asks
+         for `/favicon.ico`, the dev server answers 404, and `pnpm shots` reports
+         a page problem on every load. Inline SVG means no file, no request and
+         no CDN asset (AGENTS.md rule 11). -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%23f4ecd8'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='20'%20text-anchor='middle'%20fill='%231f1b16'%3E%E2%9D%A6%3C/text%3E%3C/svg%3E"
+    />
     <script>
       // The theme is applied before first paint: a dark-theme device must not
       // flash the yellowed stock. The key is `newspa.theme` (see src/theme.ts),

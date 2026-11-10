@@ -173,7 +173,7 @@ export const one = <T extends Element>(selector: string, root: ParentNode = glob
 
 /** The story at `index` in print order, and a failure that says how many there were. */
 export const nthStory = (root: ParentNode, index: number): HTMLElement => {
-  const found = root.querySelectorAll<HTMLElement>('article.story');
+  const found = root.querySelectorAll<HTMLElement>(PART.story);
   const story = found[index];
   if (story === undefined)
     throw new Error(`no story at index ${String(index)}: the page prints ${String(found.length)}`);
@@ -184,6 +184,72 @@ export const nthStory = (root: ParentNode, index: number): HTMLElement => {
 export const textsOf = (selector: string, root: ParentNode = globalThis.document): string[] =>
   [...root.querySelectorAll(selector)].map((node) => node.textContent ?? '');
 
-/** The class names of the stories on the page, in print order. */
-export const storyClasses = (root: ParentNode = globalThis.document): string[] =>
-  [...root.querySelectorAll<HTMLElement>('article.story')].map((node) => node.className);
+/**
+ * `data-part` is the structural hook (AGENTS.md rule 11), so a selector is built
+ * from it and never from a class name. The names are one list, in the shape the
+ * components write.
+ */
+export const PART = {
+  sheet: "[data-part='sheet']",
+  masthead: "[data-part='masthead']",
+  datelineStrip: "[data-part='dateline-strip']",
+  dateline: "[data-part='dateline']",
+  themeSwitch: "[data-part='theme-switch']",
+  title: "[data-part='title']",
+  tagline: "[data-part='tagline']",
+  summaryStrip: "[data-part='summary-strip']",
+  summary: "[data-part='summary']",
+  front: "[data-part='front']",
+  lead: "[data-part='lead']",
+  rail: "[data-part='rail']",
+  railList: "[data-part='rail-list']",
+  blockHead: "[data-part='block-head']",
+  rule: "[data-part='rule']",
+  sections: "[data-part='sections']",
+  ornament: "[data-part='ornament']",
+  section: "[data-part='section']",
+  blurb: "[data-part='blurb']",
+  columns: "[data-part='columns']",
+  story: "[data-part='story']",
+  figure: "[data-part='figure']",
+  image: "[data-part='image']",
+  caption: "[data-part='caption']",
+  kicker: "[data-part='kicker']",
+  mark: "[data-part='mark']",
+  source: "[data-part='source']",
+  headline: "[data-part='headline']",
+  link: "[data-part='link']",
+  deck: "[data-part='deck']",
+  meta: "[data-part='meta']",
+  edited: "[data-part='edited']",
+  editedRow: "[data-part='edited-row']",
+  onboarding: "[data-part='onboarding']",
+  onboardingTitle: "[data-part='onboarding-title']",
+  onboardingLead: "[data-part='onboarding-lead']",
+  onboardingSteps: "[data-part='onboarding-steps']",
+  onboardingCommand: "[data-part='onboarding-command']",
+  health: "[data-part='health']",
+  healthList: "[data-part='list']",
+  healthRow: "[data-part='row']",
+  label: "[data-part='label']",
+  state: "[data-part='state']",
+  detail: "[data-part='detail']",
+  line: "[data-part='line']",
+  diff: "[data-part='diff']",
+  count: "[data-part='count']",
+} as const;
+
+/** A rail on one side: the hook is `data-side`, the old `front__rail--left`. */
+export const railOf = (side: 'left' | 'right'): string => `${PART.rail}[data-side='${side}']`;
+
+/** The structural name of every child of `root`, a rail named by its side. */
+export const partsOf = (root: Element): string[] =>
+  [...root.children].map((node) => {
+    const at = node as HTMLElement;
+    const side = at.dataset['side'];
+    return `${at.dataset['part'] ?? '(no part)'}${side === undefined ? '' : `:${side}`}`;
+  });
+
+/** The display slot of every story in print order. */
+export const storySlots = (root: ParentNode = globalThis.document): string[] =>
+  [...root.querySelectorAll<HTMLElement>(PART.story)].map((node) => node.dataset['slot'] ?? '(no slot)');

@@ -3,7 +3,7 @@ import type { HealthState, SourceHealthView } from 'newspa-core';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { HealthProps } from '../src/index.ts';
 import { HealthStrip } from '../src/index.ts';
-import { aSource, one, THE_FORMAT, THE_HEALTH_LABELS, textsOf } from './support.ts';
+import { aSource, one, PART, THE_FORMAT, THE_HEALTH_LABELS, textsOf } from './support.ts';
 
 /**
  * Rule 5 made visible. A source that matches nothing, is blocked, is stale, or
@@ -28,13 +28,14 @@ const showHealth = (sources: readonly SourceHealthView[]): HTMLElement => {
 const broken = (over: Partial<SourceHealthView> = {}): SourceHealthView =>
   aSource({ state: 'no-matches', label: 'Example World', note: 'the selector matched 0 of 14 elements', ...over });
 
+const rowSelector = `${PART.health} ${PART.healthRow}`;
 const detailOf = (source: SourceHealthView): string | null =>
-  showHealth([source]).querySelector('.health__detail')?.textContent ?? null;
+  showHealth([source]).querySelector(PART.detail)?.textContent ?? null;
 
 describe('an empty strip', () => {
   it('renders nothing at all, so a paper with no sources cannot look like a paper with no news', () => {
     const container = showHealth([]);
-    expect(container.querySelector('.health')).toBeNull();
+    expect(container.querySelector(PART.health)).toBeNull();
     expect(container.firstChild).toBeNull();
   });
 });
@@ -42,14 +43,14 @@ describe('an empty strip', () => {
 describe('when every source is reporting', () => {
   it('prints the all-well line with the count, and no row', () => {
     const container = showHealth([aSource({ id: 'world' }), aSource({ id: 'tech', label: 'Example Tech' })]);
-    expect(one('.health', container).className).toBe('health health--well');
-    expect(one('.health__head', container).textContent).toBe(THE_HEALTH_LABELS.headline);
-    expect(one('.health__line', container).textContent).toBe('2 sources, all reporting');
-    expect(container.querySelectorAll('.health__row')).toHaveLength(0);
+    expect(one<HTMLElement>(PART.health, container).dataset['well']).toBe('true');
+    expect(one(`${PART.health} ${PART.blockHead}`, container).textContent).toBe(THE_HEALTH_LABELS.headline);
+    expect(one(PART.line, container).textContent).toBe('2 sources, all reporting');
+    expect(container.querySelectorAll(rowSelector)).toHaveLength(0);
   });
 
   it('names one source as one count, in words the app composed', () => {
-    expect(one('.health__line', showHealth([aSource()])).textContent).toBe('1 sources, all reporting');
+    expect(one(PART.line, showHealth([aSource()])).textContent).toBe('1 sources, all reporting');
   });
 });
 
@@ -60,24 +61,29 @@ describe('a source that is not reporting', () => {
       broken({ id: 'world' }),
       broken({ id: 'gov', label: 'Example Gov', state: 'blocked' }),
     ]);
-    expect(container.querySelectorAll('.health__row')).toHaveLength(2);
-    expect(textsOf('.health__label', container)).toEqual(['Example World', 'Example Gov']);
+    expect(container.querySelectorAll(rowSelector)).toHaveLength(2);
+    expect(textsOf(PART.label, container)).toEqual(['Example World', 'Example Gov']);
+  });
+
+  it('marks the strip as not-well, so a stylesheet can name the state', () => {
+    const container = showHealth([broken({ id: 'world' })]);
+    expect(one<HTMLElement>(PART.health, container).dataset['well']).toBeUndefined();
   });
 
   it('prints the label, the state word for the state, and the note the parser wrote', () => {
-    const row = one('.health__row', showHealth([broken({ state: 'restructured' })]));
+    const row = one(rowSelector, showHealth([broken({ state: 'restructured' })]));
     expect(row.getAttribute('data-state')).toBe('restructured');
-    expect(one('.health__label', row).textContent).toBe('Example World');
-    expect(one('.health__state', row).textContent).toBe(THE_HEALTH_LABELS.state.restructured);
+    expect(one(PART.label, row).textContent).toBe('Example World');
+    expect(one(PART.state, row).textContent).toBe(THE_HEALTH_LABELS.state.restructured);
     expect(row.textContent).toContain('the selector matched 0 of 14 elements');
   });
 
   it('names every state the wire can carry, so no state is rendered as a blank', () => {
     const states: readonly HealthState[] = ['unknown', 'blocked', 'no-matches', 'restructured', 'error', 'stale'];
     for (const state of states) {
-      const row = one('.health__row', showHealth([broken({ state, note: null })]));
+      const row = one(rowSelector, showHealth([broken({ state, note: null })]));
       expect(row.getAttribute('data-state'), state).toBe(state);
-      expect(one('.health__state', row).textContent, state).toBe(THE_HEALTH_LABELS.state[state]);
+      expect(one(PART.state, row).textContent, state).toBe(THE_HEALTH_LABELS.state[state]);
     }
   });
 });
@@ -113,5 +119,20 @@ describe('the evidence line', () => {
 
   it('does not report a match count that is above the expected one as rot', () => {
     expect(detailOf(broken({ note: null, matchCount: 20, expectedMatchCount: 14 }))).not.toContain('matched');
+  });
+});
+
+describe('the shape of the strip', () => {
+  it('prints the list, the rows and the head in that order, and the all-well line instead of a list', () => {
+    const brokenStrip = showHealth([broken({ id: 'world' })]);
+    expect([...one(PART.health, brokenStrip).children].map((node) => node.getAttribute('data-part'))).toEqual([
+      'block-head',
+      'list',
+    ]);
+    const wellStrip = showHealth([aSource({ id: 'world' })]);
+    expect([...one(PART.health, wellStrip).children].map((node) => node.getAttribute('data-part'))).toEqual([
+      'block-head',
+      'line',
+    ]);
   });
 });

@@ -28,15 +28,12 @@
 @import './marks.css';
 
 /*
- * The last four files are the paper mid-migration: BEM rules from the
- * hand-written stylesheet, unlayered, so they win over utilities while a
- * component still depends on them. Each shrinks as its area moves into utility
- * classes in the components, and disappears when the area is done.
+ * The four hand-written sheets that used to be imported here are gone, and with
+ * them the last unlayered rules on the page: every rule they held is now a
+ * utility on the element in `packages/paper/src/*.tsx` (the translation is
+ * `docs/design.md`). Nothing outside a utility or `@layer base` styles the
+ * paper any more, which is what makes a component's class string trustworthy.
  */
-@import './sheet.css';
-@import './blocks.css';
-@import './front.css';
-@import './stories.css';
 
 /*
  * `@source` is explicit because the class strings live in two packages: the
