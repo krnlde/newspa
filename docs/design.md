@@ -102,7 +102,7 @@ hairline, and there is no radius, no fill and no shadow:
 | diagonal crossings | `repeating-linear-gradient(315deg, …1px, transparent 0, transparent 50%)`, 10 px tile | the stock under the sheet (fixed, **never in print**); a non-`ok` health row |
 | dot grid           | `radial-gradient(… 1px, transparent 0)`, 10 px tile                                   | inside a panel                                                               |
 | guideline          | 1 px inset ring                                                                       | the sheet and every panel                                                    |
-| crop marks         | the printer's corner ticks                                                            | the sheet and the lead's figure                                              |
+| crop marks         | the printer's corner ticks                                                            | the sheet and the lead's figure, **in the waste outside the box**            |
 
 The crossings are the cross-hatch a newspaper prints **where a photograph is
 missing**, so a health row that carries them marks an absence — that is what
@@ -115,6 +115,22 @@ ring, dots, padding.
 hand-written version of this page shipped with, and it is the reason the padding
 is a token and a computed test (`apps/web/test/design/boxes.test.tsx` measures a
 panel's padding and its inset ring in real Edge) rather than a preference.
+
+**The sheet lies on the stock, so the page has a waste area.** `body` carries
+`padding-inline: var(--spacing-gutter)` (0.75 rem at a phone, 2.5 rem at a desk)
+and `padding-block: var(--mark-offset)` (7 px), and the sheet is inset by that
+air. One rule, two measured reasons. With the sheet full-bleed — `max-w-[104rem]`
+= 1 664 px, so the full viewport width below that — its own `bg-paper` covered the
+crossings **completely**: visible stock was 0 px² at 390, 620, 1024 and 1440, and
+the pattern appeared only past 1 664 CSS px, which is why it showed at 75% zoom on
+a 2 560 px screen and nowhere at 100%. The crop marks, drawn 7 px outside the box,
+hung 6 px past the viewport's right edge, so every screen had a horizontal
+scrollbar (`scrollWidth - clientWidth = 6` at all four widths; deleting the
+`cropmarks` utility alone took it to 0). **A mark outside the box needs an
+outside-the-box.** Measured now by `pnpm shots` at 1440, 1024, 620 and 390: stock
+40 + 40 px, 31 + 31, 19 + 19, 12 + 12, sideways scroll none. In print the whole
+layer goes — the crossings, the dots and the ticks (`content: none`) — because a
+printed page's waste area is the `@page` margin, and ink is not for texture.
 
 The structural hooks are `data-part` attributes, never class names: the design
 suite, the print rules and the SSE flash all query **structure**, and a query

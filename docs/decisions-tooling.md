@@ -234,7 +234,8 @@ A utility exists because a line in that file defines it, and a component can onl
 
 **Migration complete (2026-11-10).** `sheet.css`, `blocks.css`, `front.css` and `stories.css` — 661
 lines — are deleted; the four files that remain are `paper.css` (the entry), `tokens.css`, `base.css`,
-`marks.css`. The page now ships 22.03 kB of CSS (5.51 kB gzipped), every rule of it a utility in use
+`marks.css`. The page shipped 22.03 kB of CSS (5.51 kB gzipped) at that commit, every rule of it a
+utility in use
 plus the named residue. Measured in real Edge at 1440×900: front grid `310px 682px 310px`, lead
 headline 311→599 px (above the fold), lead photo 240 px, panel padding 16 px with an inset ring, the
 sticky label's shadow, zero justified elements.
@@ -252,3 +253,21 @@ Two traps the migration cost, both invisible in the markup:
   the lead photo measured 352 px and the headline sat below the fold. The cap now lives in exactly one
   place per slot, and `pnpm shots` prints the photo's height and the headline's box, because a rule
   that fails this quietly is a rule that will fail again.
+- **The harness styles the page too, and unlayered.** `@vitest/browser` injects `body { padding: 0;
+  margin: 0 }` into the tester iframe (`dist/index.js:3460`), unlayered, and unlayered beats every
+  layer: the app's `@layer base` rule on `body` computes to `0` inside the design suite and works on
+  the real page. So a claim about `body` cannot be pinned in the Edge suite — it belongs in the text
+  contract and in `pnpm shots`, which drives the real app. The suite keeps what the harness cannot
+  reach (the sheet's own crop marks). The honest fix is **not** `!important` on the app.
+
+**And the sheet needs a waste area (same day).** A full-bleed sheet hides the marks that live outside
+its box. The sheet is `max-w-[104rem]` = 1 664 px, so every viewport below that is full width, and the
+sheet's own `bg-paper` covered `body`'s diagonal crossings completely: visible stock **0 px² at 390,
+620, 1024 and 1440**, appearing only past 1 664 CSS px — which is why the texture showed at 75% zoom on
+a 2 560 px screen and nowhere at 100%. The crop marks, drawn `--mark-offset` (7 px) outside the box,
+hung 6 px past the right edge, and every width had a horizontal scrollbar (`scrollWidth − clientWidth =
+6`; removing the `cropmarks` utility alone took it to 0). One rule serves both: `body` carries
+`padding-inline: var(--spacing-gutter)` and `padding-block: var(--mark-offset)`, and the print block
+drops the whole sketch layer, ticks included, because a printed page's waste is the `@page` margin and
+ink is not for texture. Measured by `pnpm shots` at four widths — stock 40+40 / 31+31 / 19+19 / 12+12
+px, sideways scroll none — and the CSS is 22.25 kB (5.56 kB gzipped).

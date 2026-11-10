@@ -17,10 +17,10 @@ hard-coded: `fetch → parse → normalize → diff → score → publish` (D-00
 
 ## Green, right now
 
-`pnpm test` — 87 files, **1 063 tests, all passing**, 8.9 s. `pnpm typecheck`
+`pnpm test` — 87 files, **1 064 tests, all passing**, 8.9 s. `pnpm typecheck`
 clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
-`pnpm lines` passes — 280 files, every one ≤ 300 lines.
-`pnpm test:design` — 12 assertions in real Edge, green (first time).
+`pnpm lines` passes — 278 files, every one ≤ 300 lines.
+`pnpm test:design` — 13 assertions in real Edge, green.
 
 | package           | src                   | tests                   | project tests  |
 | ----------------- | --------------------- | ----------------------- | -------------- |
@@ -28,9 +28,9 @@ clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
 | `packages/config` | 6, 858                | 6, 1 027                | 86             |
 | `packages/db`     | 15, 2 323             | 16, 2 763               | 154            |
 | `packages/fetch`  | 24, 3 440             | 22, 3 969 + 29 fixtures | 309            |
-| `packages/paper`  | 10, 850               | 10, 1 501               | 107            |
+| `packages/paper`  | 10, 850               | 10, 1 541               | 108            |
 | `packages/server` | 3, 356                | 7, 1 082                | 52             |
-| `apps/web`        | 6, 366                | 12, 1 551               | 105 (+12 Edge) |
+| `apps/web`        | 6, 366                | 12, 1 588               | 105 (+13 Edge) |
 
 Coverage gate is 95 % per package (`vitest.coverage.json`); core measures
 99.39 / 95.74 / 100 / 99.85, paper **100** on all four metrics, web
@@ -127,19 +127,24 @@ string — two copies is how the rails and the sections stop being the same labe
 no `@font-face` and no CDN URL, no radius, no shadow outside the guideline ring
 and the scroll edge, no gradient inside a component, `data-part` and never BEM.
 
-`pnpm test:design` is **green** — 2 files, 12 computed assertions in real Edge
+`pnpm test:design` is **green** — 2 files, 13 computed assertions in real Edge
 (`apps/web/test/design/`): the compile guard, no `justify` at 1440/1024/390, 3
 front columns at 1440 with the lead wider than a rail, 1 column at 900, the
 sticky label's position and opaque background, a panel's padding and inset ring,
-the crossings on `body` and the dots in a panel, the lead headline above the
-fold. It is out of the pre-commit floor because it launches a real Edge.
+the crossings on `body` and the dots in a panel, the crop marks' computed size and
+offset, the lead headline above the fold. It is out of the pre-commit floor
+because it launches a real Edge.
 
-`pnpm shots` prints the measured layout at 1440×900, 1024×768 and 390×844 —
-front grid tracks, lead headline size and box, the fold verdict, the `justify`
-count, and any console error. At the styling commit: `310px 682px 310px`, lead
-headline 311→599 px of 900 px (above the fold), 0 justified, no page problems.
+`pnpm shots` prints the measured layout at 1440×900, 1024×768, 620×800 and
+390×844 — front grid tracks, lead headline size and box, the fold verdict, the
+`justify` count, the visible stock on both sides of the sheet, the sideways-scroll
+verdict, and any console error. At the waste-area commit: `291px 640px 291px`,
+lead headline 318→664 px of 900 px (above the fold), stock 40+40 / 31+31 / 19+19
+/ 12+12 px, sideways scroll none at every width, 0 justified, no page problems.
+620 is in the list because it is the in-app browser's width, and it is where the
+6px horizontal scrollbar was visible to the reader.
 
-Three traps this migration found, all invisible in the markup, all now written
+Four traps this migration found, all invisible in the markup, all now written
 down (D-024):
 
 - **A dangling `var()` is invalid at computed-value time.** The `@theme` rename
@@ -152,6 +157,14 @@ down (D-024):
 - **A Vitest browser project inherits no Vite plugin from the root config**, so
   the design suite measured an unstyled page and passed three claims vacuously.
   The suite's first test is the compile guard that makes the rest mean something.
+- **The harness's own CSS beats the app's layers.** `@vitest/browser` injects an
+  unlayered `body { padding: 0; margin: 0 }` into the tester iframe
+  (`dist/index.js:3460`), and unlayered CSS beats every layer — so `body`'s waste
+  area computes to 0 **inside the design suite** and works on the real page. That
+  is not a reason to `!important` the app: it decides where a claim is pinned.
+  The body rule is pinned as text (the paper's contract) and measured by
+  `pnpm shots`, which drives the real app; the Edge suite keeps the claims the
+  harness cannot reach (the sheet's marks).
 
 ## Measured defects, open
 
@@ -159,7 +172,7 @@ down (D-024):
    `fts5` in `packages/db/src`. The claim is the plan, not the state
    (roadmap WP7).
 
-Closed by the styling commit, both named by measurement rather than guessed at:
+Closed by the styling commits, all named by measurement rather than guessed at:
 
 - The lead's figure printed **before** its headline, and the lead image was
   capped at `min(24rem, 46vh)`, so at 1440×900 the headline started below the
@@ -174,6 +187,19 @@ Closed by the styling commit, both named by measurement rather than guessed at:
   (`apps/web/index.html`) — no file, no request, no CDN asset. It hid for a
   session because the in-app browser never requests a favicon; real Edge does,
   and `m.location()` named the URL in one probe.
+- **A horizontal scrollbar on every screen, and a texture nobody saw.** The
+  crossings were in the stylesheet and not on the page: the sheet is
+  `max-w-[104rem]` = 1 664 px, so below that it is full-bleed and its own
+  `bg-paper` covered `body`'s pattern — visible stock **0 px²** at 390, 620, 1024
+  and 1440, appearing only past 1 664 CSS px (which is why it showed at 75% zoom
+  on a 2 560 px screen). The same full-bleed put the sheet's crop marks, drawn
+  7 px outside its box, 6 px past the viewport's right edge:
+  `scrollWidth - clientWidth = 6` at all four widths, and deleting the `cropmarks`
+  utility alone took it to 0. One rule fixes both — `body`'s waste area
+  (`padding-inline: var(--spacing-gutter)`, `padding-block: var(--mark-offset)`) —
+  measured now at 40+40 / 31+31 / 19+19 / 12+12 px of stock, sideways scroll none.
+  The two symptoms looked unrelated, a missing texture and a stray scrollbar; both
+  were the marks having no waste to land in (docs/design.md).
 
 ## Two things that look like defects and are not
 

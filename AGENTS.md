@@ -70,9 +70,12 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     newsprint: no component may write its own gradient. Structural hooks are
     `data-part` attributes, never BEM class names — the design suite, the print
     rules and the SSE flash query those. **Every box with a rule is padded**
-    (`--spacing-box` / `--spacing-box-wide`). No CDN assets, no cards, no shadow
-    beyond the documented scroll edge, no rounded rectangles, no saturated
-    colour, and **never `text-align: justify`**.
+    (`--spacing-box` / `--spacing-box-wide`), and **the sheet has a waste area**
+    (`body`'s gutter padding): a mark drawn outside the box — the stock's
+    crossings, the printer's corner ticks — needs air to land in, and a
+    full-bleed sheet covers the pattern with its own background. No CDN assets,
+    no cards, no shadow beyond the documented scroll edge, no rounded rectangles,
+    no saturated colour, and **never `text-align: justify`**.
 12. **Every behaviour gets a test** in the package that owns it (Vitest, 95%
     coverage gate). Parser changes need a fixture under
     `packages/fetch/test/fixtures/`.

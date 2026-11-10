@@ -16,8 +16,10 @@ import { chromium } from 'playwright-core';
  *   pnpm --filter newspa-web run dev
  *   node scripts/screenshot-paper.mjs [width height]...
  *
- * Pairs default to 1440x900, 1024x768 and 390x844. `NEWSPA_SHOT_URL` points at
- * another port when 5173 is taken; `NEWSPA_SHOT_DIR` moves the output.
+ * Pairs default to 1440x900, 1024x768, 620x800 and 390x844 — 620 because that is
+ * the width of the in-app browser, which is where a reader looks first and where
+ * a 6px horizontal scrollbar showed up. `NEWSPA_SHOT_URL` points at another port
+ * when 5173 is taken; `NEWSPA_SHOT_DIR` moves the output.
  *
  * Plain JavaScript: `scripts/*.mjs` run with no build step, and Node strips
  * types from `.ts` only (AGENTS.md rule 3).
@@ -33,7 +35,7 @@ for (let i = 0; i + 1 < args.length; i += 2) {
   const h = Number(args[i + 1]);
   if (Number.isFinite(w) && Number.isFinite(h)) pairs.push([w, h]);
 }
-if (pairs.length === 0) pairs.push([1440, 900], [1024, 768], [390, 844]);
+if (pairs.length === 0) pairs.push([1440, 900], [1024, 768], [620, 800], [390, 844]);
 
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 
@@ -64,10 +66,22 @@ for (const [width, height] of pairs) {
     ).length;
     const headline = document.querySelector("[data-part='story'][data-slot='lead'] [data-part='headline']");
     const size = headline ? getComputedStyle(headline).fontSize : '';
+    // The waste area: the sheet is a page lying on patterned stock, so the stock
+    // must be visible and the crop marks — drawn 7px outside the sheet's box —
+    // must land inside the viewport. A full-bleed sheet hides the crossings
+    // behind its own `bg-paper` and pushes the marks past the right edge.
+    const sheet = document.querySelector("[data-part='sheet']")?.getBoundingClientRect();
+    // `clientWidth`, not `innerWidth`: the vertical scrollbar is not page, and
+    // the comparison must be against the width the layout gets.
+    const vw = document.documentElement.clientWidth;
     return {
       cols,
       justify,
       size,
+      stockLeft: Math.round(sheet?.left ?? 0),
+      stockRight: Math.round(vw - (sheet?.right ?? 0)),
+      overflowX: document.documentElement.scrollWidth - vw,
+      gutter: getComputedStyle(document.body).paddingInlineStart,
       frontWidth: Math.round(box?.width ?? 0),
       headlineTop: Math.round(headline?.getBoundingClientRect().top ?? 0),
       headlineBottom: Math.round(headline?.getBoundingClientRect().bottom ?? 0),
@@ -87,6 +101,18 @@ for (const [width, height] of pairs) {
       `  above the fold: ${aboveFold ? 'yes' : 'NO'}`,
   );
   console.log(`  justified elements: ${String(probe.justify)}`);
+  /*
+   * The waste area, with a number: the stock shows on both sides of the sheet,
+   * and the page does not scroll sideways. Both were measured false before
+   * `body`'s padding existed — visible stock 0 px² at every width, and 6px of
+   * horizontal overflow from the crop marks drawn outside the box. "The pattern
+   * is in the stylesheet" was true; "the reader sees it" was not.
+   */
+  console.log(
+    `  stock: ${String(probe.stockLeft)}px + ${String(probe.stockRight)}px (gutter ${probe.gutter})` +
+      `  sideways scroll: ${probe.overflowX > 0 ? `${String(probe.overflowX)}px — NO` : 'none'}`,
+  );
+  if (probe.overflowX > 0) failures.push(`page scrolls sideways by ${String(probe.overflowX)}px`);
   if (failures.length > 0) console.log(`  page problems: ${failures.slice(0, 3).join(' | ')}`);
   await page.close();
 }

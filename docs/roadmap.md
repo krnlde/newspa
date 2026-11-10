@@ -29,6 +29,9 @@ in real Edge, green for the first time. `pnpm shots`: front grid
 `310px 682px 310px` at 1440×900, lead headline 311→599 px of 900 px (above the
 fold), 1 column at 390, 0 justified elements, no page problems at any width.
 Paper coverage 100 % on all four metrics, web 99.06 / 95.78 / 100 / 99.45.
+The waste-area commit that followed (docs/design.md) inset the sheet by the
+gutter, so the grid measures `291px 640px 291px` now and the suite is 13
+assertions.
 
 **Nothing is left in it.** The handoff files it was worked from
 (`docs/handoff-tailwind-rewrite.md`, `docs/handoff-style-table.md`) are deleted —

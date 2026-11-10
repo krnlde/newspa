@@ -156,6 +156,46 @@ describe('the paper contract, in CSS and in the components', () => {
     }
     expect(cssOf('marks.css')).toContain('315deg');
     expect(cssOf('marks.css')).toContain('background-size: var(--pattern-tile)');
+    /*
+     * And the layer is the layer a **screen** gets. `html` asks for
+     * `print-color-adjust: exact`, so a texture would spend the reader's ink, and
+     * a printed page's waste area is the `@page` margin — so `base.css` removes
+     * the crossings, the dots **and** the corner ticks for print. The claim is
+     * the selector: `@media print` is not reachable from a screen viewport, which
+     * is why the computed suite (apps/web/test/design) never sees it.
+     */
+    const print = /@media print\s*\{([\s\S]*?)\n {2}\}/u.exec(cssOf('base.css'))?.[1] ?? '';
+    expect(print, 'base.css: no print block to scan').toContain('background-image: none');
+    expect(print, 'base.css: the sheet prints its crop marks').toContain("[data-part='sheet']::before");
+    expect(print, 'base.css: the lead figure prints its crop marks').toContain("[data-part='figure']::after");
+  });
+
+  /*
+   * The waste area: the air outside the sheet's box, which the sketch layer's
+   * marks need. Measured before `body` had padding, with the sheet at
+   * `max-w-[104rem]` = 1 664 px (full-bleed below that):
+   *
+   *  - the visible stock was **0 px² at 390, 620, 1024 and 1440** — the sheet's
+   *    own `bg-paper` covered `body`'s crossings completely. They appeared only
+   *    past 1 664 CSS px, which is why they show at 75% zoom on a 2 560 px screen
+   *    and nowhere at 100%;
+   *  - the crop marks, drawn `--mark-offset` outside the box, hung **6px** past
+   *    the viewport's right edge: a horizontal scrollbar on every screen, and
+   *    removing the `cropmarks` utility alone took it to 0.
+   *
+   * Pinned as text, not measured: `@vitest/browser` injects an unlayered
+   * `body { padding: 0 }` into the design iframe (`dist/index.js:3460`), and
+   * unlayered CSS beats every layer, so the app's `@layer base` rule loses to the
+   * harness in that frame. `pnpm shots` measures the air, the sideways-scroll
+   * verdict and the stock on the real page, in real Edge, at four widths.
+   */
+  it('gives the sheet a waste area, so the marks outside the box have somewhere to land', () => {
+    const body = /(?:^|\n) {2}body \{([^}]*)\}/u.exec(cssOf('base.css'))?.[1] ?? '';
+    expect(body, 'base.css: no `body` rule to scan').toContain('var(--crossing-image)');
+    expect(body, 'base.css: body carries no inline air for the stock and the marks').toContain(
+      'padding-inline: var(--spacing-gutter)',
+    );
+    expect(body, 'base.css: no block air for the corner ticks').toContain('padding-block: var(--mark-offset)');
   });
 
   /*

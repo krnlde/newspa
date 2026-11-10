@@ -42,6 +42,29 @@
     background-image: var(--crossing-image);
     background-size: var(--pattern-tile) var(--pattern-tile);
     background-attachment: fixed;
+
+    /*
+     * The **waste area**: the air a press leaves outside the sheet, and the only
+     * place a mark that lives outside the box can be seen. Measured before this
+     * rule existed, with the sheet at `max-w-[104rem]` (= 1 664 px, so full-bleed
+     * on every screen below that):
+     *
+     *  - the visible stock was **0 px² at 390, 620, 1024 and 1440** — the sheet's
+     *    own `bg-paper` covered the pattern completely. The crossings appeared
+     *    only when the CSS viewport passed 1 664 px, which is why they show up at
+     *    75% zoom on a 2 560 px screen and nowhere at 100%;
+     *  - the sheet's crop marks, drawn `--mark-offset` (7px) **outside** its box,
+     *    hung 6px past the viewport's right edge, and every width had a
+     *    horizontal scrollbar (measured `scrollWidth - innerWidth = 6` at 390,
+     *    620, 1024, 1440; removing the `cropmarks` utility took it to 0).
+     *
+     * So the marks are not decoration outside the box — they need an
+     * outside-the-box to land in. `--spacing-gutter` is the paper's existing edge
+     * clamp (0.75rem at a phone, 2.5rem at a desk), and `--mark-offset` of block
+     * air is exactly what the corner ticks ask for.
+     */
+    padding-inline: var(--spacing-gutter);
+    padding-block: var(--mark-offset);
   }
 
   /* A newspaper does not colour its links, and a headline carries no rule at
@@ -109,7 +132,8 @@
      * No pattern on paper: `html` asks for exact colour, so a background would
      * spend the reader's ink on a texture. The crossings are on `body`, the dot
      * grid is on the four panels, and both are the sketch layer's, not the
-     * page's.
+     * page's. The crop marks are the sketch layer too, and a printed page's
+     * waste area is the `@page` margin — not ink to spend on registration ticks.
      */
     body,
     [data-part='rail'],
@@ -117,6 +141,13 @@
     [data-part='health'],
     [data-part='onboarding'] {
       background-image: none;
+    }
+
+    [data-part='sheet']::before,
+    [data-part='sheet']::after,
+    [data-part='figure']::before,
+    [data-part='figure']::after {
+      content: none;
     }
 
     /* A printed page has no clicks and no theme switch. */

@@ -180,7 +180,8 @@ export const first = (selector: string): HTMLElement => {
   return found;
 };
 
-export const cssOf = (selector: string): CSSStyleDeclaration => globalThis.getComputedStyle(first(selector));
+export const cssOf = (selector: string, pseudo?: string): CSSStyleDeclaration =>
+  globalThis.getComputedStyle(first(selector), pseudo);
 export const widthOf = (selector: string): number => Math.round(first(selector).getBoundingClientRect().width);
 export const boxOf = (selector: string): DOMRectReadOnly => first(selector).getBoundingClientRect();
 export const px = (value: string): number => Number.parseFloat(value);
