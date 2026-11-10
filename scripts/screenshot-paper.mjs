@@ -47,27 +47,45 @@ for (const [width, height] of pairs) {
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   // The paper is the product: an empty `#root` means the API call failed, and a
-  // screenshot of a blank page would be reported as a layout.
-  await page.waitForSelector('.paper', { timeout: 15_000 });
+  // screenshot of a blank page would be reported as a layout. The hook is
+  // `data-part`, never a class name (AGENTS.md rule 11) — a layout claim that
+  // queries a styling class is a claim about the styling, not about the page.
+  await page.waitForSelector("[data-part='sheet']", { timeout: 15_000 });
   await page.waitForTimeout(250); // fonts and the sticky head settle
 
   const file = `${OUT_DIR}/newspa-${String(width)}x${String(height)}.png`;
   await page.screenshot({ path: file, fullPage: false });
   const probe = await page.evaluate(() => {
-    const front = document.querySelector('.paper__front');
+    const front = document.querySelector("[data-part='front']");
     const box = front?.getBoundingClientRect();
     const cols = front ? getComputedStyle(front).gridTemplateColumns : '';
-    const justify = [...document.querySelectorAll('.paper *')].filter(
+    const justify = [...document.querySelectorAll("[data-part='sheet'] *")].filter(
       (el) => getComputedStyle(el).textAlign === 'justify',
     ).length;
-    const headline = document.querySelector('.story--lead .story__headline');
+    const headline = document.querySelector("[data-part='story'][data-slot='lead'] [data-part='headline']");
     const size = headline ? getComputedStyle(headline).fontSize : '';
-    return { cols, justify, size, frontWidth: Math.round(box?.width ?? 0) };
+    return {
+      cols,
+      justify,
+      size,
+      frontWidth: Math.round(box?.width ?? 0),
+      headlineTop: Math.round(headline?.getBoundingClientRect().top ?? 0),
+      headlineBottom: Math.round(headline?.getBoundingClientRect().bottom ?? 0),
+    };
   });
+
+  // The fold is the claim the screenshots exist to check: a lead photo taller
+  // than the viewport pushes the headline off the page, which is the defect this
+  // paper has shipped with twice. So it is measured, not looked at.
+  const aboveFold = probe.headlineTop >= 0 && probe.headlineBottom <= height;
 
   console.log(`${width}x${height} -> ${file}`);
   console.log(`  front grid: ${probe.cols}`);
   console.log(`  front width ${String(probe.frontWidth)}px  lead headline ${probe.size}`);
+  console.log(
+    `  lead headline ${String(probe.headlineTop)}-${String(probe.headlineBottom)}px of ${String(height)}px` +
+      `  above the fold: ${aboveFold ? 'yes' : 'NO'}`,
+  );
   console.log(`  justified elements: ${String(probe.justify)}`);
   if (failures.length > 0) console.log(`  page problems: ${failures.slice(0, 3).join(' | ')}`);
   await page.close();
