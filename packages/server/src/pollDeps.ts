@@ -24,6 +24,7 @@ export const pollDepsOf = (db: Database, over: Partial<PollDeps> = {}): PollDeps
   itemEvents: db.itemEvents,
   snapshots: db.snapshots,
   validators: db.validators,
+  fetch: globalThis.fetch,
   inTx: <T>(work: () => T): T => db.tx.transaction(() => work()),
   ...over,
 });

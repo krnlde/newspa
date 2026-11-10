@@ -105,10 +105,10 @@ const commit = (
     };
   });
 
-/** The transport's deps, with every optional seam left out when the caller has none. */
+/** The transport's deps: the socket and the clock are ours, the retry policy stays the transport's. */
 const transportDepsOf = (deps: PollDeps, clock: () => Date): TransportDeps => ({
   now: clock,
-  ...(deps.fetch === undefined ? {} : { fetch: deps.fetch }),
+  fetch: deps.fetch,
   ...(deps.sleep === undefined ? {} : { sleep: deps.sleep }),
   ...(deps.backoffMaxMs === undefined ? {} : { backoffMaxMs: deps.backoffMaxMs }),
 });

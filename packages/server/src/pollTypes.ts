@@ -34,8 +34,13 @@ export interface PollDeps {
    * `statement.ts` nests that as a `SAVEPOINT`, so the two compose.
    */
   readonly inTx: <T>(work: () => T) => T;
-  /** The seam for a fixture-backed test; the real one is `globalThis.fetch`. */
-  readonly fetch?: FetchLike;
+  /**
+   * The socket. Required, because the pipeline never reaches for a global: the
+   * composition root (`pollDepsOf`) supplies `globalThis.fetch`, a fixture test
+   * supplies a handler. An optional seam here would mean a poll that silently
+   * starts talking to the internet when a caller forgets to inject one.
+   */
+  readonly fetch: FetchLike;
   /** The seam for a deterministic test. Also the clock `durationMs` is measured on. */
   readonly now?: () => Date;
   /** The retry wait. A test records it; no wall time passes. */

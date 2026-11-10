@@ -114,7 +114,15 @@ export const noteOfSkipped = (outcome: Exclude<SkippedOutcome, 'not-modified'>, 
       : `declared timestamp unchanged (${String(signals.declaredModifiedAt)}), so no parse was needed`,
   );
 
-/** A parse that ran: the count, and the parser's first note when it has one. */
+/**
+ * A parse that ran: the count, plus the parser's first note.
+ *
+ * `parsePayload` notes what it sniffed on **every** success (`starts with
+ * '<?xml'`, `starts with '{'`, the HTML doctype), so in practice the tail is
+ * always there. The empty case is the defensive one, kept because the note is
+ * the paper's line: a parser that ever stops noting must not produce a health
+ * line that ends in a dangling separator.
+ */
 export const noteOfSuccess = (itemCount: number, notes: readonly string[]): string =>
   cap(`${String(itemCount)} item(s) parsed${notes[0] === undefined ? '' : ` · ${notes[0]}`}`);
 
