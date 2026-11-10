@@ -17,7 +17,19 @@ set -e
 # reduced-motion block in base.css, where `!important` is the whole point).
 # Promoting them to errors blocks any commit that touches those files and teaches
 # everyone to type `--no-verify`, which protects nothing.
-pnpm exec biome check --staged
+#
+# The guard is measured, not defensive. `biome check --staged` exits 1 when the
+# staged set is EMPTY ("No files were processed in the specified paths"), which
+# is what a message-only `git commit --amend` presents: the index equals HEAD, so
+# there is nothing staged. Hit here, 2026-11-10: a commit whose message needed
+# completing could not be amended at all, and the only way past the hook is
+# `--no-verify` - the outcome the paragraph above exists to avoid. So the check
+# runs when there is a file to check, and a commit with no content is not the
+# thing a linter is for.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$staged" ]; then
+  pnpm exec biome check --staged
+fi
 
 # Rule 1: no file over 300 lines. Whole tree, not staged files - a commit is a
 # whole tree, and the rule is per-file, so a partial set can hide an overage.

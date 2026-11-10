@@ -138,6 +138,11 @@ What the gate runs, measured 2026-11-09 on this tree: `pnpm exec biome check --s
   `prefers-reduced-motion` block in `base.css`, where `!important` is the point). A
   `--error-on-warnings` hook blocks any commit touching those files and teaches people to type
   `--no-verify`.
+- **`biome check --staged` needs a file to check.** It exits 1 when the staged set is empty —
+  "No files were processed in the specified paths" — and a message-only `git commit --amend` presents
+  exactly that (the index equals HEAD). Hit on 2026-11-10: a finished commit could not have its message
+  completed, and the escape is `--no-verify`. The hook now runs the check only when
+  `git diff --cached --diff-filter=ACMR` names something.
 - **`pnpm check` is deliberately excluded.** The chain is minutes, and it ends in `pnpm test:design`,
   which launches a **real Edge**: green here (12 assertions, 2.4 s), and a hook that needs Edge
   installed cannot commit on a machine without one. An Edge-less hook failure is a bypassed hook;

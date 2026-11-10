@@ -98,7 +98,9 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     `refactor:`, `chore:`, `build:`, `ci:` — scope is the package
     (`feat(fetch): …`). One commit per behaviour change; the log is the changelog.
 16. **The pre-commit gate is a floor, and activating it is a command.**
-    `.husky/pre-commit` runs `biome check --staged`, the 300-line scan, the secret
+    `.husky/pre-commit` runs `biome check --staged` (only when a commit stages
+    content: it exits 1 on an empty index, which is what a message-only amend
+    presents), the 300-line scan, the secret
     scan, `schemas:check`, `pnpm typecheck` and `pnpm test:fast` — the four fast
     projects, core/db/web/fetch, no browser project (whole hook: 10.8 s) —
     under `set -e` — without it husky runs every command and only the **last**
