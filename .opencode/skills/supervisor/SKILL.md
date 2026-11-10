@@ -81,4 +81,7 @@ Every briefing names, in this order:
 
 Own the result. Run the gates myself (`pnpm lines`, `pnpm lint`, the package's
 coverage), read the diff, and land it in one Conventional Commit. A subagent's
-green suite is a claim, not a fact.
+green suite is a claim, not a fact. **The worker never commits and nothing
+pushes.** For delegated work the user's standing rule-14 answer is that a worker
+**may** fix `src` when it is confident — which is exactly why I read that diff
+rather than the report's summary, and re-run the package's coverage.

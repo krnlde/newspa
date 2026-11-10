@@ -135,6 +135,20 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     `sources/`. `scripts/check-secrets.mjs` fails the build when a source
     definition is _tracked_. Capture fixtures **logged out**: a payload from a
     signed-in page carries the reader's data into a public file.
+19. **Delegation: exactly one agent at a time — the supervisor included.** Never
+    two subagents, and never a subagent while the supervisor edits: they race on
+    the same files, lockfile, and gates. Launch one, then work on files it is not
+    touching **or stop and wait**. The supervisor keeps anything that needs design
+    history — identity/diff/scoring semantics (D-005, D-028, D-029),
+    `config/src/schema.ts` and `core/src/api.ts` shape, dependency choices, the
+    first pass at a new layer. A worker gets separable work with a mechanical
+    definition of done: tests for a package, fixture re-pinning, mechanical
+    renames, wiring a decided shape. **For delegated work the rule-14 answer is:
+    a worker may fix `src` when it is confident** — which is exactly why the
+    report must carry the diff and the proof (commands, counts, coverage), and
+    why the supervisor reads that diff and re-runs the gates before landing it.
+    **The supervisor commits, a worker never does, and nothing pushes.** Commit at
+    least per work package, earlier at a clean checkpoint.
 
 ## Layout
 
