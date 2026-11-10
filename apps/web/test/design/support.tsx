@@ -1,0 +1,202 @@
+import { cleanup, render } from '@testing-library/react';
+import type { Edition, ItemView, MastheadView, SourceHealthView } from 'newspa-core';
+import { type FormatProps, Paper, type PaperLabels } from 'newspa-paper';
+import { afterEach } from 'vitest';
+import 'newspa-paper/styles/paper.css';
+
+/**
+ * The design contract, computed in real Edge (`apps/web/vitest.design.config.ts`
+ * — `playwright-core` + `channel: 'msedge'`, the same browser the scraper uses).
+ *
+ * This is the half of `packages/paper/test/design-contract.test.tsx` that a text
+ * scan cannot reach: what a class string **computes to** once the cascade, the
+ * media queries and the layout engine have had their say. happy-dom has no
+ * layout engine, so the claims of `docs/design.md` — three columns above 900px,
+ * a sticky label with an opaque background, a panel padded and boxed by an inset
+ * ring, the crossings on the stock, the lead headline above the fold — had never
+ * been checked by anything before these files.
+ *
+ * The suites drive their own widths with `page.viewport()`: the config's
+ * `viewport: {width: 1280, height: 900}` is a default, and a contract about
+ * breakpoints that only ever sees one width asserts nothing. The test page runs
+ * in the browser's own iframe, so a viewport change **is** a media-query change:
+ * no `matchMedia` shim, no stubbed width, no pretend breakpoint.
+ *
+ * This module is the edition every suite prints, and the measuring helpers, so
+ * the three suites cannot drift into three different papers.
+ */
+
+const DAY = '2026-11-09';
+const at = (time: string): string => `${DAY}T${time}:00.000Z`;
+
+const anItem = (key: string, over: Partial<ItemView> = {}): ItemView => ({
+  key,
+  sourceId: 'world',
+  sourceLabel: 'Example World',
+  kind: 'rss',
+  title: 'Rates held for the third month running as the border crossing reopens',
+  link: `https://feeds.example.test/${key}`,
+  teaser: 'One paragraph, computed on the server, long enough to be a real deck on the page.',
+  image: `https://feeds.example.test/${key}.jpg`,
+  publishedAt: at('06:00'),
+  author: 'Ann Example',
+  firstSeenAt: at('06:05'),
+  lastChangedAt: at('09:30'),
+  editCount: 1,
+  score: 20,
+  tier: 'lead',
+  read: false,
+  lastEventKind: 'new',
+  lastEventAt: at('06:05'),
+  lastReport: null,
+  ...over,
+});
+
+const aSource = (id: string, over: Partial<SourceHealthView> = {}): SourceHealthView => ({
+  id,
+  label: `Example ${id}`,
+  kind: 'rss',
+  url: `https://feeds.example.test/${id}/rss`,
+  state: 'ok',
+  lastStatus: 200,
+  lastFetchAt: at('11:50'),
+  lastChangeAt: at('09:00'),
+  itemCount: 12,
+  expectedMatchCount: null,
+  matchCount: null,
+  note: null,
+  cadenceMinutes: 20,
+  enabled: true,
+  ...over,
+});
+
+const THE_MASTHEAD: MastheadView = {
+  name: 'The Daily Wires',
+  tagline: 'Printed from your own machine',
+  dayStartHour: 3,
+  generatedAt: at('12:00'),
+};
+
+const THE_FORMAT: FormatProps = {
+  published: (iso: string | null) => (iso === null ? '' : iso),
+  ago: (iso: string) => iso,
+};
+
+const LABELS: PaperLabels = {
+  newKicker: 'New',
+  editedKicker: 'Edited',
+  changedLabel: 'Changed',
+  byline: (author: string) => `By ${author}`,
+  opensInNewTab: (sourceLabel: string) => `Open the ${sourceLabel} story in a new tab`,
+  editSummary: (added: number, removed: number) => `${String(added)} added, ${String(removed)} removed`,
+  editedHeadline: 'Edited today',
+  health: {
+    headline: 'Sources',
+    allWell: (count: number) => `${String(count)} sources, all reporting`,
+    state: {
+      ok: 'reporting',
+      blocked: 'blocked',
+      'no-matches': 'matching nothing',
+      restructured: 'restructured',
+      error: 'errored',
+      stale: 'gone quiet',
+      unknown: 'unknown',
+    },
+    cadence: (minutes: number) => `every ${String(minutes)} min`,
+    items: (count: number) => `${String(count)} stories`,
+    neverFetched: 'never fetched',
+    lastPoll: (age: string) => `last poll ${age}`,
+    matches: (seen: number, expected: number) => `matched ${String(seen)} of ${String(expected)} elements`,
+  },
+  stats: () => '12 stories · 6 new · 2 edited',
+  onboarding: {
+    title: 'No sources yet',
+    lead: 'Add a feed.',
+    steps: ['Add a source', 'Run the poller', 'Open the paper'],
+    command: 'pnpm pick -- https://feeds.example.test/world/rss',
+  },
+};
+
+/** An edition with a lead, two sections (rails and the list), an edited strip, a broken source. */
+const THE_EDITION: Edition = {
+  id: DAY,
+  generatedAt: at('12:00'),
+  dateline: 'November 9, 2026',
+  lead: anItem('lead:1'),
+  sections: [
+    {
+      id: 'world',
+      title: 'World',
+      blurb: 'Border, elections, weather',
+      items: [anItem('world:1'), anItem('world:2'), anItem('world:3')],
+    },
+    {
+      id: 'tech',
+      title: 'Technology',
+      blurb: 'What the wires filed',
+      items: [anItem('tech:1', { sourceLabel: 'Example Tech' }), anItem('tech:2', { sourceLabel: 'Example Tech' })],
+    },
+  ],
+  edited: [
+    anItem('world:2', {
+      lastEventKind: 'edited',
+      lastReport: { ops: [{ type: 'insert', text: 'held' }], added: 3, removed: 1, similarity: 0.8, meaningful: true },
+    }),
+  ],
+  stats: { items: 12, newItems: 6, editedItems: 2, sourcesFetched: 3, sourcesUnhealthy: 1, cycles: 4 },
+};
+
+const SOURCES: readonly SourceHealthView[] = [
+  aSource('world'),
+  aSource('tech', { state: 'no-matches', note: 'the selector matched 0 of 14 elements' }),
+];
+
+/** The paper, as the app renders it: one tree, the real stylesheet, a real browser. */
+export const showPaper = (): void => {
+  render(
+    <Paper
+      masthead={THE_MASTHEAD}
+      edition={THE_EDITION}
+      sources={SOURCES}
+      labels={LABELS}
+      format={THE_FORMAT}
+      theme="light"
+      onToggleTheme={() => undefined}
+      themeLabel="Switch to dark"
+    />,
+  );
+};
+
+/** Everything the paper owns: a scan over this cannot be vacuous. */
+export const paperElements = (): HTMLElement[] => {
+  const sheet = document.querySelector<HTMLElement>("[data-part='sheet']");
+  if (sheet === null) throw new Error('the paper printed no sheet');
+  return [...sheet.querySelectorAll<HTMLElement>('*')];
+};
+
+export const first = (selector: string): HTMLElement => {
+  const found = document.querySelector<HTMLElement>(selector);
+  if (found === null) throw new Error(`no ${selector} on the page`);
+  return found;
+};
+
+export const cssOf = (selector: string): CSSStyleDeclaration => globalThis.getComputedStyle(first(selector));
+export const widthOf = (selector: string): number => Math.round(first(selector).getBoundingClientRect().width);
+export const boxOf = (selector: string): DOMRectReadOnly => first(selector).getBoundingClientRect();
+export const px = (value: string): number => Number.parseFloat(value);
+export const tracks = (selector: string): string[] =>
+  cssOf(selector)
+    .gridTemplateColumns.split(' ')
+    .filter((part) => part.length > 0);
+
+/** An opaque background is one a scrolling column cannot show through. */
+export const isOpaque = (color: string): boolean => {
+  if (color === 'transparent') return false;
+  const inside = /\(([^)]*)\)/u.exec(color)?.[1] ?? '';
+  const parts = inside.split(/[\s,/]+/u).filter((part) => part.length > 0);
+  const alpha = parts[3];
+  if (alpha === undefined) return color.startsWith('rgb');
+  return Number.parseFloat(alpha) > 0.999;
+};
+
+afterEach(cleanup);
