@@ -36,9 +36,22 @@ the correct price for a page that tells us nothing.
 **A cheap signal may skip work. It may never suppress an item.**
 
 Concretely: a `304` and a matching body hash skip parse, diff and score,
-because no new bytes exist. A matching declared timestamp skips _scoring and
-event emission_ only after the items were extracted. There is no path on which
-an extracted item is dropped because a header said the page was old.
+because no new bytes exist. The declared-timestamp rung sits **before** the
+parse, as the ladder's order says (`304 → body hash → declared timestamp → full
+parse`): when the payload's own newest timestamp is unchanged, the parse does not
+run. Nothing is extracted, so nothing is dropped — the items the last parse
+produced stay published, with their counts, and the ladder's counters record the
+hit.
+
+The cost is stated where it can be seen: a publisher that edits a story
+_without_ restamping its declared timestamp (`<lastBuildDate>`,
+`article:modified_time`, JSON's `dateModified`) is not seen until it restamps
+or the declared signal disappears. That is the deal D-020 makes — the payload's
+own declaration is the cheapest signal available, and it is trusted. The
+boundary is pinned by a test (`poll-edits.test.ts`: "layer 2 is the boundary"),
+and a source that stamps once a day shows up as `fastPathHits` climbing.
+Where the declaration is absent (most HTML pages, most JSON endpoints), layer 2
+never fires and the body hash is the only fast path below the `304`.
 
 ## HTTP inputs
 
@@ -120,6 +133,28 @@ Each `snapshots` row carries the `outcome` and the byte count.
 The counters are not decoration. `fastPathHits: 0, fastPathMisses: 400` says
 this source stamps its HTML; `freshnessSeconds: 300` against a 60 s cadence
 says the poll is wasted. Both are health notes on the paper, per rule 5.
+
+A **hit** is any rung that skipped the parse — the `304`, the body hash, the
+declared timestamp — and a **miss** is a poll that parsed, including every
+failing poll. The first poll of a source counts its own miss (the state row is
+written before the counter moves, so a source's very first poll is countable).
+A failure writes **no** state at all: `bodyHash` is "the hash of the body the
+item set was built from", so a refused body must not become the baseline, or the
+next identical poll answers `same-body`, skips the parse that has to happen, and
+the source sits at zero items behind a healthy-looking ladder.
+
+The `304` follows RFC 9110 §15.4.5 and §4.2.1: it updates the stored
+**validators** (`etag`, `lastModified`, `responseDate`) and the **freshness
+lifetime**, and nothing about the body — a `304` sent no body, so `bodyHash`,
+`declaredModifiedAt`, `generator`, `ttlMinutes` and the cache-hint set stay
+exactly as the parse left them. A CDN that answers a `304` with no validators
+must not cost the source its fast path, so an absent validator field keeps the
+stored one rather than clearing it (`poll-ladder.test.ts` pins both cases).
+
+Who owns the seams: the **poll** injects the socket (a required dep, never a
+global it reaches for) and the clock, read once per poll so the snapshot, the
+items, the events and the score all carry one instant; the **transport** owns
+the retry policy, and its waits are recorded, not slept through, in tests.
 
 ## Reverse if
 

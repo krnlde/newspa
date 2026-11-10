@@ -42,16 +42,19 @@ a stale handoff is a lie in the tree.
 
 **What landed.** `pollOne(spec, deps)` in `packages/server`, and the pipeline is
 hard-coded as planned: `fetch → parse → normalize → diff → score → publish`
-(D-001). Seven modules, 1 267 lines of `src`: `poll.ts` (174) is the ladder and
+(D-001). Seven modules, 922 lines of `src`: `poll.ts` (174) is the ladder and
 the **one** write path — a single `inTx` that writes the snapshot, the ladder
 state, the fast-path counters, the health patch and, on the slow path, the items
 and their events; `pollVerdicts.ts` (173) is each rung's meaning, as pure data;
 `pollBaseline.ts` (133) is the ladder's state, including the RFC 9110 §15.4.5
 rule that a `304` updates the stored **validators** and nothing about the body;
 `pollItems.ts` (161) is the publish step (score, section, the upsert's
-arithmetic, the `editReport`); `pollHealth.ts` (145) maps a fault to the
-`HealthState` the paper prints and the one line beside it; `pollTypes.ts` (92)
-and `pollDeps.ts` (30) are the seams.
+arithmetic, the `editReport`); `pollHealth.ts` (153) maps a fault to the
+`HealthState` the paper prints and the one line beside it; `pollTypes.ts` (97)
+and `pollDeps.ts` (31) are the seams — and the socket is a **required** dep, so
+the pipeline never reaches for a global: `pollDepsOf` hands over
+`globalThis.fetch`, and a poll cannot silently start talking to the internet
+because a caller forgot to inject one.
 
 **The three numbers a reader judges it by.** `snapshots.item_count` is `null`
 when a rung skipped the parse — never a `0` the paper would read as a dead
@@ -60,16 +63,20 @@ a state row, so a ladder that never fires is visible. `lastSuccessAt` is written
 only on a success, so a failing source ages into `stale` instead of looking
 quiet.
 
-**Measured at acceptance.** `packages/server`: 13 test files, 93 tests (was 55),
-coverage 100 / 95.54 / 100 / 100. The repo: 93 files, 1 105 tests. A fixture poll
+**Measured at acceptance.** `packages/server`: 14 test files, 98 tests (was 55),
+coverage 100 / 98.7 / 100 / 100. The repo: 94 files, 1 110 tests. A fixture poll
 of each source kind — the real BBC capture for `rss`, a card page and a table
-page for `html`, an items-path miss for `json` — writes items, one snapshot with
-the right `outcome`, and an `Edition` whose `new`/`edited` counts equal the diff.
-A second identical poll answers `not-modified` with **zero** items, keeps the
-source's last good health, and prints `matchCount: null` (never an invented
-zero). Layer 1 (`same-body`) and layer 2 (`declared-unchanged`) each have their
-own test, and so does layer 2's cost: an edit the feed does not declare is never
-parsed. Rule 5 is pinned from nine directions — a refused payload, a selector
+page for `html`, the Algolia front page for `json`, plus an items-path miss for
+`json` — writes items, one snapshot with the right `outcome`, and an `Edition`
+whose `new`/`edited` counts equal the diff. A second identical poll answers
+`not-modified` with **zero** items, keeps the source's last good health, and
+prints `matchCount: null` (never an invented zero). Layer 1 (`same-body`) and
+layer 2 (`declared-unchanged`) each have their own test, and so does layer 2's
+cost: an edit the feed does not declare is never parsed. D-005's identity rule is
+pinned at the poll: a `?utm_source=` copy of a story is **one** row with one
+event history, the link the reader clicks keeps the publisher's own text, and —
+the deliberate boundary — a `?ref=` copy is a second story.
+Rule 5 is pinned from nine directions — a refused payload, a selector
 that matches nothing, a challenge wall, a `403`, a `500` (retried, waits
 recorded, `lastSuccessAt` untouched), a payload of the wrong kind, a
 `render: true` source (no request made), a body that stops parsing (the last

@@ -17,9 +17,9 @@ hard-coded: `fetch → parse → normalize → diff → score → publish` (D-00
 
 ## Green, right now
 
-`pnpm test` — 93 files, **1 105 tests, all passing**, 8.4 s. `pnpm typecheck`
+`pnpm test` — 94 files, **1 110 tests, all passing**, 8.4 s. `pnpm typecheck`
 clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
-`pnpm lines` passes — 292 files, every one ≤ 300 lines.
+`pnpm lines` passes — 293 files, every one ≤ 300 lines.
 `pnpm test:design` — 13 assertions in real Edge, green.
 
 | package           | src                   | tests                   | project tests  |
@@ -29,14 +29,16 @@ clean. `pnpm lint` 0 errors / 9 warnings (the ceiling; rule 16).
 | `packages/db`     | 15, 2 323             | 16, 2 763               | 154            |
 | `packages/fetch`  | 24, 3 440             | 22, 3 969 + 29 fixtures | 309            |
 | `packages/paper`  | 10, 850               | 10, 1 541               | 108            |
-| `packages/server` | 10, 1 267             | 13, 2 096               | 93             |
+| `packages/server` | 10, 1 281             | 14, 2 280               | 98             |
 | `apps/web`        | 6, 366                | 12, 1 588               | 105 (+13 Edge) |
 
 Coverage gate is 95 % per package (`vitest.coverage.json`); core measures
 99.39 / 95.74 / 100 / 99.85, paper **100** on all four metrics, web
-99.06 / 95.78 / 100 / 99.45, server 100 / 95.54 / 100 / 100 (the four
-uncovered branches are the `globalThis.fetch` default a test cannot reach,
-and the shape of a note longer than the 200-char cap). Run it **per package** —
+99.06 / 95.78 / 100 / 99.45, server 100 / 98.7 / 100 / 100 — the two uncovered
+branches are both the "the parser left no note" form, which today's parsers
+never produce (every success carries its sniff note: `starts with '<?xml'`,
+`starts with '{'`, the doctype), kept because that note is a printed line in the
+paper and a dangling separator is the failure it guards. Run it **per package** —
 a root `vitest run --coverage` prints a confident 0 % and gates nothing.
 
 ## What each package can do
