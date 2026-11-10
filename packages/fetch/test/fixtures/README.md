@@ -41,6 +41,7 @@ Feeds:
 | `rss-truncated.xml` | A stream cut mid-element: `truncated`, with the validator's message quoted, nothing invented |
 | `rss-sloppy-unclosed-element.xml` | Raw HTML in `<description>`: `InvalidTag` from the validator, read **anyway** with a tolerance note; the two measured consequences (an unclosed `<em>` swallows the rest of the document; an element child's text is read before the character data before it) |
 | `rss-rdf-1.0.xml` | RSS 1.0 is parsed: no `channel`, the link is `rdf:about`, `dc:date` is the date, `dc:creator` the author |
+| `rss-media-images.xml` | Which `media:` tag is the story image: a 30×30 `media:thumbnail` written **first**, and the 256px `media:content` wins (tag order does not decide, D-032); a thumbnail-only entry — GitHub's releases atom shape — keeps its avatar, because no size rule is decided; a query-string-blob `media:content` **must** yield `image: null` (D-032's validation rule, not built) |
 | `atom-links.xml` | The Atom link ladder: `rel=alternate` + `type=text/html` wins over `rel=self` and over an `application/atom+xml` alternate, a missing `published` falls back to `updated`, an entry with no link is skipped and counted, `media:content` is the image, `xhtml:div` content flattens to one line |
 
 HTML:
@@ -51,6 +52,7 @@ HTML:
 | `html-selector-rot.html` | A renamed class: `no-matches` naming the selector with `matchCount: 0` — a visible zero, not an empty day |
 | `html-self-title.html` | The item root carries the title as text and no heading: the field ladder reads the root, which cheerio's `find` alone cannot do |
 | `html-noise-strip.html` | Share widgets, a "Read more" link, a `<script>` and a `<style>` contribute nothing to title, deck, body, byline (`<address>`) or image; the strip runs on a clone, so the live document keeps its deck |
+| `html-picture.html` | `<picture><source srcset>` inside a matched card yields `image: null` **today**, because `NOISE_SELECTOR` strips `picture`/`source` from the clone before `imageFrom` runs: the 2× candidate, the fallback `img src`, a bare-`img` control card that works, and a root-relative srcset that must resolve absolute. The `strip` interaction the fix would reopen is named in-file, not pinned |
 
 JSON:
 

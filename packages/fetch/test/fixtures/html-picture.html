@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Hand-written, synthetic (AGENTS.md rule 18: no page was fetched for this file).
+  The responsive-image markup an index card ships, and which URL the parser is
+  allowed to call the item's image.
+
+  Pinned by `test/imageGaps.test.ts`:
+  - Card 1, the `<picture>` element. The `<source>`'s `srcset` is the
+    highest-resolution evidence — `pickCandidate` already takes the largest
+    candidate from an `img` srcset — and the `<img src>` is only the fallback
+    for a browser that does not support the picture. **Measured today: `image`
+    is `null`**, because `NOISE_SELECTOR` (`src/htmlText.ts`) removes
+    `picture` and `source` from the clone `imageFrom` reads, so the srcset is
+    gone before the image ladder runs. Reproduced against the shipped code, and
+    listed as an open item in `docs/decisions-detection.md`.
+  - Card 2, the control: a bare `<img>`, which the fallback arm of `imageFrom`
+    reads today. It is here so the picture failure cannot be read as "the
+    parser never finds an image".
+  - Card 3, a root-relative srcset: the wanted answer is absolute
+    (`https://example.invalid/pics/c-2x.webp`), because every image URL a
+    `PickedItem` carries goes through `absoluteLink` (`src/item.ts`).
+
+  Deliberately **not** pinned: a `<picture>` inside a node the source's `strip`
+  list removes. The fix the docs name is "look inside the element being
+  cleaned", and doing that for the whole item also resurrects an image a `strip`
+  selector removed on purpose — that trade-off is undecided, so it is named
+  here and asserted nowhere.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Picture as image evidence</title>
+  </head>
+  <body>
+    <ul class="cards">
+      <li class="card">
+        <picture>
+          <source srcset="https://example.invalid/a-2x.jpg 2x" type="image/jpeg" />
+          <img src="https://example.invalid/a-800.jpg" alt="" width="800" height="450" />
+        </picture>
+        <h2 class="title">Picture card</h2>
+        <a href="/a">Read the story</a>
+      </li>
+      <li class="card">
+        <img class="photo" src="https://example.invalid/b-800.jpg" alt="" width="800" height="450" />
+        <h2 class="title">Bare image card</h2>
+        <a href="/b">Read the story</a>
+      </li>
+      <li class="card">
+        <picture>
+          <source srcset="/pics/c-2x.webp 2x" type="image/webp" />
+          <img src="/pics/c-800.jpg" alt="" width="800" height="450" />
+        </picture>
+        <h2 class="title">Root-relative picture card</h2>
+        <a href="/c">Read the story</a>
+      </li>
+    </ul>
+  </body>
+</html>

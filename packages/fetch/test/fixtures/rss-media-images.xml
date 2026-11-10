@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Hand-written, synthetic (AGENTS.md rule 18: no feed was fetched for this file).
+  The `media:` image tags a feed writes for one item, and which URL the parser
+  calls the story image. Pinned by `test/imageGaps.test.ts`.
+
+  Item 1 — two sizes of the same story image, the small one written **first**.
+  Today the 256px wins, because `mediaImage` (`src/rssFields.ts`) tries
+  `media:content` before `media:thumbnail`; that order is what D-032 asks for,
+  so this fixture pins it as a fact and keeps a reordering from being silent.
+
+  Item 2 — GitHub's shape. `test/fixtures/feed-github-releases.atom.xml` carries
+  a 30x30 `media:thumbnail` (`avatars.githubusercontent.com/in/15368?s=60&v=4`)
+  in every entry and no `media:content` at all, so today the avatar **is** the
+  image: no size rule exists, and none is decided.
+
+  Item 3 — the shape D-032's image rule is about. Measured on a real source:
+  `…/refs?tag_name=v0.2.13&experimental=1` (the text of an Atom `link`, arriving
+  through a `media:content`/`img` ladder) was chosen as a story image. D-032:
+  an image URL whose shape is a query-string blob yields `image: null`, and the
+  paper prints no placeholder — a null is a statement, not a 404 in an `<img>`.
+  The rule is a **validation** rule on the URL's shape, so it also nulls item
+  2's `?s=60&amp;v=4` avatar, and the fixture writes that URL with a query for
+  exactly that reason.
+-->
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Media RSS image shapes</title>
+    <link>https://example.invalid/</link>
+    <description>Which of an item's image tags wins, and which must yield null.</description>
+    <item>
+      <title>Two sizes of the same story image</title>
+      <link>https://example.invalid/sizes</link>
+      <description>The avatar is written first, the story image second.</description>
+      <media:thumbnail url="https://example.invalid/avatar-30x30.jpg" width="30" height="30" />
+      <media:content url="https://example.invalid/story-256px.jpg" width="256" height="256" medium="image" />
+    </item>
+    <item>
+      <title>The 30x30 avatar is the only image evidence</title>
+      <link>https://example.invalid/avatar</link>
+      <description>GitHub's releases atom, in shape: a thumbnail and nothing else.</description>
+      <media:thumbnail url="https://avatars.githubusercontent.com/in/15368?s=60&amp;v=4" width="30" height="30" />
+    </item>
+    <item>
+      <title>An image URL that is a query-string blob</title>
+      <link>https://example.invalid/blob</link>
+      <description>The URL has no path extension and a query: it is not an image.</description>
+      <media:content
+        url="https://example.invalid/refs?tag_name=v0.2.13&amp;experimental=1"
+        medium="image"
+        type="image/png"
+      />
+    </item>
+  </channel>
+</rss>
