@@ -89,6 +89,37 @@ the bottom of its own section. Two consequences are mandatory:
   about decoration; a shadow that says _"content is passing under this"_ is
   structure, so this is the recorded exception rather than a silent violation.
 
+## The sketch layer: marks a press makes
+
+The paper is allowed marks, as long as each one is a mark a printing press
+actually makes, in newsprint, and never a card. The geometry was **read out of
+tailwindcss.com's own stylesheet** (CSSOM, 2026-11-09) rather than eyeballed, and
+only the palette changed — the ink is the paper's own ink at 10%, the ring is the
+hairline, and there is no radius, no fill and no shadow:
+
+| mark               | what it is                                                                            | where it prints                                                              |
+| ------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| diagonal crossings | `repeating-linear-gradient(315deg, …1px, transparent 0, transparent 50%)`, 10 px tile | the stock under the sheet (fixed, **never in print**); a non-`ok` health row |
+| dot grid           | `radial-gradient(… 1px, transparent 0)`, 10 px tile                                   | inside a panel                                                               |
+| guideline          | 1 px inset ring                                                                       | the sheet and every panel                                                    |
+| crop marks         | the printer's corner ticks                                                            | the sheet and the lead's figure                                              |
+
+The crossings are the cross-hatch a newspaper prints **where a photograph is
+missing**, so a health row that carries them marks an absence — that is what
+keeps the layer structural rather than decorative. The sheet is a solid panel of
+paper lying on that stock. Rails, "edited", health and onboarding are panels:
+ring, dots, padding.
+
+**Every box with a rule is padded.** `--spacing-box` is 1 rem, `--spacing-box-wide`
+2 rem from 40 rem. A border with content flush to it is the defect every
+hand-written version of this page shipped with, and it is the reason the padding
+is a token and a computed test (`apps/web/test/design/boxes.test.tsx` measures a
+panel's padding and its inset ring in real Edge) rather than a preference.
+
+The structural hooks are `data-part` attributes, never class names: the design
+suite, the print rules and the SSE flash all query **structure**, and a query
+that reads a styling class breaks when the styling does.
+
 ## Colour: grayscale on yellowed paper
 
 Light theme is **not** `#ffffff`. Aged-paper stock, because the eye prefers a
@@ -107,9 +138,20 @@ No saturated hue anywhere. The only non-gray marks in the paper are
 
 Scraped images are forced to monochrome: `filter: grayscale(1) contrast(1.06) brightness(1.02)`,
 with a `0.5px` rule under, italic caption in `--muted`. No image → no placeholder box.
-A photograph is **capped and cropped** — the lead's box is `min(24rem, 46vh)` with
-`object-fit: cover`, a leader's `11rem` — because a newspaper crops, and a photo
-taller than the screen pushes the headline off the fold.
+A photograph is **capped and cropped** — the lead's box is `min(15rem, 30vh)`
+with `object-fit: cover`, a leader's `11rem` — because a newspaper crops, and a
+photo taller than the screen pushes the headline off the fold. The lead's figure
+therefore prints **after** the deck, so the first thing above the fold is the
+headline; a section leader keeps figure-then-headline, because it is a card in a
+column and the lead is the page.
+
+The cap is measured, not asserted (`pnpm shots` prints the lead photo's height
+and the headline's box at all three widths). It replaced `height: auto` rather
+than joining it: **Tailwind emits `h-auto` after an arbitrary height** (byte
+offsets in the built stylesheet), so a class string carrying both is auto-sized,
+and the lead photo measured 352 px at 1440×900 with the headline below the fold.
+A utility that loses to another utility in source order is invisible in the
+markup — the reason the image box's height lives in exactly one place per slot.
 
 ## The paper is an index, not a mirror
 

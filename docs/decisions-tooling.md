@@ -132,14 +132,16 @@ What the gate runs, measured 2026-11-09 on this tree: `pnpm exec biome check --s
 
 - **`set -e` is load-bearing.** husky runs the hook with `sh`; without it every command runs and only
   the **last** exit code decides, so a Biome failure followed by a passing file-length scan commits anyway.
-- **Warnings are not promoted to errors.** The tree carries 10 pre-existing warnings:
-  `noExcessiveCognitiveComplexity` in core's `cadenceCron.ts`, `diff.ts`, `health.ts`, `signals.ts`;
-  `noImportantStyles` in `sheet.css`; one `noDescendingSpecificity`. A `--error-on-warnings` hook blocks
-  any commit touching those files and teaches people to type `--no-verify`.
-- **`pnpm check` is deliberately excluded.** That chain ends in `pnpm test:design`, and the real-Edge
-  design suite under `apps/web/test/design` is not written yet, so `pnpm check` exits 1 at HEAD
-  (measured: 16.6 s, exit 1). An always-red hook is a bypassed hook; `check` stays the gate before
-  declaring work done.
+- **Warnings are not promoted to errors.** Measured census at the styling migration: 9 pre-existing
+  warnings — `noExcessiveCognitiveComplexity` ×6 (core's `cadenceCron.ts` ×3, `diff.ts`, `health.ts`,
+  `signals.ts`), one fixable `useMathMinMax` (core's `diff.ts`), and 2 `noImportantStyles` (the
+  `prefers-reduced-motion` block in `base.css`, where `!important` is the point). A
+  `--error-on-warnings` hook blocks any commit touching those files and teaches people to type
+  `--no-verify`.
+- **`pnpm check` is deliberately excluded.** The chain is minutes, and it ends in `pnpm test:design`,
+  which launches a **real Edge**: green here (12 assertions, 2.4 s), and a hook that needs Edge
+  installed cannot commit on a machine without one. An Edge-less hook failure is a bypassed hook;
+  `check` stays the gate before declaring work done.
 
 The finding that matters, and the reason this entry exists: husky activates from a `prepare`
 lifecycle script, and this workspace sets `ignoreScripts: true` (rule 8), which suppresses it.
@@ -208,9 +210,11 @@ A utility exists because a line in that file defines it, and a component can onl
 - **`data-part` is the structural contract.** The print rules, the SSE flash and the design suite query
   `[data-part='headline']`, `[data-part='kicker']`, `[data-part='columns']`, `[data-part='health']`,
   `[data-part='theme-switch']`. A class string is a styling decision that changes with the design; a
-  structural hook is what a test and a print rule may depend on. The old BEM names stay only in the
-  unlayered stylesheets that are mid-migration, and unlayered CSS beats every layer, which is what
-  makes the migration shippable in steps: the page looks identical the day the engine lands.
+  structural hook is what a test and a print rule may depend on. The BEM names this replaced lived on
+  in unlayered stylesheets — and unlayered CSS beats every layer, which is what made the migration
+  shippable in steps, and what made the last step atomic: the four sheets and the class names they
+  styled had to go in one pass, because a page whose sheets are deleted while its components still
+  carry `.foo__bar` is a page with no styling on those elements.
 - **The residue is named.** A utility cannot express `@page`, `::first-letter` drop caps,
   `content: attr(href)` for print, keyframes, the theme rebinding, or Preflight's removal of list
   markers (the onboarding steps are a numbered list, so `ol` gets its markers back). That is
@@ -227,3 +231,24 @@ A utility exists because a line in that file defines it, and a component can onl
   test. Measured at the engine commit: the app's CSS is 15.83 kB (4.28 kB gzipped) with no utilities
   in use yet, and `pnpm shots` renders the front page in real Edge at 1440×900, 1024×768 and 390×844
   with a 323 / 712 / 324 px front grid and zero justified elements.
+
+**Migration complete (2026-11-10).** `sheet.css`, `blocks.css`, `front.css` and `stories.css` — 661
+lines — are deleted; the four files that remain are `paper.css` (the entry), `tokens.css`, `base.css`,
+`marks.css`. The page now ships 22.03 kB of CSS (5.51 kB gzipped), every rule of it a utility in use
+plus the named residue. Measured in real Edge at 1440×900: front grid `310px 682px 310px`, lead
+headline 311→599 px (above the fold), lead photo 240 px, panel padding 16 px with an inset ring, the
+sticky label's shadow, zero justified elements.
+
+Two traps the migration cost, both invisible in the markup:
+
+- **A Vitest browser project inherits no Vite plugin from the root config.** `apps/web/vitest.design.config.ts`
+  listed `plugins: [react()]`, so `@import 'tailwindcss'` reached Edge as literal text, every utility
+  computed to its initial value, and the design suite measured a page with no styling — three of its
+  twelve claims passed **vacuously** (`gridTemplateColumns: none` reads as one column; a fold test
+  measures zeroed rects). The suite's first test is now that compile guard: a `block-head` that is not
+  `position: sticky` fails with the reason, before any measurement means anything.
+- **A utility can lose to a utility by source order.** `h-auto` is emitted after an arbitrary height
+  (byte offsets in the built sheet), so an image box carrying `h-auto h-[min(15rem,30vh)]` is auto-sized:
+  the lead photo measured 352 px and the headline sat below the fold. The cap now lives in exactly one
+  place per slot, and `pnpm shots` prints the photo's height and the headline's box, because a rule
+  that fails this quietly is a rule that will fail again.

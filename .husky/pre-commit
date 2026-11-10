@@ -11,11 +11,12 @@ set -e
 # formatting fails it with no rule name in the output - the most confusing
 # possible way to block a commit, so the hook runs the same thing the repo does.
 #
-# Warnings are allowed on purpose. The tree carries 10 of them (cognitive
-# complexity in core's cron/diff/health/signals, `!important` in the reduced-motion
-# block, one descending-specificity selector). Promoting them to errors blocks any
-# commit that touches those files and teaches everyone to type `--no-verify`,
-# which protects nothing.
+# Warnings are allowed on purpose. The census, measured: 6
+# `noExcessiveCognitiveComplexity` (core's cron ×3, diff, health, signals), 1
+# fixable `useMathMinMax` (core's diff), and 2 `noImportantStyles` (the
+# reduced-motion block in base.css, where `!important` is the whole point).
+# Promoting them to errors blocks any commit that touches those files and teaches
+# everyone to type `--no-verify`, which protects nothing.
 pnpm exec biome check --staged
 
 # Rule 1: no file over 300 lines. Whole tree, not staged files - a commit is a
@@ -46,9 +47,9 @@ pnpm typecheck
 pnpm test:fast
 
 # Deliberately NOT `pnpm check`: that chain is minutes (per-package coverage, the
-# Edge browser projects, `test:design`, the audit). `test:design` is **red at
-# HEAD** — `apps/web/test/design/` holds no tests yet, so Vitest exits 1 with
-# "No test files found" — and an always-red hook is a hook that gets bypassed, so
-# it stays out of the floor until that suite exists. `pnpm check` is the gate
-# before declaring work done (AGENTS.md); this is the few-second floor that has to
-# be green for a commit to exist at all.
+# Edge browser projects, `test:design`, the audit). `pnpm test:design` is green at
+# HEAD — 12 computed assertions in real Edge, 2.4 s — and it stays out of the
+# floor for the reason above: an Edge that is not installed exits 1, and an
+# always-red hook is a hook that gets bypassed. `pnpm check` is the gate before
+# declaring work done (AGENTS.md); this is the few-second floor that has to be
+# green for a commit to exist at all.

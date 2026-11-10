@@ -4,31 +4,35 @@ What is **not** built, in the order that unblocks the most. Each package states
 the measured gap, the acceptance test, and the rules it is answerable to.
 `docs/state.md` is the inventory of what exists; `AGENTS.md` is the law.
 
-The dependency spine is `WP12 → WP2 → WP3 → WP4 → WP5`, then everything else.
+The dependency spine is `WP2 → WP3 → WP4 → WP5`, then everything else.
 Seven root scripts (`start`, `pick`, `login`, `status`, `search`, `export`,
 `import`) point at `packages/server/src/cli.ts`, which **does not exist**, so
 `pnpm start` fails today — the shortest path from "a package that passes tests"
-to "an app you can run" is WP2 → WP4 → WP5.
+to "an app you can run" is WP2 → WP4 → WP5. WP12 is retired: read it before
+reopening the same two files.
 
-## WP1 — Finish the styling migration (CSS wipe)
+## WP1 — closed: the styling migration is finished (2026-11-10)
 
-**Gap.** `sheet.css`, `blocks.css`, `front.css`, `stories.css` (661 lines of
-hand-written BEM) still drive the page; the components carry BEM class names, so
-structural hooks are class names rather than `data-part` (rule 11).
-`pnpm test:design` is red: `apps/web/test/design/` holds no tests.
+**What landed.** The four BEM sheets (`sheet.css`, `blocks.css`, `front.css`,
+`stories.css`, 661 lines) are deleted; every rule they held is a utility on the
+element, and every structural hook is `data-part`. `packages/paper/src` split
+into ten modules (rule 1), the app's loading and failure states are the paper's
+own shell (`sheetClass`) and panel (`Onboarding`), the sketch layer is one
+recipe in `marks.css`, every box with a rule is padded, and the lead's headline
+leads. The two traps the migration exposed — a utility losing by source order
+(`h-auto` beat the photo's cap), and a Vitest browser project inheriting no
+`tailwindcss()` plugin — are recorded in D-024, with the measurements.
 
-**Build.** `docs/handoff-tailwind-rewrite.md` is the brief, with the full
-rule-by-rule translation table and the `BEM → data-part` map. Includes defect 3
-of `docs/state.md` (the lead's headline must lead) and the Edge suite:
-computed assertions in real Edge — no `justify`, 3 columns at 1440 / 1 at 900,
-the sticky block head with an opaque background, a panel's padding ≥ 16 px and
-its inset ring, the crossings on `body` and the dots in a panel, the lead
-headline above the fold.
+**Measured at acceptance.** `git grep -nE "[a-z]+__[a-z]+|[a-z]+--[a-z]+"`
+outside `docs` and the fetched fixtures: empty. `pnpm test:design`: 12 assertions
+in real Edge, green for the first time. `pnpm shots`: front grid
+`310px 682px 310px` at 1440×900, lead headline 311→599 px of 900 px (above the
+fold), 1 column at 390, 0 justified elements, no page problems at any width.
+Paper coverage 100 % on all four metrics, web 99.06 / 95.78 / 100 / 99.45.
 
-**Accept.** `git grep -nE '[a-z]+__[a-z]+|[a-z]+--[a-z]+'` is empty;
-`pnpm test:design` green for the first time; `pnpm shots` shows the lead
-headline on the first screen at all three widths and the reader has seen the
-images; every box with a rule has padding.
+**Nothing is left in it.** The handoff files it was worked from
+(`docs/handoff-tailwind-rewrite.md`, `docs/handoff-style-table.md`) are deleted —
+a stale handoff is a lie in the tree.
 
 ## WP2 — The poll: one source, end to end
 
@@ -48,8 +52,11 @@ the paper — never `catch { return [] }` (rule 5).
 **Accept.** A fixture-backed poll of each source kind (`rss`, `html`, `json`)
 inserts items, records one snapshot with the right `outcome`, and produces an
 `Edition` through `editionOf` whose `edited`/`new` counts equal the diff.
-A second identical poll produces **zero** items, one snapshot, and a `304`
-outcome — and, with WP12, a health state that is not `unknown`.
+A second identical poll produces **zero** items and one snapshot whose
+`outcome` is `not-modified`, the source's stored health stays the **last good**
+one (that composition is the design: `transportHealth.test.ts:59`, and
+`edition-health.test.ts:127` keeps `matchCount` `null` instead of inventing a
+zero), and the paper prints no ghost stories.
 
 ## WP3 — The scheduler
 
@@ -134,7 +141,8 @@ is empty. `ItemsQuery` exists in the contract and has no server.
 title/teaser/source, kept in sync by triggers, a `search` method on
 `itemsRepository` with BM25 ordering, `GET /api/items` (WP4), and the search
 field in the app — chrome strings through i18n, results rendered as story rows
-(no new component styling mid-WP1: land after WP1).
+(the styling migration is finished, so a new row type is utilities on the
+element, per rule 11).
 
 **Accept.** A fixture db of ~200 items returns the expected order for a
 two-word query, respects the section filter and the limit, and a prefix query
@@ -199,23 +207,24 @@ the published owner/repo honest.
 edited to violate the schema is refused with the issue, and the store is
 untouched.
 
-## WP12 — The two health defects (small, do it first)
+## WP12 — retired: the two "health defects" are not defects
 
-**Gap.** `docs/state.md` defects 1–2: `classifyFetch({ status: 304, ok: true,
-itemCount: 0 })` yields `unknown`, so the paper says _"Baselined, watching from
-now on"_ for a conditional-GET hit; `errorKindOf` collapses TLS failures behind
-Node's `fetch failed` wrapper to `network`.
+**What happened.** The notes recorded two bugs: that
+`classifyFetch({ status: 304, ok: true, itemCount: 0 })` yielding `unknown`
+makes the paper say _"Baselined, watching from now on"_ on every conditional-GET
+hit, and that core's `errorKindOf` collapses a TLS failure to `network`. Neither
+survives reading the code under it, so the recorded gap was a wrong expectation
+about intended behaviour, not a defect (rule 14). `docs/state.md` §"Two things
+that look like defects and are not" carries the evidence: the `304` answer is
+`unknown` **because** the parser never ran and `itemCount` is `0` by
+construction — the pipeline keeps the last good state, and the read side refuses
+an invented `matchCount` — and the TLS path is `classifyThrown` in
+`packages/fetch/src/transportErrors.ts`, which walks the cause chain and names
+`tls` long before core's fallback is reached.
 
-**Build.** A `304` with a known baseline is `ok` (nothing changed is a
-**successful** poll); a `304` with no baseline is the real "baselined" case.
-`errorKindOf` walks `cause` (`node:crypto`'s `ERR_TLS_*`,
-`CERT_HAS_EXPIRED`, `DEPTH_ZERO_SELF_SIGNED_CERT`, `UNABLE_TO_VERIFY…`) before
-falling back to `network`.
-
-**Accept.** Table tests over `classifyFetch` for `200/304/401/403/404/5xx`,
-with and without a baseline, and over `errorKindOf` for a wrapped TLS error, a
-timeout abort, and a DNS failure — each naming its own kind. Both fixes are
-pure core functions: no I/O, two commits (`fix(core): …`).
+**Do not** "fix" either one. What is genuinely open around health is WP2 (the
+pipeline must perform that composition) and the one unexplained `404` in
+`docs/state.md`.
 
 ## WP13 — README
 

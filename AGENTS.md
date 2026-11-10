@@ -64,11 +64,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     **Tailwind v4** (D-024): the vocabulary is `@theme` in
     `packages/paper/styles/tokens.css`, utilities are written on the elements in
     `packages/paper/src`, and only the residue a utility cannot express lives in
-    `base.css`, under `@layer base`. Structural hooks are `data-part` attributes,
-    never BEM class names — the design suite, the print rules and the SSE flash
-    query those. No CDN assets, no cards, no shadow beyond the documented scroll
-    edge, no rounded rectangles, no saturated colour, and **never
-    `text-align: justify`**.
+    `base.css`, under `@layer base`. The sketch marks — diagonal crossings, dot
+    grid, guideline ring, crop marks — are **one recipe** in `marks.css`, with
+    geometry copied from a measured source, never eyeballed, and recoloured to
+    newsprint: no component may write its own gradient. Structural hooks are
+    `data-part` attributes, never BEM class names — the design suite, the print
+    rules and the SSE flash query those. **Every box with a rule is padded**
+    (`--spacing-box` / `--spacing-box-wide`). No CDN assets, no cards, no shadow
+    beyond the documented scroll edge, no rounded rectangles, no saturated
+    colour, and **never `text-align: justify`**.
 12. **Every behaviour gets a test** in the package that owns it (Vitest, 95%
     coverage gate). Parser changes need a fixture under
     `packages/fetch/test/fixtures/`.
@@ -97,15 +101,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     under `set -e` — without it husky runs every command and only the **last**
     exit code decides, so a lint failure commits anyway. It never runs
     `pnpm check`: minutes (per-package coverage, the Edge browser projects, the
-    audit), and `check` ends in `pnpm test:design`, which is red at HEAD —
-    `apps/web/test/design/**` holds no tests yet — and an always-red hook is a hook
-    that gets bypassed. The browser projects stay out of the floor for the same
-    reason: a hook that needs Edge installed cannot pass on every machine.
-    Warnings are allowed (the tree carries 10); promoting them to errors teaches
-    `--no-verify`. Husky activates from a `prepare` script, and `ignoreScripts:
-    true` (rule 8) suppresses that — measured — so **a fresh clone has no hook**
-    until `pnpm hooks:install`. `pnpm check` fails while the hook is inactive
-    (`scripts/check-hooks.mjs`): an unguarded checkout must not look set up.
+    audit), and it ends in `pnpm test:design`, which **launches real Edge** —
+    green here, and a hook that needs Edge installed cannot pass on every
+    machine, which is the same reason the browser projects stay out of the
+    floor. Warnings are allowed (the tree carries 9); promoting them to errors
+    teaches `--no-verify`. Husky activates from a `prepare` script, and
+    `ignoreScripts: true` (rule 8) suppresses that — measured — so **a fresh
+    clone has no hook** until `pnpm hooks:install`. `pnpm check` fails while the
+    hook is inactive (`scripts/check-hooks.mjs`): an unguarded checkout must not
+    look set up.
 17. **No credential in git, ever.** The reader authenticates with **your own
     browser**: `pnpm login -- <url>` writes a persistent Edge profile under
     `profiles/`, and the state store is a `node:sqlite` file under `data/` that
