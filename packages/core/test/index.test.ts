@@ -53,6 +53,8 @@ const VALUE_EXPORTS: readonly string[] = [
   'renderDiffText',
   'tokenize',
   'wordDiff',
+  'GONE_AFTER_POLLS',
+  'goneVerdicts',
   'CHALLENGE_MARKERS',
   'classifyFetch',
   'describeState',

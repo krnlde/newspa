@@ -55,6 +55,7 @@ export {
   parseCron,
 } from './cadenceCron.ts';
 export { editReport, renderDiffText, tokenize, wordDiff } from './diff.ts';
+export { GONE_AFTER_POLLS, type GoneVerdict, goneVerdicts, type StoredKey } from './gone.ts';
 export {
   CHALLENGE_MARKERS,
   classifyFetch,
