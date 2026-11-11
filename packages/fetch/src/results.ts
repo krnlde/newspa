@@ -48,6 +48,14 @@ export interface ParseSuccess {
   readonly matchCount: number;
   /** Item nodes dropped by the mapping, each one named in `notes`. */
   readonly skipped: number;
+  /**
+   * True when the source's own ceiling (`maxItems`) cut the list. This is the
+   * difference between **the whole set** and **the front of the set** (D-029):
+   * an item that is not in a cut list has not been seen to be absent, so a cut
+   * poll is never evidence of a disappearance. Only a feed has a ceiling — HTML
+   * item mode has none (D-026), and `itemsPath` is read whole.
+   */
+  readonly capped: boolean;
   readonly notes: readonly string[];
 }
 
@@ -84,6 +92,8 @@ export interface SuccessInput {
   readonly skipped?: number;
   /** Defaults to the item count: the count that is always known. */
   readonly matchCount?: number;
+  /** See `ParseSuccess.capped`: a feed cut by `maxItems` is not a complete set. */
+  readonly capped?: boolean;
 }
 
 export const succeed = (input: SuccessInput): ParseSuccess => ({
@@ -94,6 +104,7 @@ export const succeed = (input: SuccessInput): ParseSuccess => ({
   marker: input.marker,
   matchCount: input.matchCount ?? input.items.length,
   skipped: input.skipped ?? 0,
+  capped: input.capped ?? false,
   notes: input.notes ?? [],
 });
 

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { ParseResult } from '../src/results.ts';
 import { parseRssPayload } from '../src/rss.ts';
 import { sniff } from '../src/sniff.ts';
-import { fixture, isoDate, itemAt, linkKey, okItems, rssSource } from './support.ts';
+import { fixture, isoDate, itemAt, linkKey, okItems, okResult, rssSource } from './support.ts';
 
 /**
  * Real feeds, captured 2026-11-09 (`test/fixtures/README.md` says how). These
@@ -66,7 +66,17 @@ describe('the BBC world feed (RSS 2.0)', () => {
     if (result.ok === true) {
       expect(result.matchCount).toBe(full.length);
       expect(result.notes).toContain(`${String(full.length - 5)} item(s) past maxItems 5`);
+      // D-029's precondition: `capped` is the machine-readable form of that
+      // note. A list cut by the source's own ceiling is the **front** of the
+      // set, not the set, so the poll that cut it is never evidence that an
+      // item is gone — and a note is prose, so the rule needs the flag.
+      expect(result.capped).toBe(true);
     }
+  });
+
+  it('is not capped when the ceiling was never reached, the arm the disappearance ladder reads', () => {
+    const result = parse('feed-bbc-world.xml', { maxItems: 500 });
+    expect(okResult(result).capped).toBe(false);
   });
 
   it('reports the encoding a feed declares, because the transport decoded it as UTF-8', () => {

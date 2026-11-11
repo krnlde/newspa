@@ -21,7 +21,7 @@ const item: PickedItem = {
 };
 
 describe('the result constructors', () => {
-  it('defaults a success: matchCount is the item count, skipped 0, notes empty', () => {
+  it('defaults a success: matchCount is the item count, skipped 0, capped false, notes empty', () => {
     expect(succeed({ items: [item], kind: 'rss', sniffed: 'rss', marker: '<?xml' })).toEqual({
       ok: true,
       items: [item],
@@ -30,6 +30,7 @@ describe('the result constructors', () => {
       marker: '<?xml',
       matchCount: 1,
       skipped: 0,
+      capped: false,
       notes: [],
     });
   });

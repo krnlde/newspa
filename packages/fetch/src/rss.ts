@@ -154,5 +154,6 @@ export const parseRssPayload = (text: string, spec: RssSource, sniffed: Sniffed)
     notes,
     skipped: built.skipped.length,
     matchCount: built.seen,
+    capped: built.capped,
   });
 };

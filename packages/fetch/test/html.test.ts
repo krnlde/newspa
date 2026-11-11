@@ -39,6 +39,9 @@ describe('a card list', () => {
     expect(result.ok && result.notes).toContain('item 3: no title');
     expect(result.ok && result.notes).toContain('item 4: no link');
     expect(result.ok && result.marker).toBe('<!doctype html');
+    // D-029: item mode has **no ceiling** (D-026: one node, and a page's list is
+    // read whole), so a successful HTML parse is a complete set by construction.
+    expect(result.ok && result.capped).toBe(false);
   });
 
   it('reads every field of the first card', () => {

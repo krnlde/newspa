@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseJsonPayload } from '../src/json.ts';
 import { isRecord, itemsAt, keysAt, parsePath, resolvePath, scalar } from '../src/jsonPath.ts';
 import { sniff } from '../src/sniff.ts';
-import { failed, fixture, itemAt, jsonSource, linkKey, okItems } from './support.ts';
+import { failed, fixture, itemAt, jsonSource, linkKey, okItems, okResult } from './support.ts';
 
 /**
  * A JSON endpoint, or the island inside a page. The two things a source author
@@ -56,6 +56,13 @@ describe('the Hacker News front page (real Algolia API)', () => {
 
 describe('the path grammar the schema allows', () => {
   const fields = { title: 'title', link: 'url', date: 'created_utc', summary: 'selftext', image: 'thumbnail' };
+
+  it('is never capped: `itemsPath` is read whole, so a JSON poll is a complete set (D-029)', () => {
+    // `maxItems` cuts feeds and nothing else. The disappearance ladder reads this
+    // flag as the proof that a poll saw the source's **whole** set, so the arm
+    // that says "complete" is pinned per parser, not assumed.
+    expect(okResult(parse('json-path-array.json', 'data.children[].data', fields)).capped).toBe(false);
+  });
 
   it('walks an array with [], and reads the wrapper array Reddit writes', () => {
     const items = okItems(parse('json-path-array.json', 'data.children[].data', fields));
