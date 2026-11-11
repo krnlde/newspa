@@ -79,7 +79,10 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    `meaningful` from the word diff (typo filter).
 7. Burst breaker: >40% new keys, or matches ≪ `matchCount` → `restructured`,
    suppress publishing, keep the baseline. The stored `generator` and `vary` make
-   that diagnosis a sentence, not a guess.
+   that diagnosis a sentence, not a guess. The opposite direction is a **parse
+    fault**: an HTML `list` matching **more** nodes than the source recorded is
+   `multi-match` (D-026: one node per source) → `errorKind: 'parse'` → `error`,
+   with both counts in the note.
 8. `score` deterministically (watchwords, source weight, recency, headline substance).
 9. Write: `items` upsert, `item_events` insert, `snapshots` insert (one row per
    poll, including the 304s), `sources.health` + validator state, `system_log` for

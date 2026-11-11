@@ -20,9 +20,10 @@ import { failed, fixture, htmlSource, itemAt, okItems, rssSource } from './suppo
  * Three of the five cases are about the image an item carries: the `<picture>`
  * element (open item, `docs/decisions-detection.md`), the order the feed's
  * image tags are read in, and D-032's image rule (a URL whose shape is a
- * query-string blob yields `image: null`). The fourth is D-026's
- * `multi-match` fault; the fifth, D-030's link base, is only half in this
- * package — see the last block.
+ * query-string blob yields `image: null`). The fourth, D-026's `multi-match`
+ * fault, is **closed** — `src/html.ts` answers the fault now, so that block is
+ * a plain `it`. The fifth, D-030's link base, is only half in this package —
+ * see the last block.
  */
 
 const htmlItems = (name: string, overrides: Record<string, unknown> = {}): readonly PickedItem[] => {
@@ -37,9 +38,10 @@ const rssItems = (name: string): readonly PickedItem[] => {
 
 /**
  * The fault's reason as plain text. `ParseFailureReason` (`src/results.ts`) has
- * no `multi-match` member yet — adding one is a schema decision, and the health
- * half of it is `server/src/pollHealth.ts` and core's `classifyFetch` — so the
- * name is compared as a string. When the member is added, this keeps holding.
+ * the `multi-match` member now, and its health half is `server/src/pollHealth.ts`
+ * (any reason that is not `kind-mismatch` / `no-matches` / `challenge` becomes
+ * `errorKind: 'parse'`, and core maps `'parse'` to health `error`), so this
+ * widening to `string` is only the shorthand that keeps the assertion literal.
  */
 const reasonOf = (failure: ParseFailure): string => failure.reason;
 
@@ -101,16 +103,20 @@ describe('the feed image is the story image, not the avatar (D-032)', () => {
 });
 
 describe('a selector that matches more nodes than the source recorded is a fault (D-026)', () => {
-  it.fails('10 nodes against a recorded 1 is `multi-match`, naming the selector and both counts', () => {
-    // Gap: D-026 is the reader's rule — one HTML source is one subscription to
-    // "the newest thing on this page" — and its enforcement is a `multi-match`
-    // fault, "not a silent first node". Measured today: 10 items and `ok`. It
-    // is not caught downstream either: core's `classifyFetch` flags an **under**-
-    // count (`itemCount / expected < 0.6`), so 10 items for a recorded 1 is `ok`
-    // in health, and `server/src/pollHealth.ts` maps a fault's reason to the
-    // `errorKind`, so a **fault** is the only way this signal reaches the strip.
-    // The payload is inline (not a fixture) because the shape is a count, and a
-    // generated list of identical cards is not a payload worth pinning.
+  it('10 nodes against a recorded 1 is `multi-match`, naming the selector and both counts', () => {
+    // D-026 is the reader's rule — one HTML source is one subscription to "the
+    // newest thing on this page" — and `parseHtmlPayload` enforces it: when the
+    // selector matches more nodes than the source recorded, it answers the
+    // `multi-match` fault **before** mapping any item, so `itemCount` is 0 and
+    // the detail names the selector and both counts. A fault is the only route
+    // to the strip: core's `classifyFetch` flags an **under**-count
+    // (`itemCount / expected < 0.6`) only, so 10 items for a recorded 1 was `ok`
+    // in health, and `server/src/pollHealth.ts` maps a **fault's** reason to the
+    // `errorKind` — `multi-match` is none of `kind-mismatch` / `no-matches` /
+    // `challenge`, so it becomes `parse`, and core maps `parse` to health
+    // `error`. The payload is inline (not a fixture) because the shape is a
+    // count, and a generated list of identical cards is not a payload worth
+    // pinning.
     const payload = `<html><body><ul>${Array.from(
       { length: 10 },
       (_, index) =>

@@ -9,14 +9,15 @@ Scope split: pipeline/data/behaviour in `decisions.md`, tooling and dependencies
 in `decisions-tooling.md`, detection in this file. Numbering is shared, so
 D-025 (reading list local) lives in `decisions.md` and is referenced here.
 
-**Status rule.** D-026 … D-033 are **agreed**; D-027 (the selection rung) and
-D-028 (page-mode identity) are **implemented**, the rest are not built — each
-entry says what. `docs/fetching.md` and `docs/state.md` describe what the code does
+**Status rule.** D-026 … D-033 are **agreed**; D-027 (the selection rung),
+D-028 (page-mode identity) and D-026's **parser half** (the `multi-match` fault)
+are **implemented**, the rest are not built — each entry says what.
+`docs/fetching.md` and `docs/state.md` describe what the code does
 _today_, and are amended by the commit that lands each rung, not by
 this document. Every number below is measured in this session (Node 26.2.0,
 cheerio 1.9.2, playwright-core 1.60.1 + Edge 142, real pages, local).
 
-## D-026 — An HTML selector matches exactly one node: the newest entry
+## D-026 — An HTML selector matches exactly one node: the newest entry  _(parser half implemented 2026-11-11)_
 
 The reader's rule, stated as policy: **"I will never put a selector that selects
 more than 1 DOM node."** One HTML source is one subscription to "the newest thing
@@ -27,7 +28,7 @@ ten new items yields one item, and the reader finds the other nine on the site.
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Why**                               | The purpose of a poll is to learn **that** something changed. Coverage is the site's job; the paper's job is the nudge plus the link (D-017).                                                                                                                                       |
 | **Cost of the alternative, measured** | A ten-node HTML source polled in a browser, 24 sources at 20 min: **1 440 launches/day ≈ 10 min of process churn + 41 min/day of `goto` + 1.7 GB/day of traffic**, and 57–114 browser-hours over a 7-hour night.                                                                    |
-| **Enforcement**                       | `list` matching more than one node is a **`multi-match` fault** (a `HealthState`, rule 5), not a silent first node. `pick` refuses a multi-node CSS selector with the count and the first three sample links.                                                                       |
+| **Enforcement**                       | `list` matching more than one node is a **`multi-match` fault** (rule 5), not a silent first node. _(parser half implemented 2026-11-11, mapped to `errorKind: 'parse'`.)_ **The `pick` half is not built:** `src/pick.ts` does not exist, so `matchCount` is hand-authored.        |
 | **Why the DevTools selector failed**  | `section.mb-4:has(a[id^="release-list-title-"])` matched 10 nodes; narrowed to a node whose only child is `<h2>`, so the title extractor had nothing to take → `no-usable-items` / `item 1: no title`.                                                                              |
 | **Why the two XPaths failed**         | cheerio rejected them as CSS (`invalid-selector`); run in real Chromium with `document.evaluate` they returned **0 nodes** — `document.body` has 4 element children and the path dies at step 5 of 14. `copy selector` in DevTools yields the _element's_ path, not a list pattern. |
 | **What works on the same page**       | CSS `section[data-release-anchor]` → 10 nodes in the saved payload, in logged-out Chromium and in Edge. A data attribute, not layout.                                                                                                                                               |

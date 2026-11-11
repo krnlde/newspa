@@ -110,6 +110,8 @@ describe('a card list', () => {
 
 describe('a selector that is not the page', () => {
   it('names the selector that matched nothing, with the count it used to make', () => {
+    // D-026's `matchCount` is a contract at both ends: this is the under-count.
+    // The over-count is `multi-match`, in `htmlMultiMatch.test.ts` (rule 1).
     const failure = failed(parse('html-selector-rot.html', '.legacy-rail .card', { title: 'h2' }, { matchCount: 14 }));
     expect(failure.reason).toBe('no-matches');
     expect(failure.kind).toBe('html');

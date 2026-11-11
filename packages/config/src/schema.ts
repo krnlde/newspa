@@ -117,7 +117,7 @@ const baseShape = {
   maxBytes: z.int().min(1_024).max(33_554_432).default(8_388_608),
   /** Typo filter for stealth-edit detection: fraction of characters that must change. */
   minEditRatio: z.number().min(0).max(1).default(0.06),
-  /** Match count recorded when the selector was authored. Drives rot detection. */
+  /** Authored match count: the rot baseline. Far under is `restructured`; an HTML list over is `multi-match` (D-026). */
   matchCount: z.int().min(0).optional(),
   notes: z.string().max(500).optional(),
   /** Set by the picker when it baselines a source: "baselined, watching from now on". */

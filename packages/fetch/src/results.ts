@@ -22,6 +22,8 @@ export type ParseFailureReason =
   | 'no-items'
   /** A CSS selector matched no element. `cause` + `matchCount` are the point. */
   | 'no-matches'
+  /** The selector matched **more** nodes than the source recorded: the page grew (D-026). Rot, not a typo. */
+  | 'multi-match'
   /** The CSS engine rejected the selector itself (not a rot signal). */
   | 'invalid-selector'
   /** A JSON path resolved to nothing. `detail` lists the keys that were there. */

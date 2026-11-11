@@ -12,14 +12,19 @@ import type { Sniffed } from './sniff.ts';
 
 /**
  * An index page → items. Everything that can go wrong is named: the selector
- * that matched nothing (with the count the picker recorded), the selector the
- * CSS engine rejected, the wall that answered instead of the page.
+ * that matched nothing (with the count the picker recorded), the selector that
+ * matched **more** nodes than that count (D-026: the page grew), the selector
+ * the CSS engine rejected, the wall that answered instead of the page.
  *
  * Two modes, decided by the source: **item mode** (`list` present) reads a
  * repeating node list; **page mode** (`list` absent) treats the whole document
  * as one item at a stable address (`htmlPage.ts`, D-028) — the shape of a
  * version page, a status page, a changelog. Page mode stores a wider body
  * window, because for it the stored text is what the diff compares.
+ *
+ * D-026's over-count check is **item-mode only**. A page source is one item by
+ * construction, so it has no list that could grow, and a feed or an `itemsPath`
+ * counts many items by design — there, an over-count is the news, not the rot.
  *
  * `render: true` is the source saying its selectors were authored against a
  * hydrated DOM. The parser cannot fetch, so all it can do is say so: a
@@ -118,6 +123,23 @@ export const parseHtmlPayload = (text: string, spec: HtmlSource, sniffed: Sniffe
       });
     }
     return wallOrEmpty(text, spec, sniffed, 0, collected.detail, notes);
+  }
+  // D-026: an HTML source with a `list` is a subscription to **one node** — the
+  // newest entry. Matching more nodes than the source recorded is the page
+  // growing, and that rot must reach the paper (rule 5): core's `classifyFetch`
+  // only flags an **under**-count, so 10 items for a recorded 1 would print as
+  // `ok` forever. Checked **before** any item is mapped, so `itemCount` is 0.
+  if (spec.matchCount !== undefined && collected.seen > spec.matchCount) {
+    return failWith({
+      ...base,
+      reason: 'multi-match',
+      detail: `'${spec.list}' matched ${String(collected.seen)} elements; the source recorded ${String(
+        spec.matchCount,
+      )} when it was picked — D-026 is one node per source, so the list has grown`,
+      cause: spec.list,
+      matchCount: collected.seen,
+      notes,
+    });
   }
   const rejected = rejectedSelector(collected.nodes.eq(0), spec);
   if (rejected !== null) {
