@@ -19,7 +19,7 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StateResponse } from 'newspa-core';
-import { isLoopback, mutationAllowed } from './net.ts';
+import { mutationAllowed, type PeerDecision, readingListAllowed } from './net.ts';
 import { BodyError, readJsonBody } from './requestBody.ts';
 import { MAX_SOURCE_BODY_BYTES, type SourcesRoutes } from './sourcesApi.ts';
 import type { Hub } from './sse.ts';
@@ -65,10 +65,18 @@ const sourcesRoute = async (
   req: IncomingMessage,
   res: ServerResponse,
   method: string,
-  writable: boolean,
+  list: PeerDecision,
 ): Promise<void> => {
+  if (list.allowed === false) {
+    // The reading list is the reader's file set (rule 18), so this route is refused
+    // for every verb from a non-loopback peer — the phone gets the paper, not the
+    // watchwords. Logged, because a refusal the reader cannot find is a silent zero.
+    deps.log(`refused ${method} /api/sources: ${list.reason}`);
+    sendJson(res, 403, { error: list.reason });
+    return;
+  }
   if (method === 'GET') {
-    const answer = await deps.sources.list(writable);
+    const answer = await deps.sources.list(true);
     sendJson(res, answer.status, answer.body);
     return;
   }
@@ -118,10 +126,10 @@ const apiRoute = async (
   res: ServerResponse,
   method: string,
   path: string,
-  writable: boolean,
+  list: PeerDecision,
 ): Promise<void> => {
   if (path === '/api/sources') {
-    await sourcesRoute(deps, req, res, method, writable);
+    await sourcesRoute(deps, req, res, method, list);
     return;
   }
   if (path === '/api/events') {
@@ -170,9 +178,9 @@ const route = (
   res: ServerResponse,
   method: string,
   path: string,
-  writable: boolean,
+  list: PeerDecision,
 ): Promise<void> => {
-  if (path.startsWith('/api/')) return apiRoute(deps, req, res, method, path, writable);
+  if (path.startsWith('/api/')) return apiRoute(deps, req, res, method, path, list);
   if (method !== 'GET' && method !== 'HEAD') {
     sendJson(res, 405, { error: `${method} is not supported on ${path}` });
     return Promise.resolve();
@@ -212,10 +220,10 @@ export const handleRequest =
         sendJson(res, 403, { error: guard.reason });
         return;
       }
-      // The same fact the guard just used, told to the client so a form on a phone
-      // can say "editing is from this machine only" instead of offering a button
-      // that is guaranteed to fail (D-034).
-      await route(deps, req, res, method, path, isLoopback(address));
+      // The reading-list rule (rule 18): the route answers to loopback only, and the
+      // same fact is what a form on a phone is told, so it can say "this is a
+      // machine-local editor" instead of offering a button that must fail (D-034).
+      await route(deps, req, res, method, path, readingListAllowed(method, address));
     } catch (cause) {
       fail(deps, res, method, path, cause);
     }

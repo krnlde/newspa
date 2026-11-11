@@ -1,12 +1,15 @@
 /**
  * The address policy (D-034): who may reach what, and what the boot says about it.
  *
- * The server has no authentication, so these functions are the access control, and
- * the LAN requirement's real cost is the pair of facts the boot line carries: the
- * paper shows the reading list, and writes stay loopback-only.
+ * The server has no authentication, so these functions **are** the access control,
+ * and they draw three lines, not one: the paper is readable by anyone the bind
+ * reaches; every write is loopback-only; and the reading-list route (`/api/sources`)
+ * is loopback-only for **every verb**, because its answer is the source files and the
+ * files are what rule 18 keeps private. The boot line carries those facts, because a
+ * bind that quietly opens a private file set is the silent zero with a listener on it.
  */
 import { describe, expect, it } from 'vitest';
-import { firewallHint, isLoopback, mutationAllowed, reachLine, urlsOf } from '../src/net.ts';
+import { firewallHint, isLoopback, mutationAllowed, reachLine, readingListAllowed, urlsOf } from '../src/net.ts';
 
 describe('isLoopback', () => {
   it('accepts the forms a socket actually presents', () => {
@@ -64,8 +67,8 @@ describe('the boot line', () => {
 
   it('names the reading list, the writes rule and the firewall command for a LAN bind', () => {
     const line = reachLine('0.0.0.0', 8787);
-    expect(line).toContain('source list');
-    expect(line).toContain('writes stay loopback-only');
+    expect(line).toContain('source names');
+    expect(line).toContain('loopback-only');
     expect(line).toContain(firewallHint(8787));
     expect(firewallHint(8787)).toBe(
       'netsh advfirewall firewall add rule name="newspa" dir=in action=allow protocol=TCP localport=8787',
@@ -93,6 +96,38 @@ describe('mutationAllowed', () => {
 
   it('refuses DELETE from a peer with no address, in a sentence that says so', () => {
     const refused = mutationAllowed('DELETE', undefined);
+    expect(refused.allowed).toBe(false);
+    if (refused.allowed === false) expect(refused.reason).toContain('unknown peer');
+  });
+});
+
+describe('readingListAllowed', () => {
+  it('lets every verb from loopback — the editor is a machine-local tool', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
+      expect(readingListAllowed(method, '127.0.0.1').allowed, method).toBe(true);
+      expect(readingListAllowed(method, '::ffff:127.0.0.1').allowed, method).toBe(true);
+      expect(readingListAllowed(method, '::1').allowed, method).toBe(true);
+    }
+  });
+
+  it('refuses even a GET from the LAN: the answer is the files, and the files are the reading list', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
+      const refused = readingListAllowed(method, '192.168.1.42');
+      expect(refused.allowed, method).toBe(false);
+      if (refused.allowed === false) {
+        expect(refused.reason).toContain(method);
+        expect(refused.reason).toContain('192.168.1.42');
+        expect(refused.reason).toContain('rule 18');
+        expect(refused.reason).toContain('D-034');
+        // The sentence points at the paper, which stays readable: a refusal that
+        // reads as "the server is closed" would be a lie about the LAN requirement.
+        expect(refused.reason).toContain('the paper itself is readable');
+      }
+    }
+  });
+
+  it('refuses an unknown peer, in a sentence that says so', () => {
+    const refused = readingListAllowed('GET', undefined);
     expect(refused.allowed).toBe(false);
     if (refused.allowed === false) expect(refused.reason).toContain('unknown peer');
   });

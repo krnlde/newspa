@@ -84,19 +84,47 @@ export const reachLine = (host: string, port: number): string => {
   const urlsText = urls.join(', ');
   return (
     `listening on ${urlsText} — anyone on this network can read the paper, ` +
-    `and /api/state shows your source list to them; writes stay loopback-only. ` +
+    `and /api/state shows your source names to them; the source files themselves ` +
+    `(watchwords, notes, sections) and every write stay loopback-only. ` +
     `If nothing connects, allow the port: ${firewallHint(port)}`
   );
 };
 
 /**
+ * The reading-list route (WP14): **every verb is loopback-only.**
+ *
+ * D-034 opened the *paper* to the household — the page, the edition, the stream. This
+ * route is not the paper. `GET /api/sources` answers each source file's **verbatim
+ * text**: the URL set, the `watchwords`/`blockwords`, the `section` labels in the
+ * reader's own words, the `notes`, the `profile: true` fact. Rule 18 keeps precisely
+ * that set local and unversioned, on the grounds that publishing it publishes its
+ * reader; serving those bytes to the LAN, in clear text, from a server that
+ * authenticates nothing, is the leak the rule exists to prevent. So the editor is a
+ * machine-local tool, read and write alike, and the phone gets the paper.
+ *
+ * This is not a token, cookie or "shared secret" bolted on to make a LAN write safe
+ * (rule 20 forbids that): it is the same wall the bind already is, applied to one
+ * route.
+ */
+export const readingListAllowed = (method: string, address: string | undefined): PeerDecision => {
+  if (isLoopback(address)) return { allowed: true };
+  return {
+    allowed: false,
+    reason: `${method} /api/sources from ${address ?? 'an unknown peer'} is refused: the reading list is your file set — every URL, watchword and note — so it is loopback-only (rule 18, D-034); the paper itself is readable from anywhere this server is bound`,
+  };
+};
+
+/**
+ * A guard's answer: allowed, or refused with the reason the route will print and the
+ * log will name (rule 5: a refusal has to be legible).
+ */
+export type PeerDecision = { readonly allowed: true } | { readonly allowed: false; readonly reason: string };
+
+/**
  * The guard, as a decision with a reason in it, so the route can answer with the
  * reason and a log can name it (rule 5: a refusal has to be legible).
  */
-export const mutationAllowed = (
-  method: string,
-  address: string | undefined,
-): { readonly allowed: true } | { readonly allowed: false; readonly reason: string } => {
+export const mutationAllowed = (method: string, address: string | undefined): PeerDecision => {
   if (method === 'GET' || method === 'HEAD') return { allowed: true };
   if (isLoopback(address)) return { allowed: true };
   return {

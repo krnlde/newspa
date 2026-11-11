@@ -22,6 +22,9 @@ newspa (one node process)
 │                  writes from a non-loopback peer: refused 403, on the address, before
 │                  routing (D-034) — no route authenticates, and rule 20 forbids adding
 │                  a token to make a LAN write safe
+│                  /api/sources, every verb: loopback-only (rule 18) — its answer is the
+│                  source files themselves, so the editor is a machine-local tool and a
+│                  LAN peer gets the 403 sentence, which the page prints
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
 child processes: Edge (scrape/pick), PowerShell (toast). Nothing else.

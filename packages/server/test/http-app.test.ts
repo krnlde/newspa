@@ -69,13 +69,22 @@ describe('the API the app calls', () => {
 });
 
 describe('the LAN reads (D-034)', () => {
-  it('lets a LAN peer read the paper, the stream route and the static page — that is the requirement', async () => {
+  it('lets a LAN peer read the paper and the static page — that is the requirement', async () => {
     await serve(
       await builtDist(),
       async (base) => {
         expect((await fetch(`${base}/api/state`)).status).toBe(200);
         expect((await fetch(`${base}/`)).status).toBe(200);
-        expect((await fetch(`${base}/api/sources`)).status).toBe(200);
+      },
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
+    );
+  });
+
+  it('refuses the same peer the reading-list route: the paper is public, the files are not (rule 18)', async () => {
+    await serve(
+      await builtDist(),
+      async (base) => {
+        expect((await fetch(`${base}/api/sources`)).status).toBe(403);
       },
       (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
     );

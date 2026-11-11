@@ -67,8 +67,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
    only auth/registry/TLS/proxy from `.npmrc`).
 10. **Lint and format are Biome** (`biome.json`, `pnpm lint`, `pnpm format`).
     No ESLint, no Prettier. Formatting is not a debate: run `pnpm format`.
-11. **Paper visuals follow docs/design.md**: one typeface, columns by measure,
-    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. Styling is
+11. **Paper visuals follow docs/design.md + docs/design-page.md** (one law, two
+    files: type, measure, rules, the one overlay, marks, colour here; the front
+    page's grid, behaviour and print there): one typeface, columns by measure,
+    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. The page has
+    **exactly one overlay** (D-035): the sources editor, a native `<dialog>`
+    opened with `showModal()`, a **scrim and no shadow** (the scroll edge is the
+    page's only shadow), two ways out — Esc and the close control — no radius, and
+    it opens **above** the sheet, never inside it, and **unmounts** when closed.
+    Styling is
     **Tailwind v4** (D-024): the vocabulary is `@theme` in
     `packages/paper/styles/tokens.css`, utilities are written on the elements in
     `packages/paper/src`, and only the residue a utility cannot express lives in
@@ -168,9 +175,12 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     settings file) is refused from a non-loopback peer by the guard in
     `packages/server/src/net.ts`, which runs **before** routing — no route may add a
     mutation without it, and no credential, token, cookie or "shared secret" may be
-    introduced to make a LAN write safe (rule 17). `/api/state` **is** the reading
-    list (rule 18), so binding past loopback is announced at boot: the typeable URLs,
-    the fact that the household can read the source list, and the firewall command.
+    introduced to make a LAN write safe (rule 17). `/api/sources` answers the source
+    files' **verbatim text**, so **every verb of it** is loopback-only
+    (`readingListAllowed`): the phone gets the paper, not the watchwords. `/api/state`
+    **is** the reading list (rule 18), so binding past loopback is announced at boot: the
+    typeable URLs, the fact that the household can read the source list, and the firewall
+    command.
 
 ## Layout
 
@@ -183,8 +193,8 @@ packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
 packages/fetch    http, rss, html, json, fixtures. `render`/`pick` (msedge) are WP6,
                   not built: the transport refuses a `render: true` source by name.
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
-                  routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE,
-                  the built page), the SSE hub,
+                  routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE —
+                  loopback-only, rule 18 — the built page), the SSE hub,
                   the address policy (D-034), `export --bundle` (rule 18's backup).
                   Cut commands answer by name (`commands.ts`); toasts (WP10), `import`
                   and the picker (WP6) are not built.
@@ -200,9 +210,11 @@ schemas/          JSON Schema generated from zod; `$schema` in exports points he
 docs/             architecture.md, state.md + state-server.md (the surface, the run
                   verbs, the dev loop), roadmap.md (what is not built) +
                   roadmap-closed.md (what landed, and what it measured),
-                  decisions.md, decisions-tooling.md, decisions-detection.md
-                  (selectors, the ladder, `gone`, measured cost), fetching.md,
-                  design.md, testing.md, tooling.md
+                  decisions.md + decisions-surface.md (the page, the address, the
+                  reading list, the one overlay), decisions-tooling.md,
+                  decisions-detection.md (selectors, the ladder, `gone`, measured
+                  cost), fetching.md, design.md + design-page.md (the design law,
+                  split at the 300-line cap), testing.md, tooling.md
 ```
 
 ## Commands

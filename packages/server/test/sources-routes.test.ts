@@ -110,15 +110,34 @@ describe('the write boundary (D-034)', () => {
     );
   });
 
-  it('tells a LAN peer the list, and that it may not write — so a form on a phone can say so', async () => {
+  it('refuses a LAN read of the list, and says the paper is still readable (rule 18)', async () => {
+    const removed: string[] = [];
     await serve(
       await builtDist(),
-      async (base) => {
+      async (base, h) => {
         const answer = await getJson(base, '/api/sources');
-        expect(answer.status).toBe(200);
-        expect(answer.body).toMatchObject({ writable: false, dir: 'sources' });
+        expect(answer.status).toBe(403);
+        expect(JSON.stringify(answer.body)).toContain('rule 18');
+        expect(JSON.stringify(answer.body)).toContain('the paper itself is readable');
+        expect(h.logs.join('\n')).toContain('refused GET /api/sources');
+        expect(removed).toEqual([]);
       },
-      (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(removed) }),
+    );
+  });
+
+  it('refuses a LAN DELETE before routing, and never reaches the route', async () => {
+    const removed: string[] = [];
+    await serve(
+      await builtDist(),
+      async (base, h) => {
+        const answer = await getJson(base, '/api/sources?id=bbc', { method: 'DELETE' });
+        expect(answer.status).toBe(403);
+        expect(JSON.stringify(answer.body)).toContain('D-034');
+        expect(h.logs.join('\n')).toContain('refused DELETE /api/sources');
+        expect(removed).toEqual([]);
+      },
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(removed) }),
     );
   });
 
