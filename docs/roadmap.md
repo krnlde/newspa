@@ -4,17 +4,16 @@ What is **not** built, in the order that unblocks the most. Each package states
 the measured gap, the acceptance test, and the rules it is answerable to.
 `docs/state.md` is the inventory of what exists; `AGENTS.md` is the law.
 
-The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else; **WP2 and
-WP3 are closed** (below), so the remaining path to a paper that fills itself is the
-**entry point** and **WP4** (the HTTP surface). The MVP order chosen 2026-11-11 is:
-scheduler → `start.ts` → routes/SSE/static → `export --bundle`, and WP5 is
-re-scoped to that. Seven root scripts (`start`, `pick`, `login`, `status`,
-`search`, `export`, `import`) point at `packages/server/src/cli.ts`, which **does
-not exist**, so `pnpm start` fails today — while the poll and the scheduler that
-run it are built, so the paper is one entry point and one route file from being
-live. Closed and retired packages — WP1, WP2, WP3, WP12 — are recorded in
-`docs/roadmap-closed.md` with what each measured; read WP12 before reopening the
-same two files.
+The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else. **WP2, WP3,
+WP4 and WP5 are closed** (below): the poll, the scheduler, the two routes the app
+calls, the SSE stream, the page, and the entry point that runs them - so `pnpm build
+&& pnpm start` is a paper that fills itself, on a port, on the LAN if the config says
+so (D-034). What is left is quality of life, not architecture: `export --bundle`
+(rule 18's backup of `sources/`, the one gap that is data loss), the renderer and the
+picker (WP6), search (WP7), toasts (WP10), the watchlist knobs (WP9), the README
+(WP13). Closed and retired packages - WP1, WP2, WP3, WP12 - are recorded in
+`docs/roadmap-closed.md` with what each measured; read WP12 before reopening the same
+two files.
 
 ## WP3 — The scheduler  _(built 2026-11-11, MVP shape)_
 
@@ -57,58 +56,56 @@ the ×4, the ceiling, the pause, cron winning at 0 failures and yielding at 1, t
 5-minute floor on a 1-minute render source, and quiet hours in a daytime window and
 in one that wraps past midnight.
 
-## WP4 — The HTTP surface: routes, SSE, static
+## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_
 
-**Gap.** The app calls `GET /api/state` and opens `EventSource
-'/api/events'` (`apps/web/src/api.ts`); the dev plugin answers those two from a
-seed file (`apps/web/dev/apiPlugin.ts`), and nothing answers them for
-`pnpm start`. `core/api.ts` already fixes the shapes of the rest:
-`itemsQuery`/`itemsResponse`, `editionsResponse`, `addSourceRequest`/
-`addSourceResponse`, `serverEvent`.
+**Built.** `GET /api/state` (the composed read side, `no-store`), `GET
+/api/events` (`text/event-stream`: `cycle:start`/`cycle:done` from the scheduler,
+`retry:`, a keep-alive comment, a client that cannot be written dropped **and
+logged**), and the app from `apps/web/dist` with the pair of cache rules that make a
+reload cheap (`index.html` never cached, a hashed asset immutable for a year). A
+missing `dist` answers with `pnpm build` and the path it looked at, plus the fact
+that the API is up (rule 5: a blank page and a 404 in a log is the silent zero in a
+server's clothes). `net.ts` is the address policy (D-034): the LAN reads, writes are
+loopback-only, refused on the address **before** routing.
 
-**Build.** `node:http` in `packages/server`: `GET /api/state` (→
-`stateOf`/`editionOf`), `GET /api/items`, `GET /api/editions`,
-`POST /api/sources` (validated by `addSourceRequestSchema`), `GET /api/events`
-(`text/event-stream`, `serverEventSchema` messages, `parseServerEvent` on the
-client), and the static app from `apps/web/dist` with a cache-busting rule for
-`index.html`. Parse every request body with the zod schema and answer 4xx with
-the issue, never a stack trace. One port, 8787, one process (D-002).
+**Named as not built, in the body of the 404:** `/api/items`, `/api/editions`,
+`/api/search` (FTS5 exists in `packages/db`; the box is WP7) and
+`POST /api/sources` (the file writer, D-025). Every 4xx is a line with the reason;
+no answer is a stack.
 
-**Accept.** Contract tests per route against the zod schemas in `core` (a
-response that fails its own schema is a failing test, not a broken page); an SSE
-test that a publish produces one event and that a client disconnect stops the
-writer; the dev plugin stays for offline dev and is never in the bundle.
+**Accept - met.** Contract tests parse what the routes answer with **core's own
+schemas** (`stateResponseSchema` on `/api/state`, `serverEventSchema` on the frames),
+so a response that fails its shape is a failing test, not a broken page. The SSE
+tests prove a publish arrives, a disconnect removes the client, `close()` ends every
+stream, a late subscribe is a 503 with a reason, and the headers a proxy obeys are
+present. 33 tests across `net`, `sse`, `http-app` and `static-files`, over a real
+socket on port 0. The dev plugin (`apps/web/dev/apiPlugin.ts`) is untouched, stays
+for offline dev, and is never in the bundle.
 
-## WP5 — the entry point (`start.ts`), not a CLI  _(re-scoped 2026-11-11 for MVP)_
+## WP5 - the entry point  _(built 2026-11-11; `export --bundle` open)_
 
-**Gap.** `package.json` runs `node packages/server/src/cli.ts …` for `start`,
-`pick`, `login`, `status`, `search`, `export`, `import`; the file is absent, so all
-seven exit non-zero — a module-not-found, where the rule is that a silent zero is a
-bug.
+**Built.** `packages/server/src/cli.ts` is the process edge the root scripts name —
+argv, `console`, signals, exit codes — coverage-excluded as `main.tsx` is. Its
+commands are **data** in `commands.ts`: one built (`start`), the rest refused **by
+name**, each line naming where the answer lives (the health strip is the paper, the
+file is the truth, the picker is WP6, the credential is WP8). `test/commands.test.ts`
+reads the root `package.json` and fails if any script naming `cli.ts` has no answer,
+so the scripts and the commands cannot drift: `pnpm status` prints a sentence, exit 1;
+an unknown name prints the list, exit 2.
 
-**Re-scope.** A terminal UI is not on the path to a paper that fills itself, so MVP
-builds the **entry point** and one data-safety command:
+`start.ts`'s `boot(deps)` is the whole boot as a function of a deps bag: report the
+config, `ensureSourcesDir` (D-025), open and migrate (the open takes the `db_lock`
+claim, so a second `pnpm start` is refused by name before it can interleave a write),
+upsert the watchlist and print every issue, start the scheduler publishing to the
+hub, serve. `test/start.test.ts` boots a **temp tree** and asserts the acceptance the
+old WP5 asked for — a paper from a real poll of `sources/` — over a socket, offline,
+with a captured feed as the transport's answer: the source is `ok`, the items print,
+the plan is in the row, and the tally's count equals the wire's.
 
-- **`start`** — load and report the config and the watchlist, `ensureSourcesDir`
-  (D-025: creating the directory is boot's job, not a side effect of a read), open
-  and migrate the db, take the lock, run the scheduler, serve. No argv dispatcher,
-  no flags, no help text: `node packages/server/src/start.ts`.
-- **`export --bundle`** — rule 18: `sources/` is gitignored, so the bundle **is the
-  only backup of the reading list**. About forty lines, and its absence is data
-  loss, not a missing nicety.
-
-**Cut, named, not deleted:** `status` (the paper's health strip says it), `search`
-(the paper's box; FTS5 is built), `pick` (WP6), `login` (WP8), `sources:migrate`
-(D-030 rung 3 — rung 1 self-heals a permanent redirect, and the reader moves a URL
-by editing the file, which is where the truth lives, D-011). A cut script prints a
-one-line named refusal rather than a stack trace, so `pnpm status` cannot read as a
-broken pipe.
-
-**Accept.** `pnpm build && pnpm start` serves a paper built from a **real** poll of
-the local `sources/`, on the configured port, and `pnpm export --bundle` writes a
-bundle `import` reads back. From a fresh clone — no `sources/` — `start` creates the
-directory, prints the `no-sources` report and the `pnpm sources:init` hint, and
-serves an empty paper without polling anything (rule 5: the emptiness is stated).
+**Open, and it is data loss, not a nicety:** `export --bundle` (rule 18 -
+`sources/` is gitignored, so the bundle is the only backup of the reading list) and
+its pair, `import`. The refusal strings say so, and the roadmap keeps the package
+open below (WP11).
 
 ## WP6 — `render` and the headed picker
 

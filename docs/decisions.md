@@ -233,3 +233,30 @@ reader. So:
 **Capture fixtures logged out.** `packages/fetch/test/fixtures/**` is exempt from
 the secret scan for rule 1's reason, and the exemption is symmetric: a payload
 captured from a signed-in page carries the reader's own data into a public file.
+
+## D-034 - The paper is on the LAN, and the address is the wall  _(implemented 2026-11-11)_
+
+The reader wants the page on a phone in the next room. That collides with two facts
+the repo already commits to: the server **authenticates nothing** (rule 17), and
+`/api/state` **is** the reading list (rule 18: every source URL, label, `section`,
+`note`, the `profile: true` fact). With no auth, the bind address is the access
+control, so it is decided in one module (`packages/server/src/net.ts`) and printed
+at boot.
+
+|                         |                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Default**             | `server.host` stays `127.0.0.1`. LAN is a line in `config.json` - nothing changes for a clone that never asks.                                                                                                                                                                                                                                                                                                              |
+| **Reads**               | any peer on the network: the page, the paper, the stream. That is the requirement, and it is said out loud at boot.                                                                                                                                                                                                                                                                                                         |
+| **Writes**              | **loopback only**, refused on the address before routing: 403 with a reason that cites this decision. A page on the LAN that could write a `sources/*.json` file is a hole with no lock on it, and the guard's teeth are pinned by a test (`http-app.test.ts`).                                                                                                                                                             |
+| **The line**            | binding past loopback prints the typeable URLs (from `os.networkInterfaces()`: LAN addresses, and `127.0.0.1` - `0.0.0.0` is not a URL), the sentence that the source list is now visible to the household, and the exact `netsh advfirewall` command. Windows drops inbound `8787`; a bind that succeeds while every packet is dropped is indistinguishable from a dead server, and rule 5 is that a silent zero is a bug. |
+| **The stream**          | `no-store`, `no-transform`, `x-accel-buffering: no`, `retry:`, and a keep-alive comment on the hub's one timer. Each of those is a middlebox that otherwise turns a push into a stall, a cache, or a paper that quietly stops updating.                                                                                                                                                                                     |
+| **The single instance** | unchanged, and it covers this: the database claim (`db_lock`, taken at open) is what refuses a second process, so two binds on two ports cannot both poll. A claim on the **port** is not built and is not needed for that.                                                                                                                                                                                                 |
+
+**IPv4 URLs only, on purpose.** A link-local IPv6 (`fe80::1`) is not typeable in a
+browser's address bar (it needs a scope id), and a printed URL that does not work is
+worse than one that is merely old-fashioned.
+
+`isLoopback` is the whole policy, so it is tested on the forms a socket actually
+presents (`::ffff:127.0.0.1`, `::1`, `localhost`, `127.0.0.53`) and on the
+addresses a phone has (`192.168.x`, `10.x`, `fe80::`, `2001:db8::`).
+"Reachable over LAN" and "loopback-only writes" are the same function read twice.

@@ -25,10 +25,20 @@ import { describe, expect, it } from 'vitest';
 const SRC_DIR = fileURLToPath(new NodeUrl('../src/', import.meta.url));
 const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
 
-/** The modules that exist today; a new file has to be listed here, on purpose. */
+/**
+ * The modules that exist today; a new file has to be listed here, on purpose.
+ * `cli.ts` is the process edge, which the shared coverage policy excludes with
+ * `main.tsx` and the browser launches — so its decisions live in `commands.ts`, where
+ * they are testable: `commands.test.ts` pins the root scripts against the built and
+ * cut lists, which is what keeps `package.json` from naming a command with no answer.
+ */
 const SRC_FILES: readonly string[] = [
+  'cli.ts',
+  'commands.ts',
   'edition.ts',
+  'httpApp.ts',
   'index.ts',
+  'net.ts',
   'poll.ts',
   'pollBaseline.ts',
   'pollDeps.ts',
@@ -39,7 +49,10 @@ const SRC_FILES: readonly string[] = [
   'pollVerdicts.ts',
   'schedulePlan.ts',
   'scheduler.ts',
+  'sse.ts',
+  'start.ts',
   'state.ts',
+  'staticFiles.ts',
 ];
 
 /** The pure assembler: rows in, wire out. No language, no clock, no translation library. */

@@ -13,10 +13,12 @@ newspa (one node process)
 │                  Boot is the catch-up: a `null next_run_at` leads every batch
 ├── pipeline       fetch → parse → normalize → diff → score → publish
 ├── db             node:sqlite, WAL, FTS5  (synchronous: bounded queries only)
-├── http           node:http on 127.0.0.1:8787
-│                  /api/state  /api/items  /api/search  /api/health
-│                  /api/sources (GET, POST=write a sources/*.json file — local dir, D-025)
-│                  /api/events (SSE)  / (apps/web/dist)
+├── http           node:http; host and port from config.json (default 127.0.0.1:8787;
+│                  `0.0.0.0` opens it to the LAN, and the boot says what that means, D-034)
+│                  built:  GET /api/state · GET /api/events (SSE) · / (apps/web/dist)
+│                  named as not built, in the body of a 404: /api/items, /api/search,
+│                  POST /api/sources (the file writer, D-025)
+│                  writes from a non-loopback peer: refused 403, on the address (D-034)
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
 child processes: Edge (scrape/pick), PowerShell (toast). Nothing else.
@@ -39,8 +41,9 @@ crash takes polling and the UI together. Non-negotiable mitigations:
   default, which is exactly the 3am silent gap this tool must not have);
 - a single-instance claim on the database: the `db_lock` row, taken by a token at
   open (a second process gets `DatabaseLockedError`), extended every batch, stale
-  after 10 minutes. So a double start cannot interleave writes; the claim on the
-  **port** is WP4's;
+  after 10 minutes. So a double start cannot interleave writes. A claim on the
+  **port** is not built and is not needed: the database claim means two processes
+  can never both poll, whatever they bind (D-034);
 - `SIGINT`/`SIGTERM` close the Edge pool, checkpoint WAL, then exit;
 - `PRAGMA busy_timeout`, one connection for writes.
 

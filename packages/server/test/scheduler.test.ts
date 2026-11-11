@@ -83,11 +83,15 @@ describe('runBatch: what it polls', () => {
     expect(scheduleOf(db, 'rr').nextRunAt).toBe(isoAt(5));
   });
 
-  it('sleeps the jitter once per batch, not once per source, and uses the caller’s random', async () => {
+  it('sleeps the jitter once per batch — never before the first — and uses the caller’s random', async () => {
     const db = openSchedDb();
     for (const id of ['aa', 'bb', 'cc']) addSource(db, anRssSpec({ id }));
     const h = harness(db, { config: { ...config, jitterSpanMs: 120_000 }, random: () => 0.5 });
-    await runBatch(h.deps, emptyTally());
+    const first = await runBatch(h.deps, emptyTally());
+    // The boot catch-up is immediate: a paper that appears two minutes after
+    // `pnpm start` is indistinguishable from one that failed to start.
+    expect(h.slept).toEqual([]);
+    await runBatch(h.deps, first);
     expect(h.slept).toEqual([60_000]);
     expect(h.calls).toHaveLength(3);
   });
@@ -96,7 +100,8 @@ describe('runBatch: what it polls', () => {
     const db = openSchedDb();
     for (const id of ['aa', 'bb', 'cc']) addSource(db, anRssSpec({ id }));
     const h = harness(db, { config: { ...config, jitterSpanMs: 120_000 } });
-    await runBatch(h.deps, emptyTally());
+    const first = await runBatch(h.deps, emptyTally());
+    await runBatch(h.deps, first);
     expect(h.slept).toHaveLength(1);
     const ms = h.slept[0] ?? -1;
     expect(ms).toBeGreaterThanOrEqual(0);

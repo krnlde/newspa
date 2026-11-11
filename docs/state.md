@@ -90,9 +90,25 @@ batch, and a `tally()` so a tick's decisions are countable (D-020). Its state is
 columns migration 5 added (`next_run_at`, `consecutive_failures`), read by
 `dueSources` and written by `setSchedule`, and deliberately absent from
 `StoredSource`: the pipeline upserts every source on every load, and a column named
-by that upsert would reset a countdown at every restart. What is still absent:
-routes, SSE, static, toasts, and the entry point (`start.ts`, not `cli.ts` — WP5 is
-re-scoped to the entry point plus `export --bundle`).
+by that upsert would reset a countdown at every restart.
+
+**The surface is built** (WP4/WP5, MVP). `cli.ts` is the process edge — argv, signals,
+exit codes, coverage-excluded as `main.tsx` is — and its commands are **data** in
+`commands.ts`: one built (`start`), the rest refused **by name**, each with the place
+the answer lives; `test/commands.test.ts` pins the root scripts against that list, so
+`package.json` cannot name a command with no answer. `start.ts`'s `boot(deps)` reads
+and reports the config, `ensureSourcesDir`s the watchlist directory (D-025), opens and
+migrates the db (the open is what takes the `db_lock` claim), upserts the sources,
+starts the scheduler publishing its cycles to the SSE hub, and serves. `httpApp.ts` is
+the router (`GET /api/state`, `GET /api/events`, the page from `apps/web/dist`, and a
+404 that names what is not built), `sse.ts` the fan-out, `staticFiles.ts` the cache
+rules (`index.html` never cached, a hashed asset forever, a missing build answered
+with `pnpm build`), `net.ts` the address policy (D-034: reads for the LAN, writes
+loopback-only, the reach line with the typeable URLs and the firewall command). The
+paper fills itself from a poll of the local `sources/`, and `start.test.ts` proves it
+over a socket with a fixture feed, offline. What is still absent: the items and search
+routes, `POST /api/sources`, toasts (WP10), the picker and the renderer (WP6), and
+`export --bundle`, which rule 18 makes the only backup of the reading list.
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

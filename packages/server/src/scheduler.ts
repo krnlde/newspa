@@ -21,7 +21,8 @@
  *    silent zero with a stack trace attached.
  *  - **a bounded catch-up batch, not all at once**: `dueSources(now, limit)`,
  *    never-scheduled first, so a fresh database polls everything and a 200-source
- *    list is polled in batches.
+ *    list is polled in batches. The first batch of a process does **not** jitter —
+ *    a boot that sleeps before filling the paper looks like a boot that failed.
  *  - **every tick's decisions are observable**: `tally()` counts batches, polls,
  *    failures and deferrals, each source gets one log line naming the rule that
  *    planned it, and a batch with work publishes `cycle:start` then `cycle:done`
@@ -129,7 +130,11 @@ const capMinutesOf = (backoffMaxMs: number): number => Math.max(1, Math.round(ba
 export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Promise<SchedulerTally> => {
   const { db, config } = deps;
   const span = config.jitterSpanMs;
-  if (span > 0) await deps.sleep(Math.floor(span * (deps.random?.() ?? Math.random())));
+  // Jitter spreads the **cycles**, not the boot: the first batch of a process is the
+  // catch-up, and sleeping up to `jitterSpanMs` (default 120 s) in front of it is a
+  // paper that looks dead for two minutes after `pnpm start`. The cadence and the
+  // tick do the spreading from the second batch on.
+  if (span > 0 && tally.batches > 0) await deps.sleep(Math.floor(span * (deps.random?.() ?? Math.random())));
   const due = db.sources.dueSources(deps.now().toISOString(), deps.batchLimit ?? DEFAULT_BATCH_LIMIT);
   // An empty batch is not a cycle: a paper that flashes "reading" every 60 seconds
   // when nothing is due trains the reader to ignore it.

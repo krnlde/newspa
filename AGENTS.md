@@ -8,7 +8,9 @@ before declaring work done.
 A personal newspaper. It fetches RSS feeds, HTML pages and JSON endpoints on a
 cadence, diffs each result against the cached baseline in SQLite, scores items
 deterministically, and renders the changes as an ever-changing page that looks
-like a newspaper at `http://127.0.0.1:8787`. Single process, started by hand. Huginn's agent graph is
+like a newspaper at `http://127.0.0.1:8787` — the bind is config, and `0.0.0.0` puts
+the page on the LAN, where the address is the only wall (D-034). Single process,
+started by hand. Huginn's agent graph is
 deliberately **not** reimplemented: the pipeline is hard-coded
 (`fetch → parse → normalize → diff → score → publish`).
 
@@ -122,7 +124,8 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     hook is inactive (`scripts/check-hooks.mjs`): an unguarded checkout must not
     look set up.
 17. **No credential in git, ever.** The reader authenticates with **your own
-    browser**: `pnpm login -- <url>` writes a persistent Edge profile under
+    browser**: `pnpm login -- <url>` (designed, **not built**: WP8 — the command
+    answers by name today, D-034) writes a persistent Edge profile under
     `profiles/`, and the state store is a `node:sqlite` file under `data/` that
     needs no authentication at all. Both are gitignored, and nothing in the repo
     can authenticate anything to anyone. Hence: `sources/*.json` has no `cookies`
@@ -155,6 +158,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     why the supervisor reads that diff and re-runs the gates before landing it.
     **The supervisor commits, a worker never does, and nothing pushes.** Commit at
     least per work package, earlier at a clean checkpoint.
+20. **The address is the access control** (D-034). The server authenticates nothing
+    (rule 17), so the bind is the wall: `server.host` defaults to loopback, and LAN is
+    the reader's line in `config.json`. Any route that **writes** (a source file, a
+    settings file) is refused from a non-loopback peer by the guard in
+    `packages/server/src/net.ts`, which runs **before** routing — no route may add a
+    mutation without it, and no credential, token, cookie or "shared secret" may be
+    introduced to make a LAN write safe (rule 17). `/api/state` **is** the reading
+    list (rule 18), so binding past loopback is announced at boot: the typeable URLs,
+    the fact that the household can read the source list, and the firewall command.
 
 ## Layout
 
@@ -164,11 +176,16 @@ packages/core     Types, record schema, API contract, normalize, diff, score, he
 packages/paper    React newspaper components + the paper CSS (browser-safe, used by the app)
 packages/config   zod source/app schemas + file loading + watchlist/OPML (sources/*.json is truth)
 packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
-packages/fetch    http, rss, html, json, render (msedge), pick (headed picker), fixtures
-packages/server   CLI (start/pick/login/status/search/export/import), scheduler, pipeline, SSE, static, toasts
+packages/fetch    http, rss, html, json, fixtures. `render`/`pick` (msedge) are WP6,
+                  not built: the transport refuses a `render: true` source by name.
+packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
+                  routes (`/api/state`, `/api/events`, the built page), the SSE hub,
+                  the address policy (D-034). Cut commands answer by name
+                  (`commands.ts`); toasts (WP10) and `export --bundle` (WP11) are not.
 sources.example/  Example source definitions (public). `sources/` is your reading
                   list: local, gitignored, not version-controlled; the backup is
-                  `pnpm export --bundle`. data/ and profiles/ are gitignored too.
+                  `pnpm export --bundle` (WP11, not built — so the file is the only
+                  copy). data/ and profiles/ are gitignored too.
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
 docs/             architecture.md, state.md, roadmap.md (what is not built) +
                   roadmap-closed.md (what landed, and what it measured),
@@ -181,12 +198,14 @@ docs/             architecture.md, state.md, roadmap.md (what is not built) +
 
 ```
 pnpm install            pnpm dev            pnpm build
-pnpm start              pnpm pick -- <url>  pnpm login -- <url>
+pnpm start              # the paper: poll + routes + page. Bind is config (D-034)
+pnpm pick -- <url>      # not built: each of pick/login/status/search prints a line
+pnpm login -- <url>     # naming where the answer lives (commands.ts, roadmap WP6/WP8)
 pnpm sources:init       # once per clone: copies sources.example/ into sources/ (D-025)
 pnpm check              pnpm typecheck      pnpm lint    pnpm format
 pnpm test               pnpm coverage       pnpm test:design
 pnpm shots              # the paper in real Edge: 1440x900, 1024x768, 390x844
-pnpm export --watchlist > watchlist.json    pnpm import --watchlist file.json
+pnpm export --watchlist pnpm import -- …    # not built (WP11); --bundle is rule 18's backup
 pnpm audit --audit-level=low
 pnpm hooks:install        # once per clone: activates the pre-commit gate
 pnpm check:repo           # the published-schema owner/repo must match `git remote`
