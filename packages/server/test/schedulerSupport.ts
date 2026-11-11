@@ -29,7 +29,15 @@ export const isoAt = (n: number): string => new Date(T0.getTime() + n * 60_000).
 /** The config schema's defaults for the two knobs the MVP scheduler uses, pause at 6. */
 export const config: SchedulerConfig = { jitterSpanMs: 0, backoffMaxMs: 3_600_000, maxFailuresBeforePause: 6 };
 
-export const emptyTally = () => ({ batches: 0, polled: 0, failed: 0, planned: 0, lastBatchAt: null });
+export const emptyTally = () => ({
+  batches: 0,
+  polled: 0,
+  failed: 0,
+  planned: 0,
+  newItems: 0,
+  editedItems: 0,
+  lastBatchAt: null,
+});
 
 /** A poll's report: the shape is `pollTypes.ts`'s; the scheduler reads only `health`. */
 export const aResult = (sourceId: string, over: Partial<PollResult> = {}): PollResult => ({
@@ -104,8 +112,9 @@ export const oneSource = (cadenceMinutes = 10, id = 'xx') => {
 
 /**
  * Drive the loop to a stop. Every test stops it from inside a seam (the sleep,
- * `onCycle`, the poll), so `drain` only has to let the microtasks run: a real
- * `sleep` would need fake timers for a 20-minute cadence, and none is needed here.
+ * `publish`, the poll), so `drain` only has to let the turns run: each turn yields
+ * a **macrotask** (see `breathe` in the loop's file), and a real `sleep` would need
+ * fake timers for a 20-minute cadence, which none of this needs.
  */
 export const drain = async (sched: Scheduler): Promise<void> => {
   for (let i = 0; i < 100 && sched.running(); i += 1) await new Promise((resolve) => setImmediate(resolve));

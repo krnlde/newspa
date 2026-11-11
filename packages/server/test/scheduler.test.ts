@@ -4,7 +4,9 @@
  * survives are in `scheduler-loop.test.ts`; the plan's arithmetic is pinned in
  * `schedulePlan.test.ts`, so nothing here depends on a time zone.
  */
+
 import type { SourceSpec } from 'newspa-config';
+import { type ServerEvent, serverEventSchema } from 'newspa-core';
 import { describe, expect, it } from 'vitest';
 import type { PollResult } from '../src/pollTypes.ts';
 import { DEFAULT_BATCH_LIMIT, runBatch } from '../src/scheduler.ts';
@@ -99,6 +101,76 @@ describe('runBatch: what it polls', () => {
     const ms = h.slept[0] ?? -1;
     expect(ms).toBeGreaterThanOrEqual(0);
     expect(ms).toBeLessThan(120_000);
+  });
+});
+
+describe('runBatch: the events the paper reads', () => {
+  it('publishes cycle:start then cycle:done, with this batch’s own counts, on the wire schema', async () => {
+    const db = openSchedDb();
+    addSource(db, anRssSpec({ id: 'aa', cadenceMinutes: 20 }));
+    addSource(db, anRssSpec({ id: 'bb', cadenceMinutes: 20 }));
+    const published: ServerEvent[] = [];
+    const h = harness(db, {
+      publish: (event) => {
+        published.push(event);
+      },
+      poll: async (spec) => aResult(spec.id, { newItems: spec.id === 'aa' ? 3 : 1, editedItems: 2 }),
+    });
+
+    await runBatch(h.deps, emptyTally());
+    expect(published).toEqual([
+      { type: 'cycle:start', at: T0.toISOString() },
+      { type: 'cycle:done', at: T0.toISOString(), fetched: 2, newItems: 4, editedItems: 4 },
+    ]);
+    // Contract test, the roadmap's rule: an event that fails its own schema is a
+    // failing test here, not a client that silently ignores every push.
+    for (const event of published) expect(serverEventSchema.parse(event).type).toBe(event.type);
+    expect(serverEventSchema.parse(published[1] ?? {}).type).toBe('cycle:done');
+  });
+
+  it('publishes nothing for a batch with no work — a flash every 60 seconds is noise, not a cycle', async () => {
+    const db = oneSource(20);
+    const published: ServerEvent[] = [];
+    const h = harness(db, {
+      publish: (event) => {
+        published.push(event);
+      },
+    });
+    await runBatch(h.deps, emptyTally());
+    published.length = 0;
+    await runBatch(h.deps, emptyTally());
+    expect(published).toEqual([]);
+  });
+
+  it('counts a poll that skipped the item pass as nothing new, and closes the cycle anyway', async () => {
+    const db = oneSource(20);
+    const published: ServerEvent[] = [];
+    const h = harness(db, {
+      publish: (event) => {
+        published.push(event);
+      },
+      poll: async (spec) => aResult(spec.id, { outcome: 'not-modified', itemCount: null, newItems: 0 }),
+    });
+    await runBatch(h.deps, emptyTally());
+    expect(published[1]).toEqual({ type: 'cycle:done', at: T0.toISOString(), fetched: 1, newItems: 0, editedItems: 0 });
+  });
+
+  it('a poll that throws leaves the cycle closed, with the work that did happen counted', async () => {
+    const db = openSchedDb();
+    addSource(db, anRssSpec({ id: 'aa', cadenceMinutes: 20 }));
+    addSource(db, anRssSpec({ id: 'bb', cadenceMinutes: 20 }));
+    const published: ServerEvent[] = [];
+    const h = harness(db, {
+      publish: (event) => {
+        published.push(event);
+      },
+      poll: async (spec) => {
+        if (spec.id === 'bb') throw new Error('socket died');
+        return aResult(spec.id, { newItems: 5 });
+      },
+    });
+    await runBatch(h.deps, emptyTally());
+    expect(published[1]).toMatchObject({ fetched: 1, newItems: 5 });
   });
 });
 

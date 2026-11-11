@@ -23,15 +23,19 @@
  *    never-scheduled first, so a fresh database polls everything and a 200-source
  *    list is polled in batches.
  *  - **every tick's decisions are observable**: `tally()` counts batches, polls,
- *    failures and deferrals, and each source gets one log line naming the rule
- *    that planned it. An optimization that never fires is invisible (D-020); a
- *    scheduler that never fires has to be, too.
+ *    failures and deferrals, each source gets one log line naming the rule that
+ *    planned it, and a batch with work publishes `cycle:start` then `cycle:done`
+ *    with its own counts — the paper's wire (`core/api.ts`, `apps/web`'s SSE). An
+ *    optimization that never fires is invisible (D-020); a scheduler that never
+ *    fires has to be, too.
  *
  * The clock and the sleep are injected, so the whole loop runs under fake timers
  * in a test, and a 20-minute cadence costs no wall time. Jitter is `random()`, so
  * a test pins the starts instead of racing them.
  */
+
 import type { SourceSpec } from 'newspa-config';
+import type { ServerEvent } from 'newspa-core';
 import type { Database, LockResult } from 'newspa-db';
 import { claimLock, extendLock, releaseLock } from 'newspa-db';
 import type { PollResult } from './pollTypes.ts';
@@ -63,16 +67,26 @@ export interface SchedulerDeps {
   readonly random?: () => number;
   readonly tickMs?: number;
   readonly batchLimit?: number;
-  /** Called after every batch: the SSE hook (`cycle:complete`), and a test's spy. */
-  readonly onCycle?: (tally: SchedulerTally) => void;
+  /**
+   * The paper's wire: `cycle:start` when a batch has work, `cycle:done` when it
+   * ends. Production is the SSE hub; a test's spy. Absent means no one is
+   * listening, which is the same loop.
+   */
+  readonly publish?: (event: ServerEvent) => void;
 }
 
-/** The loop's own counters. Mutated by the batch, read by `tally()`. */
+/**
+ * The loop's own counters, for the life of the process. Mutated by the batch,
+ * read by `tally()`. The item counts are the polls' own numbers, summed: the
+ * paper's counts are read back from the rows (`state.ts`), never trusted from here.
+ */
 export interface SchedulerTally {
   batches: number;
   polled: number;
   failed: number;
   planned: number;
+  newItems: number;
+  editedItems: number;
   lastBatchAt: string | null;
 }
 
@@ -106,20 +120,38 @@ const capMinutesOf = (backoffMaxMs: number): number => Math.max(1, Math.round(ba
  * `health: 'ok'` clears the failure count; anything else advances it. That is
  * deliberate, and it is the polite direction for the states that are *our*
  * problem: a `no-matches` page is not asking to be re-read sooner.
+ *
+ * The two events are the **batch's** counts, not the process's: the paper's flash
+ * is about what just happened. A poll that reported `itemCount: null` (a rung
+ * skipped the item pass) contributes zeros, and that is honest — a poll that
+ * counted nothing cannot have found anything.
  */
 export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Promise<SchedulerTally> => {
   const { db, config } = deps;
   const span = config.jitterSpanMs;
   if (span > 0) await deps.sleep(Math.floor(span * (deps.random?.() ?? Math.random())));
   const due = db.sources.dueSources(deps.now().toISOString(), deps.batchLimit ?? DEFAULT_BATCH_LIMIT);
+  // An empty batch is not a cycle: a paper that flashes "reading" every 60 seconds
+  // when nothing is due trains the reader to ignore it.
+  const isCycle = due.length > 0;
+  if (isCycle) deps.publish?.({ type: 'cycle:start', at: deps.now().toISOString() });
 
+  let fetched = 0;
+  let newItems = 0;
+  let editedItems = 0;
   for (const source of due) {
     let failures = source.consecutiveFailures;
     try {
       const result = await deps.poll(source.spec);
       failures = result.health === 'ok' ? 0 : failures + 1;
-      if (result.health === 'ok') tally.polled += 1;
-      else tally.failed += 1;
+      newItems += result.newItems;
+      editedItems += result.editedItems;
+      if (result.health === 'ok') {
+        tally.polled += 1;
+        fetched += 1;
+      } else {
+        tally.failed += 1;
+      }
     } catch (cause) {
       failures = source.consecutiveFailures + 1;
       tally.failed += 1;
@@ -138,7 +170,12 @@ export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Prom
   }
 
   tally.batches += 1;
+  tally.newItems += newItems;
+  tally.editedItems += editedItems;
   tally.lastBatchAt = deps.now().toISOString();
+  if (isCycle) {
+    deps.publish?.({ type: 'cycle:done', at: tally.lastBatchAt, fetched, newItems, editedItems });
+  }
   return tally;
 };
 
@@ -148,7 +185,15 @@ export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Prom
  * `start` entry point's first catch-up pass) can drive a batch on demand.
  */
 export const startScheduler = (deps: SchedulerDeps): Scheduler => {
-  let tally: SchedulerTally = { batches: 0, polled: 0, failed: 0, planned: 0, lastBatchAt: null };
+  let tally: SchedulerTally = {
+    batches: 0,
+    polled: 0,
+    failed: 0,
+    planned: 0,
+    newItems: 0,
+    editedItems: 0,
+    lastBatchAt: null,
+  };
   let stopped = false;
   const claim = claimLock(deps.db.tx, {
     token: deps.token,
@@ -171,7 +216,6 @@ export const startScheduler = (deps: SchedulerDeps): Scheduler => {
   const tick = async (): Promise<SchedulerTally> => {
     tally = await runBatch(deps, tally);
     extendLock(deps.db.tx, deps.token, deps.now);
-    deps.onCycle?.(tally);
     return tally;
   };
 
