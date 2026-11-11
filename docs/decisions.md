@@ -10,7 +10,9 @@ files in git, exports, and change detection.
 The surface - the page as the product (D-002), the reading list (D-025), the
 address as the wall (D-034) and the one overlay (D-035) - is in
 `decisions-surface.md`. Tooling, dependency, testing and paper-shape decisions
-live in `decisions-tooling.md`. Detection, selector language, `gone`, identity
+live in `decisions-tooling.md`; the paper's CSS law, its vocabulary, and how the
+styling is measured, in `decisions-styling.md` (D-024, split at the 300-line cap).
+Detection, selector language, `gone`, identity
 for pages and the measured cost of the browser live in `decisions-detection.md`
 (shared numbering; D-026 … D-033 there revise parts of D-005, D-006, D-007
 and D-020).

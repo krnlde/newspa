@@ -226,11 +226,13 @@ config.example.json The shipped app config, validated by `config/test/examples.t
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
 docs/             architecture.md, state.md + state-server.md (the surface, the run
                   verbs, the dev loop), roadmap.md (what is not built) +
-                  roadmap-closed.md (what landed, and what it measured),
+                  roadmap-closed.md (the pipeline's records) +
+                  roadmap-closed-surface.md (the picker, the styling, the panel),
                   decisions.md + decisions-surface.md (the page, the address, the
                   reading list, the one overlay, the picker) + decisions-display.md
                   (the device: the server's place, the two display axes, install and
-                  TLS), decisions-tooling.md,
+                  TLS), decisions-tooling.md + decisions-styling.md (the CSS law,
+                  split at the cap),
                   decisions-detection.md (selectors, the ladder, `gone`, measured
                   cost), fetching.md, design.md + design-page.md (the design law,
                   split at the 300-line cap), testing.md, tooling.md
@@ -240,7 +242,8 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
 
 ```
 pnpm install            pnpm dev            pnpm build
-pnpm start              # the paper: poll + routes + page. Bind is config (D-034)
+pnpm start              # the paper: poll + routes + page. Bind is config (D-034). No argv:
+                        # a flag it ignored used to be a setting believed changed (D-042)
 pnpm server             # the process alone: poll + API, page only if `dist` exists (no build)
 pnpm ui                 # Vite (5173, loopback) proxying /api to 8787: hot reload on live news
 pnpm dev                # Vite on the seed from fixtures (`pnpm seed`): the paper offline

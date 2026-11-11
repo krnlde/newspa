@@ -163,3 +163,28 @@ until the claim ages out (10 minutes at boot's setting). Both speak, which is th
 point: `start`/`server` exit 1 with `start failed: …— not starting`, and the
 running-loop handlers are installed only after the boot succeeds, so a run that never
 opened its database no longer promises to "survive" it.
+
+## The claim, and who owns it
+
+`db_lock` is the single-instance guarantee, and the row is the truth: no PID file, no
+child process. Its rule is **age** - a live owner moves `taken_at` forward with every
+heartbeat - and one more, added 2026-11-11: **the owner text is a process, and the
+server knows it.** `start.ts` claims as `<uuid>@<host>:<pid>` and answers
+`ownerIsAlive` (`process.kill(pid, 0)`), so a claim left by a force-killed server is
+reclaimed on the spot, and the boot says so:
+
+`db: took the claim from "0e9a…@desk:18424" (taken at 2026-11-11T14:02:11.481Z) - that
+process is not running, so this is a force-killed server's claim, not a second server`
+
+A foreign `<host>` is not answered at all (a pid means a process only where it was
+written) and stays governed by the age rule; a live owner is never reclaimed, and the
+refusal names the owner it waits for. D-041 in `docs/decisions-surface.md`.
+
+## `start` takes no arguments
+
+`pnpm start` and `pnpm server` accept **no** argv: a flag they ignored (the old
+behaviour) is a setting the reader believes they changed, and `server.host` is the
+access control (D-034). One argument is refused by name, exit **2**, with the sentence
+that says the settings are `config.json` (`server.host`, `server.port`,
+`scheduler.*`, `scoring.*`). `export --bundle` and `pick --id/--write` keep their
+flags: every argv is parsed, and what is not parsed is refused. D-042.

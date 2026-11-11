@@ -22,7 +22,8 @@ next sentence: _install it, and put it on a screen that is not a laptop._ So the
 packages are **WP16 (the installable paper)**, **WP17 (TLS, which WP16 needs)** and
 **WP15 (the board)**, the recipe that ties them to D-037's topology. After them:
 search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
-README (WP13). Closed packages are in `docs/roadmap-closed.md` with what each
+README (WP13). Closed packages are in `docs/roadmap-closed.md` (the pipeline) and
+`docs/roadmap-closed-surface.md` (the picker, the styling, the panel) with what each
 measured - WP1, WP2, WP3, WP6, WP12, WP14; read WP12 before reopening those files.
 (WP4 and WP5 are built and recorded below, where their open halves are named.)
 
@@ -250,7 +251,12 @@ they do now. Keys live in `data/` (gitignored) and `scripts/check-secrets.mjs` f
 committed `-----BEGIN … KEY-----` — rule 17 as a scan, not a hope. The docs carry the
 `mkcert` recipe and the `openssl` one. Nothing authenticates a reader to the server:
 TLS proves **the server to the browser**, the address stays the wall (D-034), and no
-token, cookie or shared secret appears (rule 20).
+token, cookie or shared secret appears (rule 20). The **test** certificate is ruled in
+**D-040**: `@peculiar/x509` as a devDependency, a fresh self-signed pair minted per run
+into the OS temp dir, so the repository holds no PEM at all - the public-repo reason a
+committed pair is refused, and the measured cost of the hand-assembled DER that parsed,
+printed the right SAN and failed `verify()`. The dependency arrives **with** this
+package's tests, not before.
 
 **Accept.** A boot with a self-signed pair answers `https://127.0.0.1:8787/api/state`,
 answers `http://` with a refusal that names the scheme, and logs the same reach lines;

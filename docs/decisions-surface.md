@@ -185,3 +185,74 @@ code had to learn by measurement: `new Response(body, { status: 304 })` **throws
 LAN `POST` dies at the mutation guard before routing, a LAN `GET` reaches the route and
 dies at the reading-list wall — so the order is pinned in `pick-http.test.ts`, because a
 test that asserted only the second would hide the first.
+
+## D-041 - A claim is about a process, so a dead owner's claim is taken at once — and the takeover is spoken (2026-11-11)
+
+`db_lock` is the single-instance guarantee (D-022's neighbourhood: one process polls
+one paper). Its rule was **age**: a claim older than `lockStaleAfterMs` is an
+abandoned one, because a live owner moves `taken_at` forward through `extendLock`.
+Ten minutes of age is the right shape for a process that vanished, and the wrong
+shape for a reader whose server was force-killed: the row says _taken at 14:02_, the
+process died at 14:03, and the next boot answered **"another process holds this
+database"** for a quarter of an hour, about a process that did not exist. Measured on
+this machine, twice, and the reason a `pnpm start` killed with its process tree was
+called a papercut.
+
+**Chosen:** `claimLock` takes an `isAlive` seam. `packages/db` never touches
+`node:process` and the owner text is opaque to it, so **the caller that wrote the text
+answers** — `packages/server/src/lockOwner.ts` makes it
+`<uuid>@<host>:<pid>` and answers with `process.kill(pid, 0)` (`ESRCH` is "no such
+process", `EPERM` is "it exists and I may not signal it"). A provably dead owner's
+claim is taken on the spot, by an update written against **the dead owner's own
+token**, so two newcomers produce exactly one winner and the loser is refused by the
+row it can read. The takeover is **printed**, naming the owner text it took: silent, a
+second server starting over a live one is indistinguishable from an old one being
+reaped, and D-034's rule is that the state of the paper is said, not inferred.
+
+Three edges are the decision, not footnotes:
+
+- **a foreign host is not answered.** A `pid` means a process only on the machine that
+  wrote it, so a claim from another host — a shared `data/` over a mount — falls back
+  to the age rule, exactly as before. `ownerIsAlive` answers `true` for anything it
+  cannot prove: this function may reclaim a claim **it can prove abandoned**, and
+  nothing wider. `status`-style "who owns it" reporting is unchanged.
+- **the nonce, not the pid, is the identity.** Pids are reused by the OS: a token that
+  is a bare pid lets a restarted server inherit a live process's claim and never learn
+  that two are running. The heartbeat extends the nonce, so `extendClaim()` on the
+  reaped process now returns `false` and its scheduler stops — which is why the
+  takeover has to be printed.
+- **`start`'s `--port`/`--host` is not a flag to support** (D-042, same shape of
+  failure): the settings are `config.json`, and D-034 makes `server.host` the access
+  control.
+
+**Reverse if:** a machine exists where a pid probe is unreliable (a container that
+reaps as PID 1, a `data/` on a cluster filesystem), and the answer there is the age
+rule alone: the seam is optional, and `openDatabase` without `ownerIsAlive` is the
+pre-2026-11-11 behaviour, tested to stay working.
+
+## D-042 - `start` takes no argv, and refuses one by name, exit 2 (2026-11-11)
+
+`cli.ts start` ignored extra arguments. That is not neutral here: `server.host` is the
+access control (D-034), so a reader who types `start --host 0.0.0.0` and gets a paper
+that stayed on loopback **believes they opened the household to it**, and
+`start --port 8788` believes the wall is on a number it is not. A flag that is read
+nowhere and answered with silence is the same class of bug as a source that matched
+nothing and printed zero items (rule 5), in the direction of _more_ confidence.
+
+**Chosen:** `parseStartArgs` is a decision in data (the process edge prints it;
+`commands.test.ts` pins it, which is why the argv decision lives in `commands.ts` and
+not in the coverage-excluded `cli.ts`): no arguments runs, any argument is refused with
+the arguments named and the sentence that says the settings are `config.json`
+(`server.host`, `server.port`, `scheduler.*`, `scoring.*`). Exit **2** — the shell's
+branch for "you asked for something that does not exist", which is what an unknown
+command already gets, and not exit 1, which this repo reserves for _a command that
+refused to run its own job_.
+
+`export` and `pick` keep their flags because they have arguments to have: a target file
+and `--bundle`, a url and `--id`/`--write`. The rule is not "no flags"; it is **every
+argv is parsed, and what is not parsed is refused by name.**
+
+**Reverse if:** a flag earns its place — the honest shape is a _named_ setting that
+belongs on a command line (an override of `config.json`'s path, a one-shot
+`--once` that polls once and exits), and each one arrives as a parse, a test, and a
+line in `docs/state-server.md`, not as an ignored token.
