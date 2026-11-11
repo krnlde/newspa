@@ -15,10 +15,18 @@ export const SCHEMA_BRANCH = 'main';
 
 export const SCHEMA_BASE_URL = `https://raw.githubusercontent.com/${SCHEMA_OWNER}/${SCHEMA_REPO}/${SCHEMA_BRANCH}/schemas`;
 
-export const SCHEMA_NAMES = ['watchlist', 'source', 'appconfig', 'events'] as const;
+export const SCHEMA_NAMES = ['watchlist', 'source', 'appconfig', 'events', 'bundle'] as const;
 export type SchemaName = (typeof SCHEMA_NAMES)[number];
 
 export const schemaUrlFor = (name: SchemaName): string => `${SCHEMA_BASE_URL}/${name}.schema.json`;
 
 /** The `$schema` value written into an exported watchlist. */
 export const WATCHLIST_SCHEMA_URL = schemaUrlFor('watchlist');
+
+/**
+ * The `$schema` value written into a **bundle**. Rule 18 makes the bundle the only
+ * backup of `sources/` (that tree is gitignored, deliberately), so its shape is
+ * published like every other file format (D-014): a bundle that cannot be validated
+ * on the way in is a backup you find out about at restore time.
+ */
+export const BUNDLE_SCHEMA_URL = schemaUrlFor('bundle');

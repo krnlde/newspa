@@ -29,6 +29,8 @@ const descriptions = {
     'One newspa source: an RSS feed, an HTML page with CSS selectors, or a JSON endpoint. Filename must equal id.',
   appconfig: 'newspa runtime configuration (newspa.config.json). Every section is optional; defaults fill in.',
   events: 'One newspa server-sent event frame payload, discriminated by kind.',
+  bundle:
+    'The whole reading list and the app config in one file. Rule 18: sources/ is gitignored, so this bundle is the backup of what a reader reads - keep it private, and keep a copy off the machine.',
 };
 
 const buildDocument = (schema, name, title, schemaUrlFor) => {
@@ -50,6 +52,7 @@ const importModule = async (file) => import(pathToFileURL(file).href);
 const generate = async () => {
   const { schemaUrlFor } = await importModule(path.join(CONFIG_SRC, 'schemaUrls.ts'));
   const { watchlistSchema } = await importModule(path.join(CONFIG_SRC, 'watchlist.ts'));
+  const { bundleSchema } = await importModule(path.join(CONFIG_SRC, 'bundle.ts'));
   const { appConfigSchema, sourceSchema } = await importModule(path.join(CONFIG_SRC, 'schema.ts'));
   const { serverEventSchema } = await importModule(path.join(ROOT, 'packages', 'core', 'src', 'api.ts'));
 
@@ -58,6 +61,7 @@ const generate = async () => {
     ['source.schema.json', buildDocument(sourceSchema, 'source', 'newspa source', schemaUrlFor)],
     ['appconfig.schema.json', buildDocument(appConfigSchema, 'appconfig', 'newspa app config', schemaUrlFor)],
     ['events.schema.json', buildDocument(serverEventSchema, 'events', 'newspa server event', schemaUrlFor)],
+    ['bundle.schema.json', buildDocument(bundleSchema, 'bundle', 'newspa bundle', schemaUrlFor)],
   ];
   return files.map(([file, document]) => [file, render(document)]);
 };

@@ -150,13 +150,15 @@ describe('the boot', () => {
     await running.close();
   });
 
-  it('fills the paper from a real poll of a fixture feed, on the config’s own host and port', async () => {
+  it('fills the paper from a real poll of a fixture feed, through the config file and the real pollOne', async () => {
     const root = await tempRoot();
-    // The config supplies host and port (0 = ephemeral): this boot exercises the
-    // defaults `boot` reads from the file, which is what `pnpm start` does.
+    // Only the masthead and the host come from the config file; the port is a dep,
+    // because a test binds 0 (an ephemeral port) and `server.port` is schema-bounded
+    // to 1..65535 by design - a config that asks for 0 is a schema failure, reported,
+    // and the defaults take over.
     await writeJson(join(root, 'config.json'), {
       masthead: { name: 'The Fixture Ledger' },
-      server: { host: '127.0.0.1', port: 0 },
+      server: { host: '127.0.0.1' },
     });
     await writeJson(join(root, 'sources', 'bbc.json'), anRssSpec({ url: 'https://feeds.example/world.xml' }));
     const body = fixture('feed-bbc-world.xml');
@@ -166,6 +168,7 @@ describe('the boot', () => {
       log: (line) => {
         logs.push(line);
       },
+      port: 0,
       schedule: true,
       fetch: async () => okResponse(body),
     });

@@ -21,15 +21,19 @@ export const CUT: Readonly<Record<string, string>> = {
   pick: 'not built: the picker is the browser tier (roadmap WP6). Write sources/<id>.json in the meantime — that file is the truth (D-011).',
   login:
     'not built: nothing in this repo authenticates anything to anyone (rule 17), and the Edge profile is roadmap WP8. Sources that need it are refused by name, not fetched anonymously.',
-  export:
-    'not built: `export --bundle` is the backup of `sources/`, which is gitignored (rule 18), so it is the one cut command that is data loss. Roadmap WP5/WP11.',
-  import: 'not built: it pairs with `export` (roadmap WP11).',
+  import:
+    'not built: it pairs with `export --bundle` (roadmap WP11). Until it exists, restore by reading the bundle with `bundleSchema` and writing the files by hand.',
   'sources:migrate':
     'not built: a permanent redirect self-heals at the first poll (D-030 rung 1), and the reader moves a URL by editing the file, which is where the truth lives (D-011).',
 };
 
-/** The argv names that run something. Exactly one, for the MVP. */
-export const isBuilt = (name: string): boolean => name === START;
+/** The argv names that run something: the paper, and the backup rule 18 requires. */
+const BUILT: readonly string[] = [START, 'export'];
+
+export const isBuilt = (name: string): boolean => BUILT.includes(name);
+
+/** The built commands, in the order worth reading. */
+export const BUILT_COMMANDS: readonly string[] = BUILT;
 
 /**
  * The line a cut command prints, or `null` for a name this tool has never heard of
@@ -40,6 +44,6 @@ export const refusalOf = (name: string): string | undefined => CUT[name];
 /** The cut commands, in the order worth reading: status first, data safety last. */
 export const CUT_COMMANDS: readonly string[] = Object.keys(CUT);
 
-/** What the process edge prints for an unknown name: the built command, and the cut list. */
+/** What the process edge prints for an unknown name: the built commands, and the cut list. */
 export const unknownCommandLine = (name: string): string =>
-  `newspa: unknown command "${name}". Built: ${START}. Not built, and why: ${CUT_COMMANDS.join(', ')}.`;
+  `newspa: unknown command "${name}". Built: ${BUILT_COMMANDS.join(', ')}. Not built, and why: ${CUT_COMMANDS.join(', ')}.`;

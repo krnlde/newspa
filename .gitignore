@@ -19,11 +19,16 @@ Thumbs.db
 /data/
 /profiles/
 
-# Your reading list. A source definition says what a reader cares about — URL
-# set, watchwords, section labels, notes — and this repository is public, so the
+# Your reading list. A source definition says what a reader cares about - URL
+# set, watchwords, section labels, notes - and this repository is public, so the
 # definitions stay local and unversioned. `sources.example/` is what ships; the
 # backup is `pnpm export --bundle`. See AGENTS rule 18 / D-025.
 /sources/
+
+# The bundle is that backup, so it carries the same list in one file: every URL,
+# label, note and `profile: true` fact. Committing one is exactly what rule 18
+# exists to prevent, and a squashed history cannot take it back.
+/newspa-bundle.json
 
 # The dev paper: `pnpm seed` writes it out of the parser fixtures, and the dev
 # Vite plugin serves it. Generated, machine-local, never authored by hand.

@@ -19,13 +19,19 @@ const SKIP_DIRS = new Set(['node_modules', 'dist', '.git', '.data', '.pnpm', 'co
 //    data, and truncating them to satisfy a line cap would destroy the test.
 //  - apps/web/dev/state.json is the dev paper: `pnpm seed` writes it out of the
 //    fixtures, it is gitignored, and hand-editing it is not a thing one does.
+//  - the last pattern is binary, and SQLite's sidecars are in it on purpose:
+//    `-wal`/`-shm`/`-journal` are the frames and the shared-memory index next to
+//    the exempt `.db`, they only appear **after a run**, and a line cap on
+//    authored files cannot mean anything to a write-ahead log. (The gate missed
+//    this until `pnpm start` was run in a checked-out tree — 8,467 "lines".)
 const EXEMPT_PATTERNS = [
   /(^|[/\\])pnpm-lock\.yaml$/,
   /(^|[/\\])package-lock\.json$/,
   /(^|[/\\])schemas[/\\]/,
   /(^|[/\\])fixtures[/\\]/,
   /(^|[/\\])dev[/\\]state\.json$/,
-  /\.(png|jpg|jpeg|webp|ico|db|sqlite3|wasm|gz|zip|woff2?)$/i,
+  /\.(png|jpg|jpeg|webp|ico|db|sqlite3|wasm|gz|zip|woff2?)$/,
+  /\.(db|sqlite3)-(wal|shm|journal|hotlock-journal)$/,
 ];
 
 const isExempt = (relative) => EXEMPT_PATTERNS.some((re) => re.test(relative));

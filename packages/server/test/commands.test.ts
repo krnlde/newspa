@@ -10,7 +10,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CUT, CUT_COMMANDS, isBuilt, refusalOf, START, unknownCommandLine } from '../src/commands.ts';
+import { BUILT_COMMANDS, CUT, CUT_COMMANDS, isBuilt, refusalOf, START, unknownCommandLine } from '../src/commands.ts';
 
 const cliScripts = (): string[] => {
   const manifest = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')) as {
@@ -21,10 +21,12 @@ const cliScripts = (): string[] => {
     .map(([name]) => name);
 };
 
-describe('the built command', () => {
-  it('is exactly `start`, and argv defaults to it', () => {
+describe('the built commands', () => {
+  it('are `start` and `export`, and argv defaults to `start`', () => {
     expect(START).toBe('start');
+    expect(BUILT_COMMANDS).toEqual(['start', 'export']);
     expect(isBuilt('start')).toBe(true);
+    expect(isBuilt('export')).toBe(true);
     expect(isBuilt('status')).toBe(false);
     expect(isBuilt('')).toBe(false);
     expect(isBuilt('Start')).toBe(false);
@@ -33,19 +35,20 @@ describe('the built command', () => {
 
 describe('the cut commands', () => {
   it('are the named list, so a new script needs a decision recorded here', () => {
-    expect(CUT_COMMANDS).toEqual(['status', 'search', 'pick', 'login', 'export', 'import', 'sources:migrate']);
+    expect(CUT_COMMANDS).toEqual(['status', 'search', 'pick', 'login', 'import', 'sources:migrate']);
   });
 
   it('every refusal names where the answer lives, not just that it is missing', () => {
     for (const [name, line] of Object.entries(CUT)) {
-      expect(line, name).toMatch(/roadmap WP\d+|rule \d+|D-\d{3}|\/api\/state|sources\/|FTS5/);
+      expect(line, name).toMatch(/roadmap WP\d+|rule \d+|D-\d{3}|\/api\/state|sources\/|FTS5|bundle/);
     }
   });
 
-  it('`export` is refused as data loss, because `sources/` is gitignored (rule 18)', () => {
-    expect(refusalOf('export')).toContain('gitignored');
+  it('`export` is built, because rule 18 makes it the reading list’s only backup', () => {
+    expect(refusalOf('export')).toBeUndefined();
     expect(refusalOf('login')).toContain('rule 17');
     expect(refusalOf('sources:migrate')).toContain('D-011');
+    expect(refusalOf('import')).toContain('bundle');
     expect(refusalOf('nope')).toBeUndefined();
   });
 });

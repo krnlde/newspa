@@ -8,12 +8,12 @@ The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else. **
 WP4 and WP5 are closed** (below): the poll, the scheduler, the two routes the app
 calls, the SSE stream, the page, and the entry point that runs them - so `pnpm build
 && pnpm start` is a paper that fills itself, on a port, on the LAN if the config says
-so (D-034). What is left is quality of life, not architecture: `export --bundle`
-(rule 18's backup of `sources/`, the one gap that is data loss), the renderer and the
-picker (WP6), search (WP7), toasts (WP10), the watchlist knobs (WP9), the README
-(WP13). Closed and retired packages - WP1, WP2, WP3, WP12 - are recorded in
-`docs/roadmap-closed.md` with what each measured; read WP12 before reopening the same
-two files.
+so (D-034). `export --bundle` is built too (WP11, half), which closes the one gap
+that was data loss. What is left is quality of life, not architecture: the renderer
+and the picker (WP6), search (WP7), toasts (WP10), the watchlist knobs (WP9), the
+rest of the export/import formats (WP11), the README (WP13). Closed and retired
+packages - WP1, WP2, WP3, WP12 - are recorded in `docs/roadmap-closed.md` with what
+each measured; read WP12 before reopening the same two files.
 
 ## WP3 — The scheduler  _(built 2026-11-11, MVP shape)_
 
@@ -82,11 +82,12 @@ present. 33 tests across `net`, `sse`, `http-app` and `static-files`, over a rea
 socket on port 0. The dev plugin (`apps/web/dev/apiPlugin.ts`) is untouched, stays
 for offline dev, and is never in the bundle.
 
-## WP5 - the entry point  _(built 2026-11-11; `export --bundle` open)_
+## WP5 - the entry point  _(built 2026-11-11, including `export --bundle`)_
 
 **Built.** `packages/server/src/cli.ts` is the process edge the root scripts name —
 argv, `console`, signals, exit codes — coverage-excluded as `main.tsx` is. Its
-commands are **data** in `commands.ts`: one built (`start`), the rest refused **by
+commands are **data** in `commands.ts`: two built (`start`, `export --bundle`), the
+rest refused **by
 name**, each line naming where the answer lives (the health strip is the paper, the
 file is the truth, the picker is WP6, the credential is WP8). `test/commands.test.ts`
 reads the root `package.json` and fails if any script naming `cli.ts` has no answer,
@@ -102,10 +103,10 @@ old WP5 asked for — a paper from a real poll of `sources/` — over a socket, 
 with a captured feed as the transport's answer: the source is `ok`, the items print,
 the plan is in the row, and the tally's count equals the wire's.
 
-**Open, and it is data loss, not a nicety:** `export --bundle` (rule 18 -
-`sources/` is gitignored, so the bundle is the only backup of the reading list) and
-its pair, `import`. The refusal strings say so, and the roadmap keeps the package
-open below (WP11).
+**Built, and it was the gap that was data loss:** `export --bundle` — rule 18 makes
+`sources/` gitignored, so the bundle is the only backup of the reading list. Its rules
+(complete-or-refuse, byte-stable, gitignored itself) are WP11's, below. `import` is
+still open, and refuses by name, pointing at the schema to restore by hand.
 
 ## WP6 — `render` and the headed picker
 
@@ -186,20 +187,37 @@ and writes nothing (D-014).
 edition summary; with a connected client it does not; a notifier failure is a
 log line, never a failed poll.
 
-## WP11 — Export and import formats
+## WP11 - Export and import formats  _(half built 2026-11-11: `export --bundle`)_
 
-**Gap.** D-014: exports are file formats, validated on the way in. `schemas/` is
-generated from zod and `pnpm schemas:check` gates the drift; `pnpm export` /
-`pnpm import` have no implementation (WP5).
+**Built, and it is the half rule 18 asks for.** `packages/config/src/bundle.ts` is
+the shape (`bundleSchema`, `$schemaVersion: newspa.bundle.v1`, `$schema` at the
+generated `schemas/bundle.schema.json` — the fifth published schema, so
+`schemas:check` gates it like the other four); `packages/server/src/bundleExport.ts`
+is the command. A bundle is the app config **plus every source in `sources/`**, which
+is that tree's only backup, since the tree is gitignored on purpose.
 
-**Build.** `export` (edition JSON, `editionsResponseSchema`; watchlist,
-`watchlist.ts`) and `import` (validate first, write second), with
-`$schema` pointing at `schemas/` in every export, and `pnpm check:repo` keeping
-the published owner/repo honest.
+**The one hard rule: complete, or refuse, and write nothing.** `loadSources` _drops_
+a source file that does not parse — right for a poll, where the paper must run without
+it — so a backup built on the loader's output would silently be a shorter list, and
+the loss is discovered at restore time, when the original was the only copy. So any
+issue turns into `BundleRefusedError`, with every issue line, and no file. A config
+that fell back to defaults is **said, not fatal**: a fresh clone has no
+`config.json`, and refusing to back up a reading list over a default masthead is not
+the reader's friend. Sources are sorted by id, so two exports of an unchanged tree are
+**byte-identical** — a backup you can diff is a backup you can trust. The file
+(`newspa-bundle.json`) is gitignored, because it _is_ the reading list (rule 18).
 
-**Accept.** A round trip through the file restores an identical state; a file
-edited to violate the schema is refused with the issue, and the store is
-untouched.
+**Open.** `import` (it pairs, and refuses by name, pointing at the schema),
+`export --watchlist` and `export --opml` (`watchlist.ts`/`opml.ts` exist and are
+tested; the CLI flags do not), and the edition JSON export.
+
+**Accept, for the half built.** `bundle.test.ts` (9) pins the defaults, the
+`$schemaVersion` gate, a source that is not a source named by path, the sort, the
+byte-stability, the tie arm of the comparator (a writer that loses a source is a
+lying backup), and a root-path issue printed as `(root):` rather than an empty string.
+`bundle-export.test.ts` (5) writes to a temp tree, reads it back through
+`bundleSchema`, and proves the refusal writes **no file** — including for a tree with
+no sources at all, which is a backup of nothing.
 
 ## WP13 — README
 

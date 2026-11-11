@@ -1,4 +1,13 @@
 export {
+  BUNDLE_FILENAME,
+  BUNDLE_SCHEMA_VERSION,
+  type Bundle,
+  bundleSchema,
+  type ParsedBundle,
+  parseBundle,
+  serializeBundle,
+} from './bundle.ts';
+export {
   type AppConfigResult,
   ensureSourcesDir,
   loadAppConfig,
@@ -40,6 +49,7 @@ export {
   sourceSchema,
 } from './schema.ts';
 export {
+  BUNDLE_SCHEMA_URL,
   SCHEMA_BASE_URL,
   SCHEMA_BRANCH,
   SCHEMA_NAMES,

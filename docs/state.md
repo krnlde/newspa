@@ -106,9 +106,14 @@ rules (`index.html` never cached, a hashed asset forever, a missing build answer
 with `pnpm build`), `net.ts` the address policy (D-034: reads for the LAN, writes
 loopback-only, the reach line with the typeable URLs and the firewall command). The
 paper fills itself from a poll of the local `sources/`, and `start.test.ts` proves it
-over a socket with a fixture feed, offline. What is still absent: the items and search
-routes, `POST /api/sources`, toasts (WP10), the picker and the renderer (WP6), and
-`export --bundle`, which rule 18 makes the only backup of the reading list.
+over a socket with a fixture feed, offline. `bundleExport.ts` answers
+`export --bundle` (WP11): `config/src/bundle.ts` is the shape (`newspa.bundle.v1`, the
+fifth published schema), and the command is **complete or refuses** — any source file
+that failed to parse is a `BundleRefusedError` with every issue line and **no file
+written**, because rule 18 makes this the reading list's only copy and a backup that
+silently dropped a source is a backup that lies. What is still absent: the items and
+search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
+(WP10), the picker and the renderer (WP6).
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

@@ -33,6 +33,7 @@ const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
  * cut lists, which is what keeps `package.json` from naming a command with no answer.
  */
 const SRC_FILES: readonly string[] = [
+  'bundleExport.ts',
   'cli.ts',
   'commands.ts',
   'edition.ts',

@@ -180,12 +180,13 @@ packages/fetch    http, rss, html, json, fixtures. `render`/`pick` (msedge) are 
                   not built: the transport refuses a `render: true` source by name.
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
                   routes (`/api/state`, `/api/events`, the built page), the SSE hub,
-                  the address policy (D-034). Cut commands answer by name
-                  (`commands.ts`); toasts (WP10) and `export --bundle` (WP11) are not.
+                  the address policy (D-034), `export --bundle` (rule 18's backup).
+                  Cut commands answer by name (`commands.ts`); toasts (WP10), `import`
+                  and the picker (WP6) are not built.
 sources.example/  Example source definitions (public). `sources/` is your reading
                   list: local, gitignored, not version-controlled; the backup is
-                  `pnpm export --bundle` (WP11, not built — so the file is the only
-                  copy). data/ and profiles/ are gitignored too.
+                  `pnpm export --bundle` (built — take a copy off this machine, since
+                  the file is the only copy). data/ and profiles/ are gitignored too.
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
 docs/             architecture.md, state.md, roadmap.md (what is not built) +
                   roadmap-closed.md (what landed, and what it measured),
@@ -205,7 +206,8 @@ pnpm sources:init       # once per clone: copies sources.example/ into sources/ 
 pnpm check              pnpm typecheck      pnpm lint    pnpm format
 pnpm test               pnpm coverage       pnpm test:design
 pnpm shots              # the paper in real Edge: 1440x900, 1024x768, 390x844
-pnpm export --watchlist pnpm import -- …    # not built (WP11); --bundle is rule 18's backup
+pnpm export --bundle      # the reading list's only backup (rule 18); `import` is not built
+pnpm export --watchlist pnpm import -- …    # not built (WP11)
 pnpm audit --audit-level=low
 pnpm hooks:install        # once per clone: activates the pre-commit gate
 pnpm check:repo           # the published-schema owner/repo must match `git remote`
