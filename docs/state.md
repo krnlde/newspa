@@ -79,8 +79,20 @@ the repositories, the transaction and the test seams out). `poll.ts` is the
 ladder and the single write path; the rungs' meanings, the ladder state, the
 publish step, the **disappearance ladder** (`pollGone.ts`, D-029: which polls
 settle the item set, and the write) and the health mapping are each their own
-module (WP2 in `docs/roadmap.md` records the measurements). What is still absent:
-scheduler, routes, SSE, static, toasts, `cli.ts`.
+module (WP2 in `docs/roadmap.md` records the measurements). **The scheduler is
+built** (WP3, MVP shape): `schedulePlan.ts` is the pure policy — paused → ×4 backoff
+→ cron (only at zero failures, so a cron-anchored source cannot re-hammer a `429`) →
+cadence, with the rendered floor (D-033) and the quiet-hours push on top — and
+`scheduler.ts` is the loop: `dueSources(now, limit)`, one poll at a time, the plan
+written after **every** poll including one that threw, the `db_lock` claim taken at
+start, extended per batch and released on stop, a catch per poll **and** a catch per
+batch, and a `tally()` so a tick's decisions are countable (D-020). Its state is two
+columns migration 5 added (`next_run_at`, `consecutive_failures`), read by
+`dueSources` and written by `setSchedule`, and deliberately absent from
+`StoredSource`: the pipeline upserts every source on every load, and a column named
+by that upsert would reset a countdown at every restart. What is still absent:
+routes, SSE, static, toasts, and the entry point (`start.ts`, not `cli.ts` — WP5 is
+re-scoped to the entry point plus `export --bundle`).
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

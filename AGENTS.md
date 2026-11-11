@@ -170,10 +170,11 @@ sources.example/  Example source definitions (public). `sources/` is your readin
                   list: local, gitignored, not version-controlled; the backup is
                   `pnpm export --bundle`. data/ and profiles/ are gitignored too.
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
-docs/             architecture.md, state.md, roadmap.md, decisions.md,
-                  decisions-tooling.md, decisions-detection.md (selectors, the
-                  ladder, `gone`, measured cost), fetching.md, design.md,
-                  testing.md, tooling.md
+docs/             architecture.md, state.md, roadmap.md (what is not built) +
+                  roadmap-closed.md (what landed, and what it measured),
+                  decisions.md, decisions-tooling.md, decisions-detection.md
+                  (selectors, the ladder, `gone`, measured cost), fetching.md,
+                  design.md, testing.md, tooling.md
 ```
 
 ## Commands

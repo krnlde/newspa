@@ -7,8 +7,10 @@ no Redis, no separate web server, no Vite at runtime.
 
 ```
 newspa (one node process)
-├── scheduler      per-source setTimeout chain: cadence + deterministic jitter + exponential backoff
-│                  catch-up pass at boot, so a 09:00 reboot fetches what the night missed
+├── scheduler      one tick loop (60 s): the sources due by `next_run_at`, in a bounded
+│                  batch (24), one poll at a time. Per-source plan: pause → ×4 backoff →
+│                  cron (at zero failures) → cadence, render floor + quiet hours on top.
+│                  Boot is the catch-up: a `null next_run_at` leads every batch
 ├── pipeline       fetch → parse → normalize → diff → score → publish
 ├── db             node:sqlite, WAL, FTS5  (synchronous: bounded queries only)
 ├── http           node:http on 127.0.0.1:8787
@@ -29,12 +31,16 @@ separate, explicit step, never part of the start path.
 Chosen deliberately over a split poller/web-server. **Cost:** shared fate — a
 crash takes polling and the UI together. Non-negotiable mitigations:
 
-- per-task `try/catch` inside the scheduler, so no tick rejects to top level;
+- a `try/catch` per poll **and** per batch inside the scheduler, so no tick rejects
+  to top level (measured: the per-poll catch keeps a fault's failure count and plan,
+  the per-batch catch keeps the loop alive);
 - a `process.on('unhandledRejection')` / `uncaughtException` last resort that
   writes to `system_log` and **survives** (Node 26 terminates the process by
   default, which is exactly the 3am silent gap this tool must not have);
-- a single-instance lock on the port and on the DB file (`O_EXCL` lockfile) so a
-  double start cannot interleave writes;
+- a single-instance claim on the database: the `db_lock` row, taken by a token at
+  open (a second process gets `DatabaseLockedError`), extended every batch, stale
+  after 10 minutes. So a double start cannot interleave writes; the claim on the
+  **port** is WP4's;
 - `SIGINT`/`SIGTERM` close the Edge pool, checkpoint WAL, then exit;
 - `PRAGMA busy_timeout`, one connection for writes.
 
