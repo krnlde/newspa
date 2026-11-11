@@ -48,6 +48,30 @@ export const unknownCommandLine = (name: string): string =>
   `newspa: unknown command "${name}". Built: ${BUILT_COMMANDS.join(', ')}. Not built, and why: ${CUT_COMMANDS.join(', ')}.`;
 
 /**
+ * `start`'s argv, as a decision (the process edge prints it, exit 2).
+ *
+ * `start` takes **no** arguments, and a flag it ignores is not a neutral thing:
+ * `server.host` is the access control (D-034), so a reader who types
+ * `start --host 0.0.0.0` and gets a running paper that stayed on loopback
+ * believes they changed something they did not, and the reader who types
+ * `start --port 8788` believes the wall is somewhere else. Silence is the
+ * failure; the named answer is the fix. The settings are `config.json`, and
+ * that file is the one place they are read from.
+ */
+export type StartPlan = { readonly ok: true } | { readonly ok: false; readonly message: string };
+
+export const START_USAGE =
+  'start takes no arguments: the paper reads config.json (server.host, server.port, scheduler.*, scoring.*), and sources/ is the reading list. D-034: the address is the access control, so it is set in the file, never on a command line.';
+
+export const parseStartArgs = (args: readonly string[]): StartPlan =>
+  args.length === 0
+    ? { ok: true }
+    : {
+        ok: false,
+        message: `start: unexpected argument${args.length === 1 ? '' : 's'}: ${args.join(' ')}.\n  ${START_USAGE}`,
+      };
+
+/**
  * The line a built command prints when it **cannot run at all** — exit 1, with the
  * reason, and none of the running loop's promises.
  *

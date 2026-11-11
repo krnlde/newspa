@@ -23,6 +23,7 @@ import {
   PICK_USAGE,
   type PickPlan,
   parsePickArgs,
+  parseStartArgs,
   refusalOf,
   START,
   unknownCommandLine,
@@ -202,5 +203,44 @@ describe('a command that cannot run at all', () => {
   it('says the same thing for a cause that is not an Error, and for an Error with no message', () => {
     expect(failureLine('export --bundle', 'disk gone')).toContain('export --bundle failed: disk gone');
     expect(failureLine('start', new Error())).toContain('start failed: Error');
+  });
+});
+
+/**
+ * `start` takes no argv, and this is the decision the process edge prints (exit 2).
+ * The reason is D-034, not tidiness: `server.host` is the access control, so a
+ * `start --host 0.0.0.0` that runs and stays on loopback is a reader who believes
+ * they opened the paper to the household, and `--port` is a reader who believes the
+ * wall is on another number. The settings are `config.json`, and the flag has to be
+ * answered, not ignored.
+ */
+describe('`start` argv', () => {
+  it('runs on no arguments', () => {
+    expect(parseStartArgs([])).toEqual({ ok: true });
+  });
+
+  it('refuses one argument by name, and says where the setting lives', () => {
+    const plan = parseStartArgs(['--host=0.0.0.0']);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) throw new Error('unreachable: an argument was accepted');
+    expect(plan.message).toContain('--host=0.0.0.0');
+    expect(plan.message).toContain('config.json');
+    expect(plan.message).toContain('server.host');
+  });
+
+  it('refuses several, and says so in the plural', () => {
+    const plan = parseStartArgs(['--port', '8788']);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) throw new Error('unreachable: arguments were accepted');
+    expect(plan.message).toContain('unexpected arguments: --port 8788');
+  });
+
+  it('does not treat a path as a working directory to change', () => {
+    // The shape that used to be silently ignored: a root given on the command
+    // line, which the boot takes from `ROOT`, the module's own location.
+    const plan = parseStartArgs(['C:/somewhere/else']);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) throw new Error('unreachable: a root was accepted');
+    expect(plan.message).toContain('C:/somewhere/else');
   });
 });

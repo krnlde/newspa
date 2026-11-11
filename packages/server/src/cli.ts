@@ -20,7 +20,15 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { openPickSession } from 'newspa-fetch';
 import { BundleRefusedError, exportBundle } from './bundleExport.ts';
-import { failureLine, isBuilt, parsePickArgs, refusalOf, START, unknownCommandLine } from './commands.ts';
+import {
+  failureLine,
+  isBuilt,
+  parsePickArgs,
+  parseStartArgs,
+  refusalOf,
+  START,
+  unknownCommandLine,
+} from './commands.ts';
 import { runPickCommand } from './pickCli.ts';
 import { pickTextFetcher } from './pickTransport.ts';
 import { boot, ROOT } from './start.ts';
@@ -42,12 +50,22 @@ const installCrashReports = (): void => {
 /**
  * `start`: the whole product, and the signals that end it cleanly.
  *
+ * The argv is checked **before** anything opens: `start` takes no arguments, and
+ * the check has to come first because a boot that runs while a flag goes
+ * unread is the lie `commands.ts: parseStartArgs` names (`config.json` is where
+ * the address and the port live, D-034).
+ *
  * The last-resort handlers are installed **after** the boot succeeds, and a boot
  * failure exits with a line (`commands.ts: failureLine`): "surviving it" is a
  * promise about a loop that does not exist yet, and saying it about a run that never
  * opened its database is a lie with a stack attached.
  */
-const runStart = async (): Promise<void> => {
+const runStart = async (args: readonly string[]): Promise<void> => {
+  const plan = parseStartArgs(args);
+  if (!plan.ok) {
+    log(plan.message);
+    process.exit(2);
+  }
   let running: Awaited<ReturnType<typeof boot>>;
   try {
     running = await boot({ root: ROOT, log });
@@ -141,7 +159,7 @@ const main = async (): Promise<void> => {
     return;
   }
   if (isBuilt(name)) {
-    await runStart();
+    await runStart(process.argv.slice(3));
     return;
   }
   const refusal = refusalOf(name);
