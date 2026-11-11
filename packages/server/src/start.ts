@@ -34,7 +34,6 @@
  * supplies a temp root, a stub poll and port 0. That is what lets the roadmap's
  * acceptance ("`start` serves a paper from a real poll") run offline, in seconds.
  */
-import { randomUUID } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
@@ -45,6 +44,7 @@ import { type Database, DatabaseLockedError, openDatabase, releaseLock } from 'n
 import type { FetchLike } from 'newspa-fetch';
 import { openPickSession } from 'newspa-fetch';
 import { handleRequest } from './httpApp.ts';
+import { ownerIsAlive, ownerToken } from './lockOwner.ts';
 import { reachLine } from './net.ts';
 import { pickRoutes, readSourceForPick } from './pickApi.ts';
 import { pickTextFetcher } from './pickTransport.ts';
@@ -160,14 +160,19 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
 
   const host = deps.host ?? config.server.host;
   const port = deps.port ?? config.server.port;
-  const token = deps.token ?? randomUUID();
+  const token = deps.token ?? ownerToken();
 
   let db: Database;
   try {
     // The directory, first: SQLite will not create one, and a first run whose `data/`
     // is absent is a fresh clone, which is exactly the case boot is responsible for.
     await mkdir(join(deps.root, 'data'), { recursive: true });
-    db = openDatabase(join(deps.root, 'data', 'newspa.db'), { token, now, lockStaleAfterMs: 10 * 60_000 });
+    db = openDatabase(join(deps.root, 'data', 'newspa.db'), {
+      token,
+      now,
+      lockStaleAfterMs: 10 * 60_000,
+      ownerIsAlive,
+    });
   } catch (cause) {
     if (cause instanceof DatabaseLockedError) {
       // The claim is the boundary, and it is spoken: one process polls one paper.
@@ -177,6 +182,13 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
     throw cause;
   }
   log(`db: ${db.file}, version ${String(db.version)} (${db.journalMode}), claim ${token.slice(0, 8)}`);
+  if (db.tookOver !== null) {
+    // Spoken, not swallowed: a claim is a promise about a process, and this one
+    // found the process gone. Silent, it reads as "my old server is still running".
+    log(
+      `db: took the claim from "${db.tookOver.owner}" (taken at ${db.tookOver.takenAt}) — that process is not running, so this is a force-killed server's claim, not a second server`,
+    );
+  }
 
   const load = await loadSources(dir);
   reportWatchlist(log, dir, load.issues, load.sources.length);

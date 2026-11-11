@@ -7,50 +7,23 @@
  * database claim, upserts the watchlist, serves a paper that parses on core's
  * schema, and starts a scheduler that polls. No network: the poll is a stub, so the
  * boot's own behaviour is what is under test.
+ *
+ * The harness — `tempRoot`, `bootOnce`, the injected instant `T0` — is in
+ * `startSupport.ts`, shared with `startLock.test.ts`. That file owns the other
+ * half of the database claim: the one this file pins is the **alive** owner
+ * refusing a newcomer, and the claim a **dead** owner leaves behind is there.
  */
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SourceSpec } from 'newspa-config';
 import { stateResponseSchema } from 'newspa-core';
 import { DatabaseLockedError } from 'newspa-db';
 import { describe, expect, it } from 'vitest';
-import { type BootDeps, boot } from '../src/start.ts';
+import { boot } from '../src/start.ts';
 import { fixture, okResponse } from './pollSupport.ts';
 import { aResult } from './schedulerSupport.ts';
+import { base, bootOnce, bootRefusal, tempRoot, writeJson } from './startSupport.ts';
 import { anRssSpec } from './support.ts';
-
-const tempRoot = async (): Promise<string> => mkdtemp(join(tmpdir(), 'newspa-boot-'));
-
-/** The fixed instant every boot in this file runs at, so a plan is assertable. */
-const T0 = new Date('2026-11-09T10:00:00Z');
-
-const writeJson = async (file: string, value: unknown): Promise<void> => {
-  await mkdir(join(file, '..'), { recursive: true });
-  await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-};
-
-const base = (port: number): string => `http://127.0.0.1:${String(port)}`;
-
-/** Boot with a loopback bind and no scheduler, and always close what booted. */
-const bootOnce = async (
-  root: string,
-  over: Partial<BootDeps> = {},
-): Promise<{ logs: string[]; running: Awaited<ReturnType<typeof boot>> }> => {
-  const logs: string[] = [];
-  const running = await boot({
-    root,
-    log: (line) => {
-      logs.push(line);
-    },
-    port: 0,
-    host: '127.0.0.1',
-    schedule: false,
-    now: () => T0,
-    ...over,
-  });
-  return { logs, running };
-};
 
 describe('the boot', () => {
   it('creates the sources directory it needs, and says so (D-025)', async () => {
@@ -101,24 +74,9 @@ describe('the boot', () => {
   it('refuses a second process on the database claim, by name, before serving', async () => {
     const root = await tempRoot();
     const first = await bootOnce(root);
-    const secondLogs: string[] = [];
-    let cause: unknown = null;
-    try {
-      await boot({
-        root,
-        log: (line) => {
-          secondLogs.push(line);
-        },
-        port: 0,
-        host: '127.0.0.1',
-        schedule: false,
-        now: () => T0,
-      });
-    } catch (error) {
-      cause = error;
-    }
-    expect(cause).toBeInstanceOf(DatabaseLockedError);
-    const text = secondLogs.join('\n');
+    const second = await bootRefusal(root);
+    expect(second.cause).toBeInstanceOf(DatabaseLockedError);
+    const text = second.logs.join('\n');
     expect(text).toContain('not starting:');
     expect(text).toContain('another process holds this database');
     await first.running.close();

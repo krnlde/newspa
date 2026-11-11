@@ -8,6 +8,8 @@
  * The clock is always injected: `edition.ts` takes `now` as an input, so a test
  * asserts on an instant, never on the moment it happened to execute.
  */
+import { spawnSync } from 'node:child_process';
+import { hostname } from 'node:os';
 import { type AppConfig, appConfigSchema, type MastheadConfig, type SourceSpec, sourceSchema } from 'newspa-config';
 import {
   type ItemEventRecord,
@@ -234,3 +236,24 @@ export const healthOfSource = (state: StateResponse, sourceId: string): SourceHe
   if (found === undefined) throw new Error(`no health view for source ${sourceId}`);
   return found;
 };
+
+/**
+ * A pid that **was** a live process and is now reaped.
+ *
+ * The lock's liveness answer needs a dead pid, and a made-up large number is not
+ * a proof: on Windows pids reach into the millions, so a test that passes by
+ * picking an unused pid proves nothing about `ESRCH`. Running the Node that is
+ * already on PATH and letting it exit is the fact.
+ */
+export const deadPid = (): number => {
+  const child = spawnSync(process.execPath, ['-e', 'process.exit(0)'], { timeout: 20_000 });
+  if (child.status !== 0 || child.pid === undefined) {
+    // `spawnSync` reports a failed spawn on `error` (there is no `message` on
+    // `SpawnSyncReturns`), so the reason has to come from there.
+    throw new Error(`the probe process failed: ${String(child.status)} ${child.error?.message ?? ''}`);
+  }
+  return child.pid;
+};
+
+/** An owner text for a process that ran and is gone, on **this** host. */
+export const deadOwner = (): string => `0e9a5b11-1111-4111-8111-111111111111@${hostname()}:${String(deadPid())}`;

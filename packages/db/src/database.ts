@@ -34,7 +34,7 @@ export class DatabaseLockedError extends Error {
   constructor(owner: LockOwner) {
     super(
       `another process holds this database (claim "${owner.owner}" taken at ${owner.takenAt}); ` +
-        `it is takeable after ${DEFAULT_LOCK_STALE_MS} ms of silence`,
+        `it is takeable after ${DEFAULT_LOCK_STALE_MS} ms of silence, at once if the caller can prove that owner is not running`,
     );
     this.name = 'DatabaseLockedError';
   }
@@ -48,6 +48,13 @@ export interface Database {
   readonly head: number;
   readonly migrations: readonly AppliedMigration[];
   readonly owner: LockOwner;
+  /**
+   * The claim this process **took from an owner that is not running**, or null.
+   * The boot prints it: a takeover that happens quietly is how a second server
+   * starts polling the same paper while the first one is a stopped process in
+   * another terminal.
+   */
+  readonly tookOver: LockOwner | null;
   /** This process's claim token: the identity the heartbeat extends. */
   readonly token: string;
   /** The heartbeat: keep a live owner's claim from ageing out. `false` when it is not ours. */
@@ -67,6 +74,13 @@ export interface Database {
 export interface OpenOptions {
   readonly busyTimeoutMs?: number;
   readonly lockStaleAfterMs?: number;
+  /**
+   * Is an owner text a running process? The caller wrote the text, so the
+   * caller answers (`lock.ts: LockOptions.isAlive`); the db layer never touches
+   * `node:process`. Answer `false` and a claim is reclaimed at once instead of
+   * after `lockStaleAfterMs`.
+   */
+  readonly ownerIsAlive?: (owner: string) => boolean;
   /** Per-launch token; a PID is deliberately not used. */
   readonly token?: string;
   readonly now?: () => Date;
@@ -89,6 +103,7 @@ export const openDatabase = (file: string, options: OpenOptions = {}): Database 
       token,
       now,
       staleAfterMs: options.lockStaleAfterMs ?? DEFAULT_LOCK_STALE_MS,
+      ...(options.ownerIsAlive === undefined ? {} : { isAlive: options.ownerIsAlive }),
     });
     if (!claim.ok) throw new DatabaseLockedError(claim.owner);
 
@@ -102,6 +117,7 @@ export const openDatabase = (file: string, options: OpenOptions = {}): Database 
       head,
       migrations: applied,
       owner: claim.owner,
+      tookOver: claim.tookOver ?? null,
       token,
       extendClaim: () => (open ? extendLock(tx, token, now) : false),
       sources: sourcesRepository(tx),

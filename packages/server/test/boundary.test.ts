@@ -39,6 +39,7 @@ const SRC_FILES: readonly string[] = [
   'edition.ts',
   'httpApp.ts',
   'index.ts',
+  'lockOwner.ts',
   'net.ts',
   'pickApi.ts',
   'pickCli.ts',

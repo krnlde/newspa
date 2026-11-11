@@ -15,6 +15,14 @@
  * once its claim is older than `staleAfterMs`; `extendLock` is the heartbeat
  * that keeps a live owner's claim from ageing out.
  *
+ * Age is the only rule the db layer can write, and on its own it is a 15-minute
+ * sentence to a reader whose server was force-killed: the row says "taken at
+ * 14:02", and the process that wrote it died at 14:03. So `claimLock` takes an
+ * `isAlive` seam (see `LockOptions`): the caller that chose the owner text — the
+ * server, which knows what a PID means — answers whether that owner is running,
+ * and a dead one is reclaimed on the spot. The row stays the truth, and nothing
+ * here opens a PID file or a child process.
+ *
  * Every entry point creates the table first. The claim has to work on a
  * database that has not been migrated yet — that is exactly the state a second
  * process finds when the first one opens the file and starts migrating.
@@ -41,14 +49,30 @@ export interface LockOptions {
   readonly now: () => Date;
   /** How old a claim has to be before another process may take it. */
   readonly staleAfterMs: number;
+  /**
+   * Is this owner text a process that is running? The db layer cannot answer: it
+   * never touches `node:process`, and the owner text is opaque to it. The caller
+   * that **wrote** the owner text answers through this seam, which is what lets a
+   * force-killed server's claim be reclaimed at once instead of after
+   * `staleAfterMs` — measured: a `pnpm start` killed with its process tree left
+   * the claim row behind, and the next boot waited out 15 minutes of its own dead
+   * owner before it would open its own database.
+   *
+   * Omit it, or answer `true`, and the age rule stays the only rule.
+   */
+  readonly isAlive?: (owner: string) => boolean;
 }
 
 /**
  * The verdict of a claim. The owner is named in both arms: a process that was
  * refused has to say who to wait for, and for how long.
+ *
+ * `tookOver` names the claim this process **took from a dead owner**, so the boot
+ * can say it out loud: a silent takeover is how a second server starts polling the
+ * same paper while the first one is a zombie in another terminal.
  */
 export type LockResult =
-  | { readonly ok: true; readonly owner: LockOwner }
+  | { readonly ok: true; readonly owner: LockOwner; readonly tookOver?: LockOwner }
   | { readonly ok: false; readonly owner: LockOwner };
 
 /** The claim as a reader sees it: no table row, or an owner. */
@@ -90,7 +114,18 @@ const claimOwner = (row: Record<string, unknown> | undefined): LockOwner => {
 
 const SELECT_CLAIM = `select owner, taken_at from ${LOCK_TABLE} where id = 1`;
 
-/** Take the claim, or report the live owner that holds it. */
+/**
+ * Take the claim, or report the live owner that holds it.
+ *
+ * Two ways in, and they are the whole design: the **age** of the claim (a live
+ * owner moves `taken_at` forward through `extendLock`, so an old claim is an
+ * abandoned one), and the **owner's liveness** as the caller answers it (a dead
+ * owner's claim is abandoned at once). The liveness update is written against
+ * the dead owner's own token — `where id = 1 and owner = ?` — so two newcomers
+ * that both find a dead owner produce exactly one winner, and the loser reads
+ * the row and is refused. An unconditional takeover would let both believe they
+ * owned the paper.
+ */
 export const claimLock = (db: Tx, options: LockOptions): LockResult => {
   void db.exec(LOCK_TABLE_SQL);
   const takenAt = options.now().toISOString();
@@ -107,6 +142,18 @@ export const claimLock = (db: Tx, options: LockOptions): LockResult => {
   // `changes === 1` is the measured verdict for "the `where` let us in";
   // comparing the owner covers the case where we already held it.
   if (result.changes === 1 || owner.owner === options.token) return { ok: true, owner };
+  if (options.isAlive?.(owner.owner) === false) {
+    const took = db.run(
+      `update ${LOCK_TABLE} set owner = ?, taken_at = ? where id = 1 and owner = ?`,
+      options.token,
+      takenAt,
+      owner.owner,
+    );
+    if (took.changes === 1) {
+      return { ok: true, owner: { owner: options.token, takenAt }, tookOver: owner };
+    }
+    return { ok: false, owner: claimOwner(db.get(SELECT_CLAIM)) };
+  }
   return { ok: false, owner };
 };
 
