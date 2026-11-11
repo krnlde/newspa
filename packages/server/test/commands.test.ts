@@ -20,6 +20,9 @@ import {
   CUT_COMMANDS,
   failureLine,
   isBuilt,
+  PICK_USAGE,
+  type PickPlan,
+  parsePickArgs,
   refusalOf,
   START,
   unknownCommandLine,
@@ -50,11 +53,12 @@ const cliScripts = (): CliScript[] => {
 };
 
 describe('the built commands', () => {
-  it('are `start` and `export`, and argv defaults to `start`', () => {
+  it('are `start`, `export` and `pick`, and argv defaults to `start`', () => {
     expect(START).toBe('start');
-    expect(BUILT_COMMANDS).toEqual(['start', 'export']);
+    expect(BUILT_COMMANDS).toEqual(['start', 'export', 'pick']);
     expect(isBuilt('start')).toBe(true);
     expect(isBuilt('export')).toBe(true);
+    expect(isBuilt('pick')).toBe(true);
     expect(isBuilt('status')).toBe(false);
     expect(isBuilt('')).toBe(false);
     expect(isBuilt('Start')).toBe(false);
@@ -63,7 +67,7 @@ describe('the built commands', () => {
 
 describe('the cut commands', () => {
   it('are the named list, so a new script needs a decision recorded here', () => {
-    expect(CUT_COMMANDS).toEqual(['status', 'search', 'pick', 'login', 'import', 'sources:migrate']);
+    expect(CUT_COMMANDS).toEqual(['status', 'search', 'login', 'import', 'sources:migrate']);
   });
 
   it('every refusal names where the answer lives, not just that it is missing', () => {
@@ -78,6 +82,61 @@ describe('the cut commands', () => {
     expect(refusalOf('sources:migrate')).toContain('D-011');
     expect(refusalOf('import')).toContain('bundle');
     expect(refusalOf('nope')).toBeUndefined();
+  });
+});
+
+describe('`pick`’s argv (WP6, D-036)', () => {
+  const okPlan = (args: readonly string[]): Extract<PickPlan, { ok: true }> => {
+    const plan = parsePickArgs(args);
+    if (!plan.ok) throw new Error(`refused: ${plan.message}`);
+    return plan;
+  };
+
+  it('accepts a bare url, a source id, and an id with --write, in any flag order', () => {
+    expect(okPlan(['https://example.invalid/world'])).toEqual({
+      ok: true,
+      mode: 'url',
+      url: 'https://example.invalid/world',
+    });
+    expect(okPlan(['--id', 'bbc'])).toEqual({ ok: true, mode: 'source', id: 'bbc', write: false });
+    expect(okPlan(['--write', '--id', 'bbc'])).toEqual({ ok: true, mode: 'source', id: 'bbc', write: true });
+    expect(okPlan(['--id', 'bbc', '--write'])).toEqual({ ok: true, mode: 'source', id: 'bbc', write: true });
+  });
+
+  it('refuses a bare url with --write: there is no file to merge into, and the tool does not invent one (D-011)', () => {
+    const plan = parsePickArgs(['https://example.invalid/world', '--write']);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
+    expect(plan.message).toContain('--write needs --id');
+  });
+
+  it('refuses a target that is not one, in words that say what to type', () => {
+    for (const args of [
+      [],
+      ['--id'],
+      ['--id', 'BBC'],
+      ['ftp://example.invalid/world'],
+      ['world.html'],
+      ['--nope'],
+      ['https://a.invalid/x', 'https://b.invalid/y'],
+      ['https://a.invalid/x', '--id', 'bbc'],
+      ['--id', 'bbc', '--id', 'guardian'],
+      ['--write', '--write'],
+    ]) {
+      const plan = parsePickArgs(args);
+      expect(plan.ok, args.join(' ')).toBe(false);
+      if (plan.ok) continue;
+      expect(plan.message, args.join(' ')).toContain('pick');
+      // Rule 5: every refusal prints the usage, so the reader never guesses the shape.
+      expect(plan.message, args.join(' ')).toContain(PICK_USAGE.slice(0, 24));
+    }
+  });
+
+  it('refuses an id that is not a file name, because the id is the file (D-011)', () => {
+    const plan = parsePickArgs(['--id', '../../etc/passwd']);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
+    expect(plan.message).toContain('kebab-case');
   });
 });
 

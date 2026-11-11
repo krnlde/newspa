@@ -131,4 +131,25 @@ describe('readingListAllowed', () => {
     expect(refused.allowed).toBe(false);
     if (refused.allowed === false) expect(refused.reason).toContain('unknown peer');
   });
+
+  it('names the route it refused, because a reason that points at another URL is a dead end', () => {
+    const sources = readingListAllowed('GET', '192.168.1.42');
+    const pick = readingListAllowed('POST', '192.168.1.42', 'pick');
+    if (sources.allowed === false) expect(sources.reason).toContain('/api/sources from');
+    if (pick.allowed === false) {
+      expect(pick.reason).toContain('/api/pick from 192.168.1.42 is refused');
+      expect(pick.reason).not.toContain('/api/sources');
+      // The reason says *why* this one is loopback's: a browser opens on the server.
+      expect(pick.reason).toContain('on the machine that runs this server');
+      expect(pick.reason).toContain('rule 20');
+      expect(pick.reason).toContain('rule 18');
+    }
+  });
+
+  it('lets the pick open from loopback, on both of its verbs', () => {
+    for (const method of ['GET', 'POST']) {
+      expect(readingListAllowed(method, '127.0.0.1', 'pick').allowed, method).toBe(true);
+      expect(readingListAllowed(method, '::1', 'pick').allowed, method).toBe(true);
+    }
+  });
 });

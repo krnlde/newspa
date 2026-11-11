@@ -89,6 +89,33 @@ describe('the LAN reads (D-034)', () => {
       (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
     );
   });
+
+  it('refuses the same peer the pick route, on both verbs, and logs each by name', async () => {
+    await serve(
+      await builtDist(),
+      async (base, h) => {
+        // A LAN POST dies at the **mutation guard**, before routing (D-034): the
+        // ordering is the rule, and a route that checked the peer itself is how a
+        // second, weaker policy gets born.
+        const post = await getJson(base, '/api/pick', { method: 'POST', body: '{"id":"bbc"}' });
+        expect(post.status).toBe(403);
+        expect(String(post.body['error'])).toContain('POST from 192.168.1.42');
+
+        // A LAN GET reaches the route, and the route's wall is the reading list
+        // (rule 18): a pick reads a source file and opens a window on this machine.
+        const get = await getJson(base, '/api/pick?id=bbc');
+        expect(get.status).toBe(403);
+        expect(String(get.body['error'])).toContain('GET /api/pick from 192.168.1.42 is refused');
+
+        // Rule 5: a refusal the reader cannot find in the log is a silent zero.
+        const lines = h.logs.filter((line) => line.includes('/api/pick'));
+        expect(lines).toHaveLength(2);
+        expect(lines[0]).toContain('refused POST /api/pick');
+        expect(lines[1]).toContain('refused GET /api/pick');
+      },
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
+    );
+  });
 });
 
 describe('the built page', () => {

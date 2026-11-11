@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { type Database, openInMemory } from 'newspa-db';
 import { type HttpDeps, handleRequest } from '../src/httpApp.ts';
+import type { PickRoutes } from '../src/pickApi.ts';
 import type { SourcesRoutes } from '../src/sourcesApi.ts';
 import { createHub, type Hub } from '../src/sse.ts';
 import { addSource, anRssSpec, stateOfDb } from './support.ts';
@@ -107,10 +108,23 @@ export const depsFor = (
     write: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
     remove: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
   };
+  const pick: PickRoutes = {
+    // A stub that answers, never a browser: the http-app tests are about the
+    // address gate (rule 20) and the verb shape, and a pick window has neither.
+    start: async (id: string) => ({
+      status: 202,
+      body: { ok: true, state: 'running', sentence: `a pick window is open for ${id}`, messages: [], text: null },
+    }),
+    status: (id: string) => ({
+      status: 200,
+      body: { ok: true, state: 'picked', sentence: `the report for ${id}`, messages: [], text: null },
+    }),
+  };
   const deps = over({
     state: () => stateOfDb(db),
     hub,
     sources,
+    pick,
     dist,
     log: (line) => logs.push(line),
     addressOf: () => '127.0.0.1',

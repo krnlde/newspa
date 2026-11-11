@@ -24,25 +24,31 @@
  * standing in front of a phone (D-034).
  *
  * Not here, on purpose: the browser spawn (`openBrowser` is honoured by the printed
- * URL, not by launching Edge), the toast sender (WP10), the picker (WP6), and every
- * command whose answer is the paper (WP5's cut list). The process edge — argv,
+ * URL, not by launching Edge), the toast sender (WP10), and every command whose
+ * answer is the paper (WP5's cut list). The picker (WP6) **is** wired here, and it
+ * opens its window on the machine that runs this process — which is why `/api/pick`
+ * is a loopback route (rule 20): a LAN peer cannot ask a desk machine to launch a
+ * browser. The process edge — argv,
  * `console`, signals, exit codes — is `cli.ts`, coverage-excluded as a process edge;
  * `boot` is a function of a `BootDeps` bag, so `cli.ts` supplies `process` and a test
  * supplies a temp root, a stub poll and port 0. That is what lets the roadmap's
  * acceptance ("`start` serves a paper from a real poll") run offline, in seconds.
  */
 import { randomUUID } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SourceIssue, SourceSpec } from 'newspa-config';
-import { ensureSourcesDir, loadAppConfig, loadSources } from 'newspa-config';
+import { ensureSourcesDir, loadAppConfig, loadSources, sourceFilePath } from 'newspa-config';
 import { type Database, DatabaseLockedError, openDatabase, releaseLock } from 'newspa-db';
 import type { FetchLike } from 'newspa-fetch';
+import { openPickSession } from 'newspa-fetch';
 import { handleRequest } from './httpApp.ts';
 import { reachLine } from './net.ts';
-import { pollOne } from './poll.ts';
+import { pickRoutes, readSourceForPick } from './pickApi.ts';
+import { pickTextFetcher } from './pickTransport.ts';
+import { pollOne, transportDepsOf } from './poll.ts';
 import { pollDepsOf } from './pollDeps.ts';
 import type { PollResult } from './pollTypes.ts';
 import { type Scheduler, type SchedulerTally, startScheduler } from './scheduler.ts';
@@ -108,7 +114,9 @@ const idleScheduler = (db: Database): Scheduler => ({
 const issueLine = (issue: SourceIssue): string =>
   `  refused: ${issue.file} [${issue.reason}]: ${issue.messages.join('; ')}`;
 
-/** The watchlist, as boot lines: the count, every issue, and what an empty list means. */
+/**
+ * The watchlist, as boot lines: the count, every issue, and what an empty list means.
+ */
 const reportWatchlist = (
   log: (line: string) => void,
   dir: string,
@@ -209,6 +217,19 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
         }),
       hub,
       sources: sourcesRoutesOf({ dir, db, now, log }),
+      pick: pickRoutes({
+        specOf: (id) => readSourceForPick(dir, id, (path) => readFile(path, 'utf8'), sourceFilePath),
+        fetchText: pickTextFetcher(transportDepsOf(pollDeps, now)),
+        launch: openPickSession,
+        // A reader's pick is a window (D-036). Headless would be a pick that picks
+        // nothing: the click is the reader's, and it needs a screen to happen on.
+        headless: false,
+        // `profiles/<id>` is the only credential in this project (rule 17), and
+        // `profile: true` is what makes a logged-in list visible to the pick.
+        profilesDir: join(deps.root, 'profiles'),
+        log,
+        now,
+      }),
       dist: join(deps.root, 'apps', 'web', 'dist'),
       log,
       addressOf: (req: IncomingMessage) => req.socket.remoteAddress,

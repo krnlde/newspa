@@ -112,8 +112,13 @@ const commit = (
     };
   });
 
-/** The transport's deps: the socket and the clock are ours, the retry policy stays the transport's. */
-const transportDepsOf = (deps: PollDeps, clock: () => Date): TransportDeps => ({
+/**
+ * The transport's deps: the socket and the clock are ours, the retry policy stays
+ * the transport's. Exported because the picker fetches **the way the poller
+ * fetches** (D-036): a selector proved against bytes from a different transport is
+ * a selector proved against nothing.
+ */
+export const transportDepsOf = (deps: PollDeps, clock: () => Date): TransportDeps => ({
   now: clock,
   fetch: deps.fetch,
   ...(deps.sleep === undefined ? {} : { sleep: deps.sleep }),

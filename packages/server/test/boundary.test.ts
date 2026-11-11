@@ -40,6 +40,10 @@ const SRC_FILES: readonly string[] = [
   'httpApp.ts',
   'index.ts',
   'net.ts',
+  'pickApi.ts',
+  'pickCli.ts',
+  'pickHttp.ts',
+  'pickTransport.ts',
   'poll.ts',
   'pollBaseline.ts',
   'pollDeps.ts',
@@ -49,6 +53,7 @@ const SRC_FILES: readonly string[] = [
   'pollTypes.ts',
   'pollVerdicts.ts',
   'requestBody.ts',
+  'response.ts',
   'schedulePlan.ts',
   'scheduler.ts',
   'sourcesApi.ts',
@@ -156,6 +161,22 @@ describe('the pipeline', () => {
       const writersOf = SRC_FILES.filter((file) => sourceOf(file).includes(needle));
       expect(writersOf, `${needle} has more than one call site`).toEqual(['poll.ts']);
     }
+  });
+});
+
+describe('the reading list’s only writer (D-011, D-036)', () => {
+  it('is `sourcesApi.ts`: the pick fills the editor, it does not write', () => {
+    // `sources/*.json` is the reader's own file, and a click is not a signature. So
+    // the pick route has **no** write dependency at all: it merges, returns the text,
+    // and SAVE — the one verb that writes — is the reader's act. A second call site
+    // for these is a second path to a file the reader did not agree to.
+    for (const needle of ['writeSource(', 'removeSource(']) {
+      const writersOf = SRC_FILES.filter((file) => sourceOf(file).includes(needle));
+      expect(writersOf, `${needle} has more than one call site`).toEqual(['sourcesApi.ts']);
+    }
+    // Non-vacuous: the pick really does the merge, in the layer that owns the schema.
+    expect(sourceOf('pickApi.ts')).toContain('applyPick(');
+    expect(sourceOf('pickApi.ts')).not.toContain('writeFile');
   });
 });
 

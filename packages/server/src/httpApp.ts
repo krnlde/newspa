@@ -20,7 +20,10 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StateResponse } from 'newspa-core';
 import { mutationAllowed, type PeerDecision, readingListAllowed } from './net.ts';
+import type { PickRoutes } from './pickApi.ts';
+import { pickRoute } from './pickHttp.ts';
 import { BodyError, readJsonBody } from './requestBody.ts';
+import { pathOf, sendJson, sendText } from './response.ts';
 import { MAX_SOURCE_BODY_BYTES, type SourcesRoutes } from './sourcesApi.ts';
 import type { Hub } from './sse.ts';
 import { staticFor } from './staticFiles.ts';
@@ -31,6 +34,8 @@ export interface HttpDeps {
   readonly hub: Hub;
   /** The reading list, as files (WP14). */
   readonly sources: SourcesRoutes;
+  /** The pick session: start it, report it (WP6). Loopback-only, rule 20. */
+  readonly pick: PickRoutes;
   /** `apps/web/dist`. */
   readonly dist: string;
   readonly log: (line: string) => void;
@@ -38,23 +43,12 @@ export interface HttpDeps {
   readonly addressOf: (req: IncomingMessage) => string | undefined;
 }
 
-const pathOf = (req: IncomingMessage): string => (req.url ?? '/').split('?')[0] ?? '/';
-
-const sendJson = (res: ServerResponse, status: number, body: unknown, cache = 'no-store'): void => {
-  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': cache });
-  res.end(`${JSON.stringify(body)}\n`);
-};
-
-const sendText = (res: ServerResponse, status: number, text: string): void => {
-  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
-  res.end(`${text}\n`);
-};
-
 /** What the API is, in the body: the routes, and the ones that are not built. */
 const API_INDEX = {
   state: '/api/state',
   events: '/api/events (text/event-stream)',
   sources: '/api/sources (GET) · POST writes sources/<id>.json · DELETE ?id=… — writes are loopback-only (D-034)',
+  pick: '/api/pick (POST {"id": "…"} opens a pick window · GET ?id=… reports the job) — loopback-only (rule 20)',
   items: 'not built: the app has no items page in the MVP',
   search: 'not built: FTS5 exists in `packages/db`; the route and the box are WP7',
 } as const;
@@ -130,6 +124,13 @@ const apiRoute = async (
 ): Promise<void> => {
   if (path === '/api/sources') {
     await sourcesRoute(deps, req, res, method, list);
+    return;
+  }
+  if (path === '/api/pick') {
+    // The decision is computed **for this route**, not reused from `/api/sources`:
+    // the reason names the route it refused, and a refusal that points at another
+    // route's URL is a dead end for the reader (rule 5).
+    await pickRoute(deps, req, res, method, readingListAllowed(method, deps.addressOf(req), 'pick'));
     return;
   }
   if (path === '/api/events') {

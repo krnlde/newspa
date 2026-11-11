@@ -16,9 +16,13 @@
  * No flags, no subcommand tree, no help text: `newspa` is a personal paper, and the
  * reader's interface to it is the page.
  */
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { openPickSession } from 'newspa-fetch';
 import { BundleRefusedError, exportBundle } from './bundleExport.ts';
-import { failureLine, isBuilt, refusalOf, START, unknownCommandLine } from './commands.ts';
+import { failureLine, isBuilt, parsePickArgs, refusalOf, START, unknownCommandLine } from './commands.ts';
+import { runPickCommand } from './pickCli.ts';
+import { pickTextFetcher } from './pickTransport.ts';
 import { boot, ROOT } from './start.ts';
 
 const log = (line: string): void => {
@@ -100,10 +104,40 @@ const runExport = async (args: readonly string[]): Promise<void> => {
   }
 };
 
+/**
+ * `pick`: the browser tier (WP6, D-036). A window opens **on this machine**, the
+ * reader clicks, and the sentence `pnpm pick` prints is the same one the page prints.
+ *
+ * No database and no boot: a pick needs the source file and the transport, and that
+ * is all. So it runs while the server runs, with no `db_lock` to fight over, and it
+ * writes a source file only when `--write` said so — the page's editor (SAVE is the
+ * reader's act) is the normal way in.
+ */
+const runPick = async (args: readonly string[]): Promise<void> => {
+  const plan = parsePickArgs(args);
+  if (!plan.ok) {
+    log(plan.message);
+    process.exit(1);
+  }
+  log('pick: opening a browser window on this machine — click the item, ↑/↓ to step to its card, Esc to stop');
+  const result = await runPickCommand(plan, {
+    dir: join(ROOT, 'sources'),
+    launch: openPickSession,
+    fetchText: pickTextFetcher({ now: () => new Date(), fetch: globalThis.fetch }),
+    profilesDir: join(ROOT, 'profiles'),
+  });
+  for (const line of result.lines) log(line);
+  process.exit(result.ok ? 0 : 1);
+};
+
 const main = async (): Promise<void> => {
   const name = process.argv[2] ?? START;
   if (name === 'export') {
     await runExport(process.argv.slice(3));
+    return;
+  }
+  if (name === 'pick') {
+    await runPick(process.argv.slice(3));
     return;
   }
   if (isBuilt(name)) {

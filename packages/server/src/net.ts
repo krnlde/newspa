@@ -106,11 +106,25 @@ export const reachLine = (host: string, port: number): string => {
  * (rule 20 forbids that): it is the same wall the bind already is, applied to one
  * route.
  */
-export const readingListAllowed = (method: string, address: string | undefined): PeerDecision => {
+/** Which loopback-only surface a peer was refused from, so the reason names the route. */
+export type ReadingListRoute = 'sources' | 'pick';
+
+/** Why each route is loopback's, in the sentence the route answers with and the log prints. */
+const READING_LIST_WHY: Record<ReadingListRoute, string> = {
+  sources:
+    'the reading list is your file set — every URL, watchword and note — so it is loopback-only (rule 18, D-034); the paper itself is readable from anywhere this server is bound',
+  pick: 'a pick reads a source file (its url, headers, `profile: true` fact) and opens a browser **on the machine that runs this server**, so it is loopback-only (rule 18, rule 20); author sources from that machine, and the phone gets the paper',
+};
+
+export const readingListAllowed = (
+  method: string,
+  address: string | undefined,
+  route: ReadingListRoute = 'sources',
+): PeerDecision => {
   if (isLoopback(address)) return { allowed: true };
   return {
     allowed: false,
-    reason: `${method} /api/sources from ${address ?? 'an unknown peer'} is refused: the reading list is your file set — every URL, watchword and note — so it is loopback-only (rule 18, D-034); the paper itself is readable from anywhere this server is bound`,
+    reason: `${method} /api/${route} from ${address ?? 'an unknown peer'} is refused: ${READING_LIST_WHY[route]}`,
   };
 };
 
