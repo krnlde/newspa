@@ -38,6 +38,9 @@ const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
  * every word arrives in `labels`, the modal's head and close control arrive in
  * `labels`, it keeps only local editing state, and the style module is class
  * strings, so the sources editor is inside the boundary, not an exception.
+ * `SourcesNew.tsx` is the skeleton menu, split out of the panel for rule 1's cap:
+ * the same markup and the same rule — a local draft, every word in `labels` — and the
+ * pick's fill stamp arrives as a prop, so no clock is read here either (D-036).
  */
 const SRC_FILES: readonly string[] = [
   'EditedStrip.tsx',
@@ -49,6 +52,7 @@ const SRC_FILES: readonly string[] = [
   'SourceEditor.tsx',
   'SourceRow.tsx',
   'SourcesModal.tsx',
+  'SourcesNew.tsx',
   'SourcesPanel.tsx',
   'Story.tsx',
   'blockHead.ts',

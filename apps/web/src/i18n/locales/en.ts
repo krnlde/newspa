@@ -132,13 +132,17 @@ export const en = {
     edit: 'Edit',
     saving: 'Saving…',
     deleting: 'Removing…',
+    // The picker's control (D-036): the paper's own verb, because the window opens on
+    // the server's machine and the item is clicked there; the report only fills.
+    pick: 'Pick',
+    picking: 'Picking…',
     newSource: 'New source',
     readOnly:
       'Reading only from this address: this server has no authentication, so the reading list — every URL, watchword and note in your source files — is served and written only to a peer on this machine (rule 18, D-034). The paper itself is readable from anywhere it is bound.',
     kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
     templates: { rss: 'An RSS feed', json: 'A JSON endpoint', html: 'An HTML page' },
     htmlNote:
-      'The picker writes these selectors by clicking them: `pnpm pick -- https://example.test`, not built (roadmap WP6). A source with `"render": true` is refused by the transport until the browser tier exists.',
+      'The picker writes these selectors by clicking them: the PICK control in the editor opens a window on the machine that runs the server, and `pnpm pick -- https://example.test` does the same from a terminal (D-036). The click fills the file; SAVE stays your act. A source with `"render": true` is refused by the transport: the pick proves selectors against the bytes the poller fetches, and a list a script builds is not in them (D-007).',
   },
   watchlist: {
     title: 'Watchlist',
@@ -169,6 +173,8 @@ export const en = {
     failed: 'The paper is not answering.',
     failedHint: 'pnpm start',
     theme: { toLight: 'Light', toDark: 'Dark' },
+    // The second axis (D-038): the word names the state the press gives, as the theme's does.
+    contrast: { toNormal: 'Plain', toMore: 'High contrast' },
     kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed' },
     byline: 'By {{author}}',
     opensInNewTab: 'Open the {{source}} story in a new tab',

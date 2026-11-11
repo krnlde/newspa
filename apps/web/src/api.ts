@@ -2,7 +2,10 @@ import {
   type AddSourceRequest,
   type AddSourceResponse,
   addSourceResponseSchema,
+  type PickRequest,
+  type PickStatusResponse,
   parseServerEvent,
+  pickStatusResponseSchema,
   type ServerEvent,
   type SourcesResponse,
   type StateResponse,
@@ -185,6 +188,53 @@ export const deleteSourceById = async (id: string, signal?: AbortSignal): Promis
     throw new ApiError(response.status, linesOf(body, response.status).join(' · '));
   }
   return answerOf(body, response.status);
+};
+
+/**
+ * The picker's report, parsed (WP6, D-036).
+ *
+ * Both verbs answer with the **same shape**: `POST` reports the window it has just
+ * opened (`202`, `state: 'running'`), and `GET` reports where the job got to. A
+ * refusal is a **throw** here, not a value: 400 (this source is not an `html`
+ * source, or is a page source with no list to pick), 404 (the file is gone, or no
+ * pick has run in this process) and 409 (a window is already open, and `messages`
+ * names the id that owns it) each carry the sentence the reader has to read, and
+ * `RefusalError.lines` is how the panel prints them in the status region.
+ *
+ * Unlike a refused write, nothing is lost by throwing: a pick has no box of the
+ * reader's bytes to keep open, because **the pick never writes** — its text fills
+ * the editor and SAVE stays the reader's act (D-036).
+ */
+const pickOf = async (response: Response, route: string): Promise<PickStatusResponse> => {
+  const body = await bodyOf(response);
+  if (!response.ok) throw new RefusalError(linesOf(body, response.status));
+  const parsed = pickStatusResponseSchema.safeParse(body.json);
+  if (!parsed.success) {
+    throw new ApiError(
+      0,
+      `${route} answered something that is not a pick report: ${parsed.error.issues[0]?.message ?? 'schema mismatch'}`,
+    );
+  }
+  return parsed.data;
+};
+
+/**
+ * Open a pick window for a source the reader already has. The body is the **id**,
+ * never a url: the url, the headers and the `profile: true` fact belong to the
+ * source file (D-011), and a route that fetched an address a peer named is the wall
+ * D-034 refuses to lower. The answer is immediate — a request that waits for a
+ * cursor dies in a proxy — so the job arrives through `pickStatus`.
+ */
+export const startPick = async (id: string, signal?: AbortSignal): Promise<PickStatusResponse> => {
+  const request: PickRequest = { id };
+  const response = await fetch('/api/pick', initOf(signal, 'POST', JSON.stringify(request)));
+  return await pickOf(response, 'POST /api/pick');
+};
+
+/** The job's report, as the page prints it: `state: 'running'` means ask again. */
+export const pickStatus = async (id: string, signal?: AbortSignal): Promise<PickStatusResponse> => {
+  const response = await fetch(`/api/pick?id=${encodeURIComponent(id)}`, initOf(signal, 'GET', undefined));
+  return await pickOf(response, 'GET /api/pick');
 };
 
 /**

@@ -105,6 +105,8 @@ export const sourcesLabelsOf = (t: TFunction, locale: LocaleApi): SourcesLabels 
   saving: t('sources.saving'),
   delete: t('sources.remove'),
   deleting: t('sources.deleting'),
+  pick: t('sources.pick'),
+  picking: t('sources.picking'),
   cancel: t('sources.cancel'),
   newSource: t('sources.newSource'),
   readOnly: t('sources.readOnly'),

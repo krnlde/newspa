@@ -38,6 +38,8 @@ export const LABELS: SourcesLabels = {
   edit: 'Edit',
   save: 'Save',
   saving: 'Saving',
+  pick: 'Pick',
+  picking: 'Picking',
   delete: 'Remove',
   deleting: 'Removing',
   cancel: 'Cancel',
@@ -82,9 +84,11 @@ export const FILES: SourcesResponse['files'] = [
 /** The mocks as `Mock`, so a suite can read the arguments the panel posted. */
 export type SaveMock = Mock<(text: string, filename?: string) => Promise<void>>;
 export type RemoveMock = Mock<(id: string) => Promise<void>>;
+export type PickMock = Mock<(id: string) => Promise<void>>;
 
 export const writeOf = (): SaveMock => vi.fn(async (_text: string, _filename?: string): Promise<void> => undefined);
 export const removeOf = (): RemoveMock => vi.fn(async (_id: string): Promise<void> => undefined);
+export const pickOf = (): PickMock => vi.fn(async (_id: string): Promise<void> => undefined);
 
 /** The panel as the app mounts it on a peer that may write: both affordances wired. */
 export const show = (props: Partial<SourcesProps> = {}): HTMLElement => {
@@ -103,6 +107,44 @@ export const show = (props: Partial<SourcesProps> = {}): HTMLElement => {
 
 export const rowAt = (file: string, root: ParentNode = globalThis.document): HTMLElement =>
   one<HTMLElement>(`${PART.sourceRow}[data-file='${file}']`, root);
+
+/** A file the picker can be asked for: `html` in item mode, so it declares a `list` (D-028). */
+export const aPickedFile = (over: Partial<SourceFileView> = {}): SourceFileView =>
+  aFile({
+    file: 'page.json',
+    id: 'page',
+    kind: 'html',
+    label: 'Example Page',
+    text: '{"id":"page","kind":"html","list":"ul.cards > li"}',
+    ...over,
+  });
+
+/**
+ * The panel with a **rerender**, because a pick's report lands while the panel is
+ * open: the suite hands a new `pickFill` down to the same mounted tree, which is
+ * exactly what the fill's stamp is for (D-036).
+ */
+export const panelOf = (
+  props: Partial<SourcesProps> = {},
+): { readonly root: HTMLElement; readonly rerender: (over: Partial<SourcesProps>) => void } => {
+  const base: SourcesProps = {
+    sources: [aPickedFile()],
+    dir: '/home/reader/sources',
+    writable: true,
+    labels: LABELS,
+    templates: TEMPLATES,
+    onSave: writeOf(),
+    onPick: pickOf(),
+    ...props,
+  };
+  const view = render(<SourcesPanel {...base} />);
+  return {
+    root: view.container,
+    rerender: (over: Partial<SourcesProps>): void => {
+      view.rerender(<SourcesPanel {...base} {...over} />);
+    },
+  };
+};
 
 /** A write the test decides the moment of: `busy` is only observable in the air. */
 export const gateOf = (): { readonly promise: Promise<void>; readonly open: () => void } => {

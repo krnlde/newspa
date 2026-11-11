@@ -1,8 +1,7 @@
-import type { HealthState, SourcesResponse } from 'newspa-core';
-import { useState } from 'react';
-import { CONTROL } from './blockHead.ts';
+import type { HealthState, PickJobState, SourcesResponse } from 'newspa-core';
 import { SourceRow } from './SourceRow.tsx';
-import { QUIET, reasonOf, TEXT_BOX, WORD } from './sourceStyle.ts';
+import { NewSource } from './SourcesNew.tsx';
+import { QUIET } from './sourceStyle.ts';
 
 /**
  * The sources panel (WP14): the reading list, as files — the content of the modal
@@ -31,7 +30,16 @@ import { QUIET, reasonOf, TEXT_BOX, WORD } from './sourceStyle.ts';
  * When `writable` is false the panel has **no affordances at all**: the server
  * refuses a write from a non-loopback peer before routing (D-034), and the reading
  * list is refused for **every verb** (rule 18), so a Save button on a phone is a
- * guaranteed failure and the honest page says the sentence instead.
+ * guaranteed failure and the honest page says the sentence instead. The picker is
+ * refused for the same two reasons at once (rule 20: opening a browser on a machine
+ * is a write), so `onPick` arrives with `onSave`, and no pick control exists for a
+ * peer the server will not let write.
+ *
+ * The panel is also the half that **owns which row is open**, so the pick's report
+ * flows through it — keyed by source id, because two rows can be open at once: `pick`
+ * drives one row's label, and `pickFill` lands in that row's editor as text to edit —
+ * **never as a write** (D-036). The skeleton menu is `SourcesNew.tsx`, a module of
+ * its own by the 300-line cap and by responsibility.
  */
 
 /** The three kinds a source file can declare, as the skeleton menu knows them. */
@@ -42,6 +50,29 @@ export interface SourcesTemplateLabels {
   readonly rss: string;
   readonly json: string;
   readonly html: string;
+}
+
+/**
+ * The pick job, as the app reports it (D-036). Keyed by **source id**, because the
+ * panel can have more than one row's editor open at once: a job belongs to one row,
+ * and a label — or a fill — that lands in every open editor overwrites bytes the
+ * reader never picked on. The row compares the id with its own and shows nothing for
+ * the others.
+ */
+export interface PickJob {
+  readonly id: string;
+  readonly state: PickJobState;
+}
+
+/**
+ * The text a landed pick fills the open editor with (D-036). `at` is a **stamp**,
+ * supplied by the app: two picks can report the same text, and the editor fills on a
+ * change of the stamp, so the second pick is not silently a no-op.
+ */
+export interface PickFill {
+  readonly id: string;
+  readonly text: string;
+  readonly at: string;
 }
 
 /** Finished words for the panel. The app owns the language; this owns the layout. */
@@ -65,6 +96,10 @@ export interface SourcesLabels {
   readonly edit: string;
   readonly save: string;
   readonly saving: string;
+  /** The pick control's word (D-036): the paper's own verb for the inspector click. */
+  readonly pick: string;
+  /** The same control while the window is open on the server's machine. */
+  readonly picking: string;
   readonly delete: string;
   readonly deleting: string;
   readonly cancel: string;
@@ -92,140 +127,13 @@ export interface SourcesProps {
   readonly messages?: readonly string[] | undefined;
   readonly onSave?: ((text: string, filename?: string) => Promise<void>) | undefined;
   readonly onDelete?: ((id: string) => Promise<void>) | undefined;
+  /** The picker (D-036): open a window on the **server's** machine for this id. */
+  readonly onPick?: ((id: string) => Promise<void>) | undefined;
+  /** The running job, with the id it belongs to: `running` is that row's label. */
+  readonly pick?: PickJob | undefined;
+  /** The text a landed pick fills with, and the row it fills. The panel never saves it. */
+  readonly pickFill?: PickFill | undefined;
 }
-
-const MENU_ID = 'sources-template-menu';
-const NEW_ID = 'sources-new-text';
-/** The id the skeletons declare, so the label names the file the write will make. */
-const NEW_FILE = 'new-source.json';
-const KINDS: readonly SourceKindName[] = ['rss', 'json', 'html'];
-
-/** Narrowed, not cast: a `<select>` hands back a string, and only three of them mean anything. */
-const kindOf = (name: string): SourceKindName | null =>
-  name === 'rss' || name === 'json' || name === 'html' ? name : null;
-
-interface NewSourceProps {
-  readonly labels: SourcesLabels;
-  readonly templates: Record<SourceKindName, string>;
-  readonly onSave: (text: string, filename?: string) => Promise<void>;
-}
-
-/**
- * The "new source" affordance: choose a kind, and its skeleton lands in a
- * textarea as **text to edit**, because no form can validate an `html` source's
- * selectors better than the config schema does — and the reader is the author
- * (D-011: the file is the truth, and the file is what this posts).
- *
- * The write carries **no filename**: the server names the file `<id>.json` from
- * the posted text, and a filename that disagrees with the id is a refusal, not a
- * rename.
- */
-const NewSource = ({ labels, templates, onSave }: NewSourceProps) => {
-  const [chosen, setChosen] = useState('');
-  const [draft, setDraft] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState('');
-
-  const choose = (name: string): void => {
-    const kind = kindOf(name);
-    setChosen(kind ?? '');
-    setDraft(kind === null ? '' : templates[kind]);
-    setFailed('');
-  };
-
-  const write = async (): Promise<void> => {
-    setBusy(true);
-    setFailed('');
-    try {
-      await onSave(draft);
-    } catch (cause) {
-      setFailed(reasonOf(cause));
-      return;
-    } finally {
-      setBusy(false);
-    }
-    // A skeleton that wrote is closed; the list refetches and shows the file.
-    setChosen('');
-    setDraft('');
-  };
-
-  return (
-    <div data-part="sources-new" className="mt-3 flex flex-col gap-2">
-      <label htmlFor={MENU_ID} className={`block ${WORD}`}>
-        {labels.newSource}
-      </label>
-      <select
-        id={MENU_ID}
-        data-part="template-menu"
-        className={CONTROL}
-        value={chosen}
-        onChange={(event) => {
-          choose(event.target.value);
-        }}
-      >
-        <option value="" />
-        {KINDS.map((kind) => (
-          <option key={kind} value={kind}>
-            {labels.templates[kind]}
-          </option>
-        ))}
-      </select>
-      {chosen === '' ? null : (
-        <>
-          <label htmlFor={NEW_ID} className={`block ${WORD}`}>
-            {labels.textOf(NEW_FILE)}
-          </label>
-          <textarea
-            id={NEW_ID}
-            data-part="source-text"
-            rows={10}
-            spellCheck={false}
-            value={draft}
-            onChange={(event) => {
-              setDraft(event.target.value);
-            }}
-            className={TEXT_BOX}
-          />
-          {chosen === 'html' ? (
-            <p data-part="template-note" className={`m-0 ${QUIET}`}>
-              {labels.htmlNote}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              data-part="new-save"
-              className={CONTROL}
-              disabled={busy}
-              onClick={() => {
-                void write();
-              }}
-            >
-              {busy ? labels.saving : labels.save}
-            </button>
-            <button
-              type="button"
-              data-part="new-cancel"
-              className={CONTROL}
-              onClick={() => {
-                setChosen('');
-                setDraft('');
-                setFailed('');
-              }}
-            >
-              {labels.cancel}
-            </button>
-          </div>
-          {failed === '' ? null : (
-            <p data-part="new-error" className={`m-0 ${QUIET}`}>
-              {failed}
-            </p>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
 
 export const SourcesPanel = ({
   sources,
@@ -236,6 +144,9 @@ export const SourcesPanel = ({
   messages,
   onSave,
   onDelete,
+  onPick,
+  pick,
+  pickFill,
 }: SourcesProps) => {
   const lines = messages ?? [];
 
@@ -264,6 +175,9 @@ export const SourcesPanel = ({
               writable={writable}
               onSave={onSave}
               onDelete={onDelete}
+              onPick={onPick}
+              pick={pick}
+              pickFill={pickFill}
             />
           ))}
         </ul>

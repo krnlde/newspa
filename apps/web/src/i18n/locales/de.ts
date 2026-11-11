@@ -129,13 +129,18 @@ export const de = {
     edit: 'Bearbeiten',
     saving: 'Speichert …',
     deleting: 'Entfernt …',
+    // Das Feld des Pickers (D-036): das eigene Verb der Zeitung, weil sich das Fenster
+    // auf dem Rechner des Servers öffnet und das Element dort geklickt wird; der
+    // Bericht füllt nur, er schreibt nie.
+    pick: 'Picken',
+    picking: 'Pickt …',
     newSource: 'Neue Quelle',
     readOnly:
       'Nur Lesen von dieser Adresse: Dieser Server hat keine Anmeldung, deshalb liefert und schreibt er die Leseliste — jede URL, jedes Überwachungswort und jede Notiz in deinen Quelldateien — nur an einen Peer auf diesem Rechner (Regel 18, D-034). Die Zeitung selbst ist von überall lesbar, wohin sie gebunden ist.',
     kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
     templates: { rss: 'Ein RSS-Feed', json: 'Ein JSON-Endpunkt', html: 'Eine HTML-Seite' },
     htmlNote:
-      'Diese Selektoren schreibt der Picker per Klick: `pnpm pick -- https://example.test`, nicht gebaut (Roadmap WP6). Eine Quelle mit `"render": true` lehnt der Transport ab, bis die Browser-Stufe existiert.',
+      'Diese Selektoren schreibt der Picker per Klick: Das Feld PICK im Editor öffnet ein Fenster auf dem Rechner des Servers, `pnpm pick -- https://example.test` tut dasselbe im Terminal (D-036). Der Klick füllt die Datei, Speichern bleibt dein Schritt. Eine Quelle mit `"render": true` lehnt der Transport ab: Der Picker beweist die Selektoren an den Bytes, die der Poller holt, und eine Liste, die ein Skript baut, ist nicht darin (D-007).',
   },
   watchlist: {
     title: 'Beobachtungsliste',
@@ -166,6 +171,8 @@ export const de = {
     failed: 'Die Zeitung antwortet nicht.',
     failedHint: 'pnpm start',
     theme: { toLight: 'Hell', toDark: 'Dunkel' },
+    // Die zweite Achse (D-038): das Wort nennt den Zustand, den das Drücken bringt.
+    contrast: { toNormal: 'Normal', toMore: 'Hoher Kontrast' },
     kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert' },
     byline: 'Von {{author}}',
     opensInNewTab: 'Die {{source}}-Meldung in einem neuen Tab öffnen',

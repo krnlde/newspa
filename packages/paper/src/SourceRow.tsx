@@ -2,12 +2,13 @@ import type { SourceFileView } from 'newspa-core';
 import { useState } from 'react';
 import { CONTROL } from './blockHead.ts';
 import { SourceEditor } from './SourceEditor.tsx';
-import type { SourceKindName, SourcesLabels } from './SourcesPanel.tsx';
+import type { PickFill, PickJob, SourceKindName, SourcesLabels } from './SourcesPanel.tsx';
 import { HAIR, PART_LINE, QUIET, reasonOf, WORD } from './sourceStyle.ts';
 
 /**
  * One source **file** in the sources panel (WP14): the facts the loader read, and
- * the two affordances a writable peer has — edit the text, remove the file.
+ * the affordances a writable peer has — edit the text, remove the file, and (inside
+ * the editor) pick the list (D-036).
  *
  * **A file with issues prints the crossings**, the mark `HealthStrip` puts on a
  * source that is not reporting: a file that does not parse is a source that
@@ -17,7 +18,9 @@ import { HAIR, PART_LINE, QUIET, reasonOf, WORD } from './sourceStyle.ts';
  * The affordances are sub-blocks that **require** their callback, so no callback
  * is guarded against a state the panel cannot render: the panel renders no
  * affordance at all for a peer the server refuses to write for (D-034), and a
- * guard no test can reach is an arm that reports nothing.
+ * guard no test can reach is an arm that reports nothing. The pick is the same
+ * rule twice over — `pickableOf` is the row's one condition, and the editor
+ * renders the control when it is handed `onPick`.
  */
 export interface SourceRowProps {
   readonly file: SourceFileView;
@@ -26,12 +29,57 @@ export interface SourceRowProps {
   readonly writable: boolean;
   readonly onSave?: ((text: string, filename?: string) => Promise<void>) | undefined;
   readonly onDelete?: ((id: string) => Promise<void>) | undefined;
+  /** The picker (D-036), handed to the row's editor — and only where a pick is possible. */
+  readonly onPick?: ((id: string) => Promise<void>) | undefined;
+  /** The job, and the fill: both carry the source id, and this row shows them only for its own. */
+  readonly pick?: PickJob | undefined;
+  readonly pickFill?: PickFill | undefined;
 }
+
+/**
+ * Does this file declare a list to pick? Only an `html` source in **item mode**
+ * has one (`list: '<css path>'`, D-028): a page source has a body, not a list, and
+ * `rss`/`json` need no selector at all.
+ *
+ * The `list` is read from the file's **own text**, because the file is the truth
+ * (D-011) and the view's `kind` is the loader's reading of it. Text that does not
+ * parse declares nothing: a broken file shows no pick control, and the loader's
+ * issue lines already say why (rule 5 is met by the lines that are on the row).
+ */
+const declaresList = (text: string): boolean => {
+  try {
+    const file = JSON.parse(text) as unknown;
+    if (typeof file !== 'object' || file === null) return false;
+    const list = (file as Record<string, unknown>)['list'];
+    return typeof list === 'string' && list.length > 0;
+  } catch {
+    return false;
+  }
+};
 
 const kindWordOf = (kind: string | null, labels: SourcesLabels): { name: SourceKindName | null; word: string } => {
   if (kind === 'rss' || kind === 'json' || kind === 'html') return { name: kind, word: labels.kind[kind] };
   return { name: null, word: kind ?? '' };
 };
+
+/**
+ * Is a pick possible for this file? Where the route can name the source (an id,
+ * D-036) and the kind has a list to pick (`declaresList`, D-028). `writable` is not
+ * in the condition: the editor this feeds is rendered only for a peer the server
+ * will write for (D-034). The row decides, and the editor renders the control **only
+ * when it is handed `onPick`** — one condition, so no arm is unreachable.
+ */
+const pickableOf = (file: SourceFileView, onPick: ((id: string) => Promise<void>) | undefined): boolean =>
+  onPick !== undefined && file.kind === 'html' && file.id !== null && declaresList(file.text);
+
+/**
+ * The job, or the fill, **if it is this row's**. Both are keyed by source id, and
+ * the panel can have two editors open at once: a running label on both, or a fill in
+ * both, would speak for a pick the reader never started and overwrite bytes in a box
+ * nobody picked on.
+ */
+const mine = <T extends { readonly id: string }>(job: T | undefined, id: string | null): T | undefined =>
+  job !== undefined && job.id === id ? job : undefined;
 
 interface DeleteProps {
   readonly named: string;
@@ -120,11 +168,19 @@ const RowDelete = ({ named, id, labels, onDelete }: DeleteProps) => {
   );
 };
 
-export const SourceRow = ({ file, labels, writable, onSave, onDelete }: SourceRowProps) => {
+export const SourceRow = ({ file, labels, writable, onSave, onDelete, onPick, pick, pickFill }: SourceRowProps) => {
   const [editing, setEditing] = useState(false);
   const kind = kindWordOf(file.kind, labels);
   const named = file.label ?? file.id ?? file.file;
   const id = file.id;
+  const pickable = pickableOf(file, onPick);
+  /**
+   * The pick's props, handed down **only where a pick is possible** — one spread, not
+   * three ternaries in the controls line, which is the count the complexity gate
+   * reads. The job and the fill are this row's, by id, and the editor renders the
+   * control when it is handed `onPick` (D-036).
+   */
+  const pickProps = pickable ? { onPick, pickState: mine(pick, id)?.state, pickFill: mine(pickFill, id) } : {};
 
   return (
     <li
@@ -188,6 +244,7 @@ export const SourceRow = ({ file, labels, writable, onSave, onDelete }: SourceRo
               file={file}
               labels={labels}
               onSave={onSave}
+              {...pickProps}
               onDone={() => {
                 setEditing(false);
               }}

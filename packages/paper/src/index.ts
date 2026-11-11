@@ -11,6 +11,8 @@ export {
 export { Section } from './Section.tsx';
 export { SourcesModal, type SourcesModalLabels, type SourcesModalProps } from './SourcesModal.tsx';
 export {
+  type PickFill,
+  type PickJob,
   type SourceKindName,
   type SourcesLabels,
   SourcesPanel,
