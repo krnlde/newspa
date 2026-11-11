@@ -2,16 +2,19 @@
 
 What is **not** built, in the order that unblocks the most. Each package states
 the measured gap, the acceptance test, and the rules it is answerable to.
-`docs/state.md` is the inventory of what exists; `AGENTS.md` is the law.
+`docs/state.md` (and `docs/state-server.md`, for the surface and the verbs) is the
+inventory of what exists; `AGENTS.md` is the law.
 
 The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else. **WP2, WP3,
 WP4 and WP5 are closed** (below): the poll, the scheduler, the two routes the app
-calls, the SSE stream, the page, and the entry point that runs them - so `pnpm build
-&& pnpm start` is a paper that fills itself, on a port, on the LAN if the config says
-so (D-034). `export --bundle` is built too (WP11, half), which closes the one gap
-that was data loss. What is left is quality of life, not architecture: the renderer
-and the picker (WP6), search (WP7), toasts (WP10), the watchlist knobs (WP9), the
-rest of the export/import formats (WP11), the README (WP13). Closed and retired
+calls, the SSE stream, the page, and the entry point that runs them - so `pnpm start`
+(build, then one process) is a paper that fills itself, on a port, on the LAN if the
+config says so (D-034), with `pnpm server` and `pnpm ui` as the development pair
+(`docs/state-server.md`). `export --bundle` is built too (WP11, half), which closes
+the one gap that was data loss. What is left is quality of life, not architecture:
+**the sources UI (WP14, decided next)**, the renderer and the picker (WP6), search
+(WP7), toasts (WP10), the watchlist knobs (WP9), the rest of the export/import formats
+(WP11), the README (WP13). Closed and retired
 packages - WP1, WP2, WP3, WP12 - are recorded in `docs/roadmap-closed.md` with what
 each measured; read WP12 before reopening the same two files.
 
@@ -174,6 +177,30 @@ it back.
 slots in `editionOf`; the export → import round trip is byte-stable for the
 same input; an imported file that violates the schema fails with the zod issue
 and writes nothing (D-014).
+
+## WP14 — Managing sources from the page  _(next, decided 2026-11-11)_
+
+**Gap.** Sources are files, and the page shows them read-only: `apps/web` has no
+router and no form, `POST /api/sources` is named in the 404 body, and the only
+writer is `packages/config`'s `writeSource`/`removeSource` (built, tested). The
+precondition for a route already exists: D-034's guard refuses every write from a
+non-loopback peer **before routing**, and the server authenticates nothing (rule 17).
+
+**Build.** `POST /api/sources` (validate with core's `addSourceRequestSchema`,
+write with `writeSource`, answer with the **file path it wrote**, 4xx with the zod
+issue — never a stack) and a small form under `HealthStrip`: `kind`, `label`, `url`,
+`cadenceMinutes`, `section`, `weight`. Three rules: the file stays the truth (D-011,
+D-025 — the form writes a file and says which, it is not a CMS and edits no story
+text); a `kind: 'html'` source **says** it needs the picker (WP6) instead of
+offering a selector box nothing can validate; and no route may add a token, cookie
+or "shared secret" to make a LAN write safe (rule 20).
+
+**Accept.** A loopback POST writes `sources/<id>.json` and the answer names the
+path; the same request from a LAN peer is the 403 (the guard, not the route); an
+invalid body is the zod issue with no file written; the form renders the refusal a
+source file got at load (rule 5: the paper runs without it, and says so); the
+`html` path prints the picker sentence; a source with no file is stated in the
+health strip, not shown as a silent zero.
 
 ## WP10 — Notifications
 

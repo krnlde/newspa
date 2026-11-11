@@ -47,3 +47,18 @@ export const CUT_COMMANDS: readonly string[] = Object.keys(CUT);
 /** What the process edge prints for an unknown name: the built commands, and the cut list. */
 export const unknownCommandLine = (name: string): string =>
   `newspa: unknown command "${name}". Built: ${BUILT_COMMANDS.join(', ')}. Not built, and why: ${CUT_COMMANDS.join(', ')}.`;
+
+/**
+ * The line a built command prints when it **cannot run at all** — exit 1, with the
+ * reason, and none of the running loop's promises.
+ *
+ * Measured on this machine: a `pnpm start` killed with the process tree left the
+ * `db_lock` claim behind, and the next `pnpm server` answered its own
+ * `DatabaseLockedError` as an *uncaught exception* — a stack ending
+ * "— surviving it", from a run that had no server, no scheduler and nothing to
+ * survive. That is rule 5's inverse: not a silent zero, but a loud lie. A boot that
+ * cannot boot is named and exits; the last-resort handlers are for a loop that is
+ * already running.
+ */
+export const failureLine = (command: string, cause: unknown): string =>
+  `${command} failed: ${cause instanceof Error ? cause.message || cause.name : String(cause)} — not starting`;

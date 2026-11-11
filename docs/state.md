@@ -72,48 +72,10 @@ work and **never** suppress an item — charset detection, RSS/Atom parsing, HTM
 and JSON parsing (relative links resolve against the URL that answered, D-030),
 and 31 captured fixtures under `test/fixtures/`.
 
-**server**: the read side **and** the poll. `index.ts` re-exports `editionOf`
-(rows → `Edition`), `stateOf` (+ `StateDeps`, `datelineFor`, the item/event
-limits), and `pollOne` with `pollDepsOf` (the composition seam: a `Database` in,
-the repositories, the transaction and the test seams out). `poll.ts` is the
-ladder and the single write path; the rungs' meanings, the ladder state, the
-publish step, the **disappearance ladder** (`pollGone.ts`, D-029: which polls
-settle the item set, and the write) and the health mapping are each their own
-module (WP2 in `docs/roadmap.md` records the measurements). **The scheduler is
-built** (WP3, MVP shape): `schedulePlan.ts` is the pure policy — paused → ×4 backoff
-→ cron (only at zero failures, so a cron-anchored source cannot re-hammer a `429`) →
-cadence, with the rendered floor (D-033) and the quiet-hours push on top — and
-`scheduler.ts` is the loop: `dueSources(now, limit)`, one poll at a time, the plan
-written after **every** poll including one that threw, the `db_lock` claim taken at
-start, extended per batch and released on stop, a catch per poll **and** a catch per
-batch, and a `tally()` so a tick's decisions are countable (D-020). Its state is two
-columns migration 5 added (`next_run_at`, `consecutive_failures`), read by
-`dueSources` and written by `setSchedule`, and deliberately absent from
-`StoredSource`: the pipeline upserts every source on every load, and a column named
-by that upsert would reset a countdown at every restart.
-
-**The surface is built** (WP4/WP5, MVP). `cli.ts` is the process edge — argv, signals,
-exit codes, coverage-excluded as `main.tsx` is — and its commands are **data** in
-`commands.ts`: one built (`start`), the rest refused **by name**, each with the place
-the answer lives; `test/commands.test.ts` pins the root scripts against that list, so
-`package.json` cannot name a command with no answer. `start.ts`'s `boot(deps)` reads
-and reports the config, `ensureSourcesDir`s the watchlist directory (D-025), opens and
-migrates the db (the open is what takes the `db_lock` claim), upserts the sources,
-starts the scheduler publishing its cycles to the SSE hub, and serves. `httpApp.ts` is
-the router (`GET /api/state`, `GET /api/events`, the page from `apps/web/dist`, and a
-404 that names what is not built), `sse.ts` the fan-out, `staticFiles.ts` the cache
-rules (`index.html` never cached, a hashed asset forever, a missing build answered
-with `pnpm build`), `net.ts` the address policy (D-034: reads for the LAN, writes
-loopback-only, the reach line with the typeable URLs and the firewall command). The
-paper fills itself from a poll of the local `sources/`, and `start.test.ts` proves it
-over a socket with a fixture feed, offline. `bundleExport.ts` answers
-`export --bundle` (WP11): `config/src/bundle.ts` is the shape (`newspa.bundle.v1`, the
-fifth published schema), and the command is **complete or refuses** — any source file
-that failed to parse is a `BundleRefusedError` with every issue line and **no file
-written**, because rule 18 makes this the reading list's only copy and a backup that
-silently dropped a source is a backup that lies. What is still absent: the items and
-search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
-(WP10), the picker and the renderer (WP6).
+**server**, the surface, the run verbs and the dev loop: `docs/state-server.md` —
+the poll and the read side as one package, `cli.ts`/`commands.ts`/`start.ts`,
+routes, SSE, the address policy (D-034), the four verbs, and the loop that prints
+the page.
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,
@@ -125,21 +87,6 @@ failing test.
 
 **web**: the SPA — `App.tsx`, `api.ts` (`/api/state`, `EventSource
 '/api/events'`), i18n chrome, the dev API plugin and the seed.
-
-## The dev loop, which is how the page is seen today
-
-`pnpm --filter newspa-web run seed` writes `apps/web/dev/state.json` (113
-stories, 6 edited, 8 sources) from the parser fixtures; `apps/web/dev/apiPlugin.ts`
-serves `/api/state` and `/api/events` from it, so `pnpm dev` prints a paper with
-real publisher text while `packages/server` is incomplete. `pnpm shots`
-(`scripts/screenshot-paper.mjs`, `playwright-core` + `channel: 'msedge'`, D-003)
-renders the paper at 1440×900, 1024×768 and 390×844 and prints, per width: the
-front grid's computed tracks, the lead headline's size, its box and **whether it
-is above the fold**, the count of justified elements, and any console error,
-failed request or page error. Its selectors are `data-part` hooks, never classes
-(rule 11): a layout claim that queries a styling class is a claim about the
-styling. The in-app browser is ~620 px wide and
-always shows the phone stack, so `pnpm shots` is the only desktop truth.
 
 ## Styling: Tailwind v4, migration complete
 

@@ -1,7 +1,8 @@
 /**
  * The process edge: argv, `console`, signals, exit codes. It is the file the root
- * scripts name (`node packages/server/src/cli.ts start`), and it is coverage-excluded
- * for the reason the shared policy gives for `main.tsx` and the browser launches: it
+ * scripts name — `start` (the product, which builds first) and `server` (the process
+ * alone) both run `cli.ts start` — and it is coverage-excluded for the reason the
+ * shared policy gives for `main.tsx` and the browser launches: it
  * touches the process. What is testable about it is the **decision**, which lives in
  * `commands.ts` where a test can reach it.
  *
@@ -17,7 +18,7 @@
  */
 import { pathToFileURL } from 'node:url';
 import { BundleRefusedError, exportBundle } from './bundleExport.ts';
-import { isBuilt, refusalOf, START, unknownCommandLine } from './commands.ts';
+import { failureLine, isBuilt, refusalOf, START, unknownCommandLine } from './commands.ts';
 import { boot, ROOT } from './start.ts';
 
 const log = (line: string): void => {
@@ -34,10 +35,23 @@ const installCrashReports = (): void => {
   });
 };
 
-/** `start`: the whole product, and the signals that end it cleanly. */
+/**
+ * `start`: the whole product, and the signals that end it cleanly.
+ *
+ * The last-resort handlers are installed **after** the boot succeeds, and a boot
+ * failure exits with a line (`commands.ts: failureLine`): "surviving it" is a
+ * promise about a loop that does not exist yet, and saying it about a run that never
+ * opened its database is a lie with a stack attached.
+ */
 const runStart = async (): Promise<void> => {
+  let running: Awaited<ReturnType<typeof boot>>;
+  try {
+    running = await boot({ root: ROOT, log });
+  } catch (cause) {
+    log(failureLine('start', cause));
+    process.exit(1);
+  }
   installCrashReports();
-  const running = await boot({ root: ROOT, log });
   const shutdown = (signal: string): void => {
     log(`${signal}: stopping the scheduler, closing the streams`);
     void running.close().then(() => {
@@ -81,7 +95,8 @@ const runExport = async (args: readonly string[]): Promise<void> => {
       for (const issue of cause.issues) log(`  ${issue}`);
       process.exit(1);
     }
-    throw cause;
+    log(failureLine('export --bundle', cause));
+    process.exit(1);
   }
 };
 

@@ -143,7 +143,11 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     tree is public changed. The backup is `pnpm export --bundle`, which carries
     `sources/`. `scripts/check-secrets.mjs` fails the build when a source
     definition is _tracked_. Capture fixtures **logged out**: a payload from a
-    signed-in page carries the reader's data into a public file.
+    signed-in page carries the reader's data into a public file. The same rule
+    covers **`config.json`**: `scoring.watchwords`/`blockwords` say what a reader
+    cares about, and `server.host` says who can read it — so that file is
+    gitignored and `config.example.json` is what ships, validated by
+    `packages/config/test/examples.test.ts`.
 19. **Delegation: exactly one agent at a time — the supervisor included.** Never
     two subagents, and never a subagent while the supervisor edits: they race on
     the same files, lockfile, and gates. Launch one, then work on files it is not
@@ -187,8 +191,13 @@ sources.example/  Example source definitions (public). `sources/` is your readin
                   list: local, gitignored, not version-controlled; the backup is
                   `pnpm export --bundle` (built — take a copy off this machine, since
                   the file is the only copy). data/ and profiles/ are gitignored too.
+config.example.json The shipped app config, validated by `config/test/examples.test.ts`.
+                  `config.json` is yours and is gitignored (rule 18: its
+                  `scoring.watchwords` are the reading list too) — and it is the file
+                  that turns the LAN on (`server.host`, D-034).
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
-docs/             architecture.md, state.md, roadmap.md (what is not built) +
+docs/             architecture.md, state.md + state-server.md (the surface, the run
+                  verbs, the dev loop), roadmap.md (what is not built) +
                   roadmap-closed.md (what landed, and what it measured),
                   decisions.md, decisions-tooling.md, decisions-detection.md
                   (selectors, the ladder, `gone`, measured cost), fetching.md,
@@ -200,6 +209,9 @@ docs/             architecture.md, state.md, roadmap.md (what is not built) +
 ```
 pnpm install            pnpm dev            pnpm build
 pnpm start              # the paper: poll + routes + page. Bind is config (D-034)
+pnpm server             # the process alone: poll + API, page only if `dist` exists (no build)
+pnpm ui                 # Vite (5173, loopback) proxying /api to 8787: hot reload on live news
+pnpm dev                # Vite on the seed from fixtures (`pnpm seed`): the paper offline
 pnpm pick -- <url>      # not built: each of pick/login/status/search prints a line
 pnpm login -- <url>     # naming where the answer lives (commands.ts, roadmap WP6/WP8)
 pnpm sources:init       # once per clone: copies sources.example/ into sources/ (D-025)
