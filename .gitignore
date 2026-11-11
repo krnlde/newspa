@@ -30,6 +30,11 @@ Thumbs.db
 # exists to prevent, and a squashed history cannot take it back.
 /newspa-bundle.json
 
+# Your settings. Same rule, same reason: `scoring.watchwords`/`blockwords` are a
+# statement about what a reader cares about, and the `server` block says where the
+# paper is reachable from. `config.example.json` is what ships. Rule 18.
+/config.json
+
 # The dev paper: `pnpm seed` writes it out of the parser fixtures, and the dev
 # Vite plugin serves it. Generated, machine-local, never authored by hand.
 /apps/web/dev/state.json

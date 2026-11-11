@@ -256,6 +256,17 @@ at boot.
 browser's address bar (it needs a scope id), and a printed URL that does not work is
 worse than one that is merely old-fashioned.
 
+**In practice the reader meets Windows' own prompt.** The firewall asks "allow access"
+the first time the process listens, so the `netsh` command above is the **fallback**:
+for a prompt dismissed without reading, a public profile, or a domain network that
+never shows one. The printed line stays, because a bind that succeeds while every
+packet is dropped is indistinguishable from a dead server. Measured with
+`server.host: "0.0.0.0"`: the boot prints
+`listening on http://192.168.0.223:8787, http://127.0.0.1:8787 — anyone on this network
+can read the paper, and /api/state shows your source list to them; writes stay
+loopback-only`, and `GET http://192.168.0.223:8787/api/state` answers 200 with the
+masthead and the source count.
+
 `isLoopback` is the whole policy, so it is tested on the forms a socket actually
 presents (`::ffff:127.0.0.1`, `::1`, `localhost`, `127.0.0.53`) and on the
 addresses a phone has (`192.168.x`, `10.x`, `fe80::`, `2001:db8::`).

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/krnlde/newspa/main/schemas/appconfig.schema.json",
+  "masthead": {
+    "name": "The Daily",
+    "tagline": "As it happens, on your own machine",
+    "dayStartHour": 7,
+    "timezone": "local"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "openBrowser": true
+  },
+  "scoring": {
+    "watchwords": ["iran", "rail strike"],
+    "blockwords": ["giveaway"],
+    "recencyHalfLifeHours": 24
+  },
+  "scheduler": {
+    "jitterSpanMs": 120000,
+    "backoffBaseMs": 60000,
+    "backoffMaxMs": 3600000,
+    "maxFailuresBeforePause": 6,
+    "staleAfterMinutes": 2880
+  },
+  "notify": {
+    "toasts": true,
+    "minScoreForToast": 6,
+    "maxToastsPerCycle": 3,
+    "quietHours": { "startHour": 23, "endHour": 7 }
+  }
+}
