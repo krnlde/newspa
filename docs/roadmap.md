@@ -131,22 +131,32 @@ observe, and create the selector from that click._
   server**. `profiles/<id>` (gitignored) when `profile: true`, because the browser
   profile is the only credential (rule 17). A hard timeout, and a refused launch is a
   **reported** failure, never an empty answer (rule 5).
-- **The injected picker script** — hover highlights one candidate; a click captures it.
-  Derivation is anchored on **the link** (D-005: the link _is_ the item's identity):
-  take the nearest `a[href]` at or above the clicked node, walk up to the nearest
-  ancestor whose siblings share that shape, emit CSS for the sibling set, then
-  **generalise** — drop path segments while the match count stays the same.
-- **The measured proof, before anything is written.** The derived `list` is run against
-  the **plain-fetch** bytes through the real parser. Same count ⇒ `render: false`, and
-  D-007 stays honest: the source is authored against bytes the poller can fetch. Zero,
-  or far more ⇒ the picker says so, records the counts, and sets `render: true`, which
-  the transport refuses **by name** today — so the paper reports `render-required`
-  (rule 5) rather than a silent zero. **A selector that matched nothing is never
+- **The injected inspector** mirrors DevTools' "Select an element to inspect it":
+  hover rings one element and names it, a **click** captures it, **Up/Down walk the
+  ancestor chain** (the click lands on a `<span>` inside the card, so the parent step
+  is what makes a picker usable), **Esc** cancels. It sends a **structural
+  fingerprint**, not a selector: the nth-child path from `<html>` to the clicked node,
+  the nearest `a[href]`'s absolute address, the node's `outerHTML`, the document URL.
+  The page is a witness, not an author. CDP `Overlay.setInspectMode` — the real
+  DevTools inspector — is the recorded fallback, not the first cut: it returns a
+  `backendNodeId`, so the CSS path costs a `DOM.resolveNode` +
+  `Runtime.callFunctionOn` round-trip (D-036). And `F12` is already there: a reader
+  who prefers DevTools' own picker gets a `#id > nth-child` path cheerio accepts.
+- **The derivation is Node's, and it runs against the raw fetched bytes.** The path
+  maps to a node in the plain-fetch HTML; the anchor is where the item's identity
+  lives (D-005); the sibling set generalises by dropping path segments **while the
+  match count holds**; and the count is written as `matchCount` (D-026's rot
+  baseline). Because the derivation runs in the parser's own DOM, **D-007's problem is
+  measured at pick time**: if the path does not map into the raw fetch, the DOM that
+  was clicked is not the DOM the poller fetches, so the picker records `render: true`
+  and says so — and the transport's named refusal makes the paper report
+  `render-required` (rule 5) until WP6b. **A selector that matched nothing is never
   written.**
-- **The write.** `list`, `fields.title`, `fields.link` and `matchCount` (the rot
-  baseline, D-026) merged into `sources/<id>.json` through the **same validated write
-  path as the modal** (`parseSourceJson`, WP14), the reader's other fields untouched
-  (D-011: files are truth; D-025: they stay local, unversioned).
+- **The write is the modal's.** The pick fills the editor with the merged JSON
+  (`list`, `fields.title`, `fields.link`, `matchCount`, the reader's other fields
+  untouched); **SAVE** posts it through the one validated path (`parseSourceJson`,
+  WP14). A click that rewrote a file would make D-011's truth a side effect of a
+  mouse.
 
 **The verb and the route.** `pnpm pick -- <url>` for the CLI, and `POST /api/pick` +
 `GET /api/pick?id=` for a PICK button on an `html` row in the sources modal — both
@@ -165,13 +175,17 @@ unflagged browser, and a surface that works behind flags is not a surface. No
 clicks the banner in the headed window, which is free), and **no `render` tier for
 polling** — that is WP6b, and D-007's named refusal stays until it is built.
 
-**Accept.** In real Edge against a scripted page (browser project, so outside the
-pre-commit floor): a click on the third item of a list yields a `list` selector whose
-live match count equals the `matchCount` written to the file; the real parser finds a
-title and a link for every item; the file validates and is what the modal shows next. A
-click on a node with no `a[href]` in its subtree **refuses, naming why**; a `list` that
-matches the whole page **refuses, naming the count**. A launch that cannot open Edge
-reports `blocked`, not `[]`.
+**Accept.** The derivation is tested in **Node** over fixture HTML — no browser: the
+fingerprint maps to the clicked node, the generalisation settles on the shortest
+selector that keeps the count, a fingerprint that does **not** map into the raw fetch
+yields `render: true` naming both counts. In real Edge against a scripted page
+(browser project, so outside the pre-commit floor): a click on the third item of a
+list yields a `list` selector whose live match count equals the `matchCount` written
+to the file; the real parser finds a title and a link for every item; the editor shows
+the merged JSON and SAVE writes it, validated. **Up** moves the capture to the parent.
+A click on a node with no `a[href]` in its subtree **refuses, naming why**; a `list`
+that matches the whole page **refuses, naming the count**. A launch that cannot open
+Edge reports `blocked`, not `[]`.
 
 ## WP7 — Search
 
