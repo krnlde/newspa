@@ -5,63 +5,26 @@ the measured gap, the acceptance test, and the rules it is answerable to.
 `docs/state.md` (and `docs/state-server.md`, for the surface and the verbs) is the
 inventory of what exists; `AGENTS.md` is the law.
 
-The dependency spine was `WP2 → WP3 → WP4 → WP5`, then everything else. **WP2, WP3,
-WP4 and WP5 are closed** (below): the poll, the scheduler, the two routes the app
-calls, the SSE stream, the page, and the entry point that runs them - so `pnpm start`
-(build, then one process) is a paper that fills itself, on a port, on the LAN if the
-config says so (D-034), with `pnpm server` and `pnpm ui` as the development pair
-(`docs/state-server.md`). `export --bundle` is built too (WP11, half), which closes
-the one gap that was data loss, and the reading list now has an editor on the page
-(WP14: the three verbs, the modal, and the reading-list rule that came out of it). What
-is left is quality of life, not architecture, and **the next package is WP6** — the
-picker, scoped below and answered by the reader's own words: _go to the URL, click the
-item I want to observe, and make the selector from that click_. The rest of the queue is
-search (WP7), toasts (WP10), the watchlist knobs (WP9), the rest of the export/import
-formats (WP11), the README (WP13).
-Closed, retired and built packages — WP1, WP2, WP3, WP12, WP14 — are recorded in
-`docs/roadmap-closed.md` with what each measured; read WP12 before reopening the same
-two files.
+The spine `WP2 → WP3 → WP4 → WP5` is closed (see `docs/roadmap-closed.md`): the poll,
+the scheduler, the routes the app calls, the SSE stream, the page, and the entry point
+that runs them — so `pnpm start` is a paper that fills itself, on a port, on the LAN if
+the config says so (D-034), with `pnpm server` and `pnpm ui` as the development pair.
+`export --bundle` is built too (WP11, half), which closes the one gap that was data
+loss, and the reading list has an editor on the page (WP14: the three verbs, the modal,
+and the reading-list rule that came out of it). **WP6 is closed as well** (D-036): a
+click in a real Edge window on the server's machine, a selector proved against the
+bytes the poller fetches, and a PICK control that **fills** the editor so SAVE stays
+the reader's act. The display axes are built too (D-038: `data-contrast` composes with
+`data-theme`, set by URL for a wall device).
 
-## WP3 — The scheduler  _(built 2026-11-11, MVP shape)_
-
-**Was.** Nothing ran a poll on a cadence: `core` had `cadence.ts` and
-`cadenceCron.ts` (parsing, next-run arithmetic) and `db` had the lock
-(`claimLock`, `extendLock`, `releaseLock`), with no caller.
-
-**Is.** Two modules, split at the seam that made them testable.
-`packages/server/src/schedulePlan.ts` is a **pure** function of (source, failure
-count, instant) → the next instant, the interval it implies, and the rule that made
-it: paused at `maxFailuresBeforePause` → ×4 backoff → cron (only at zero failures,
-so a cron-anchored source cannot re-hammer a `429`) → cadence, with the rendered
-floor and the quiet-hours push applied on top. `packages/server/src/scheduler.ts` is
-the loop: `dueSources(now, limit)`, one poll at a time, the plan written **after**
-each poll — including a poll that threw, because a source with no plan is a source
-the next batch picks up immediately, which is how a fault becomes a hammer — the
-claim taken at start, extended per batch, released on stop, a catch per poll **and**
-a catch per batch, and a `tally()` so every tick's decisions are countable (D-020).
-
-**MVP spends, and names what it does not.** Polls are sequential, so
-`AppConfig.scheduler.maxConcurrentFetches` is **unused** — parallel polls interleave
-at their `await`s and the write budget is one transaction, so the knob is a
-follow-up rather than a comment claiming it works. Jitter is once per **batch**, not
-per source; a batch takes 24; the tick is 60 s; cron is honoured only at zero
-failures. `nextRunAt` is **not** on the wire: `SourceHealthView` has no such field
-and the paper does not ask for one.
-
-**`render: true` needed no special case, and that was checked, not assumed.** The
-transport refuses it **by name** (`reason: 'render-required'`, `errorKind: 'render'`,
-D-007), so a render source is a poll that _reports_, and the scheduler relaxes it to
-the ceiling and then the pause: the paper says so, nothing is swallowed (rule 5).
-
-**Accept — 18 plan tests and 18 loop/batch tests over a real db.** A fresh database
-polls everything first (a null `next_run_at` leads the batch); 30 sources are caught
-up in 24 + 6; a disabled source is neither polled nor planned; `health: 'ok'` clears
-the streak; a thrown poll is a log line, a counted failure and a plan; the claim is
-live at the end of a batch and gone after `stop()`; a refused claim names its owner
-and polls nothing; a batch that throws leaves the loop running. The plan tests pin
-the ×4, the ceiling, the pause, cron winning at 0 failures and yielding at 1, the
-5-minute floor on a 1-minute render source, and quiet hours in a daytime window and
-in one that wraps past midnight.
+What is left is quality of life, not architecture, and the queue is the reader's own
+next sentence: _install it, and put it on a screen that is not a laptop._ So the next
+packages are **WP16 (the installable paper)**, **WP17 (TLS, which WP16 needs)** and
+**WP15 (the board)**, the recipe that ties them to D-037's topology. After them:
+search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
+README (WP13). Closed packages are in `docs/roadmap-closed.md` with what each
+measured - WP1, WP2, WP3, WP6, WP12, WP14; read WP12 before reopening those files.
+(WP4 and WP5 are built and recorded below, where their open halves are named.)
 
 ## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_
 
@@ -93,10 +56,10 @@ for offline dev, and is never in the bundle.
 
 **Built.** `packages/server/src/cli.ts` is the process edge the root scripts name —
 argv, `console`, signals, exit codes — coverage-excluded as `main.tsx` is. Its
-commands are **data** in `commands.ts`: two built (`start`, `export --bundle`), the
-rest refused **by
+commands are **data** in `commands.ts`: three built (`start`, `export --bundle`,
+`pick`), the rest refused **by
 name**, each line naming where the answer lives (the health strip is the paper, the
-file is the truth, the picker is WP6, the credential is WP8). `test/commands.test.ts`
+file is the truth, the credential is WP8). `test/commands.test.ts`
 reads the root `package.json` and fails if any script naming `cli.ts` has no answer,
 so the scripts and the commands cannot drift: `pnpm status` prints a sentence, exit 1;
 an unknown name prints the list, exit 2.
@@ -114,78 +77,6 @@ the plan is in the row, and the tally's count equals the wire's.
 `sources/` gitignored, so the bundle is the only backup of the reading list. Its rules
 (complete-or-refuse, byte-stable, gitignored itself) are WP11's, below. `import` is
 still open, and refuses by name, pointing at the schema to restore by hand.
-
-## WP6 — The picker: the reader's click becomes the selector  _(scoped 2026-11-11)_
-
-**Gap.** `AGENTS.md`'s layout names `packages/fetch`'s `render` and `pick`; neither
-exists, so an `html` source's `list` and `fields` selectors are authored by hand — the
-reader reads the publisher's markup to write them, and the failure mode is the one
-D-026 measured: a selector that matches `0` nodes, or `999` of them, pollutes the paper
-quietly. The requirement is the reader's own: _go to the URL, click the item I want to
-observe, and create the selector from that click._
-
-**Build.** Four pieces, each in the package that owns it:
-
-- **`packages/fetch/src/pick/launch.ts`** — headed Edge through `playwright-core`,
-  `channel: 'msedge'` (D-003, never `playwright`), on **the machine that runs the
-  server**. `profiles/<id>` (gitignored) when `profile: true`, because the browser
-  profile is the only credential (rule 17). A hard timeout, and a refused launch is a
-  **reported** failure, never an empty answer (rule 5).
-- **The injected inspector** mirrors DevTools' "Select an element to inspect it":
-  hover rings one element and names it, a **click** captures it, **Up/Down walk the
-  ancestor chain** (the click lands on a `<span>` inside the card, so the parent step
-  is what makes a picker usable), **Esc** cancels. It sends a **structural
-  fingerprint**, not a selector: the nth-child path from `<html>` to the clicked node,
-  the nearest `a[href]`'s absolute address, the node's `outerHTML`, the document URL.
-  The page is a witness, not an author. CDP `Overlay.setInspectMode` — the real
-  DevTools inspector — is the recorded fallback, not the first cut: it returns a
-  `backendNodeId`, so the CSS path costs a `DOM.resolveNode` +
-  `Runtime.callFunctionOn` round-trip (D-036). And `F12` is already there: a reader
-  who prefers DevTools' own picker gets a `#id > nth-child` path cheerio accepts.
-- **The derivation is Node's, and it runs against the raw fetched bytes.** The path
-  maps to a node in the plain-fetch HTML; the anchor is where the item's identity
-  lives (D-005); the sibling set generalises by dropping path segments **while the
-  match count holds**; and the count is written as `matchCount` (D-026's rot
-  baseline). Because the derivation runs in the parser's own DOM, **D-007's problem is
-  measured at pick time**: if the path does not map into the raw fetch, the DOM that
-  was clicked is not the DOM the poller fetches, so the picker records `render: true`
-  and says so — and the transport's named refusal makes the paper report
-  `render-required` (rule 5) until WP6b. **A selector that matched nothing is never
-  written.**
-- **The write is the modal's.** The pick fills the editor with the merged JSON
-  (`list`, `fields.title`, `fields.link`, `matchCount`, the reader's other fields
-  untouched); **SAVE** posts it through the one validated path (`parseSourceJson`,
-  WP14). A click that rewrote a file would make D-011's truth a side effect of a
-  mouse.
-
-**The verb and the route.** `pnpm pick -- <url>` for the CLI, and `POST /api/pick` +
-`GET /api/pick?id=` for a PICK button on an `html` row in the sources modal — both
-**loopback-only** (rule 20: launching a browser on a machine is a write, and rule 18 is
-why the reading list is loopback's), both answered by the same refusal sentence a peer
-already reads for the panel. The modal is the page's **one overlay** (D-035): the pick
-state prints _inside_ it, as a status line, not as a second dialog.
-
-**MVP spends, and names what it does not.** Picking is for `kind: 'html'` only — an RSS
-or JSON source has no nodes to click. The click happens in the **real Edge window on the
-server machine**, so a phone peer cannot pick: their click cannot reach a browser this
-process launches. No **bookmarklet** — a page on a public site fetching
-`http://127.0.0.1:8787` is blocked by Private Network Access and mixed content in an
-unflagged browser, and a surface that works behind flags is not a surface. No
-`pick.maxHops` pagination, no scroll-to-load, no cookie-banner auto-dismiss (the reader
-clicks the banner in the headed window, which is free), and **no `render` tier for
-polling** — that is WP6b, and D-007's named refusal stays until it is built.
-
-**Accept.** The derivation is tested in **Node** over fixture HTML — no browser: the
-fingerprint maps to the clicked node, the generalisation settles on the shortest
-selector that keeps the count, a fingerprint that does **not** map into the raw fetch
-yields `render: true` naming both counts. In real Edge against a scripted page
-(browser project, so outside the pre-commit floor): a click on the third item of a
-list yields a `list` selector whose live match count equals the `matchCount` written
-to the file; the real parser finds a title and a link for every item; the editor shows
-the merged JSON and SAVE writes it, validated. **Up** moves the capture to the parent.
-A click on a node with no `a[href]` in its subtree **refuses, naming why**; a `list`
-that matches the whole page **refuses, naming the count**. A launch that cannot open
-Edge reports `blocked`, not `[]`.
 
 ## WP7 — Search
 
@@ -291,3 +182,79 @@ agent) and `docs/*` (why), and nothing that says "run these three commands".
 
 **Accept.** Every command in it is run and quoted with its real output, and it
 stays under 300 lines (rule 1).
+
+## WP15 — The board: a screen that shows the paper and asks for nothing
+
+**Gap.** The reader's goal is _an always-up-to-date news board_, and the topology is
+decided (D-037: the server is a desk machine, the wall is a display). The page is
+already the board's front end — `/api/state`, `/api/events`, and D-038's two display
+axes **set by URL** (`?theme=dark&contrast=more`, read by the pre-paint script). What
+is missing is the rest of the sentence: the launch, and the board's story when the
+desk is asleep.
+
+**Build.** The kiosk recipe, stated and checked:
+`msedge --app=http://<server>:8787/?theme=dark&contrast=more` (no tabs, no address
+bar, no first-run UI), plus the Pi's boot (a systemd user unit, documented, not
+shipped). No new server role, no companion daemon on the wall (D-037's cut). The one
+page behaviour worth building is the **freshness line**: the paper already says
+`last poll …`, and the claim to pin is that a board left for a day says so in words a
+reader can act on.
+
+**Accept.** `pnpm shots` at 1 024 × 768 (the Pi's usual panel) and 800 × 480, with the
+URL axes applied at first paint — no flash of the yellowed stock, both switches in the
+state the URL names. A server that stops answering leaves the last edition on the
+screen with its stated age, not a blank page and not a spinner (rule 5).
+
+## WP16 — The installable paper: manifest, worker, and a cache that says it is a cache
+
+**Gap.** _We need to offer to install the web app as a PWA_ (D-039). Today the product
+is a tab: no `manifest.webmanifest`, no icons the browser can use, no service worker —
+so no home screen and no standalone window, and, the real loss for a wall, **nothing on
+the screen when the server is down**.
+
+**Build.** A hand-written `manifest.webmanifest` and a hand-written `sw.js`, no plugin
+and no Workbox (rule 8: a generated precache manifest is a second bundler's opinion
+about the app's cache). Icons are authored as **SVG in the repo** and rasterised to
+192/512 PNG (with the maskable pair) by the Edge the repo already launches —
+`playwright-core` + `channel: 'msedge'`, the `pnpm shots` recipe (D-003) — so no image
+toolchain and no CDN asset (rule 11). The worker's cache is **two rules, named in the
+file**: the shell (hashed assets, immutable) and **the last edition** (the `/api/state`
+answer, kept and **labelled with its cache time**, never presented as live — rule 5
+in the browser). The install control is **inline** in the dateline strip, the page's
+one control row, in the `CONTROL` vocabulary: never a second overlay (D-035); it
+appears when `beforeinstallprompt` fires, and where the browser offers nothing (iOS)
+the line **names the recipe** instead of vanishing. `staticFiles.ts` widens by two
+names: `.webmanifest` → `application/manifest+json`, and `sw.js` is **never**
+`immutable`, with the SPA fallback never shadowing it. Needs WP17 for any address a
+phone has: a plain-HTTP LAN page is not a secure context and cannot register a worker.
+
+**Accept.** The manifest parses and names the icons the build wrote (a test reads the
+generated files, so an icon that is not there fails the build); the worker caches the
+shell and the last edition, and the page prints the cache time it was served with —
+asserted with a real registration in the browser project, not by reading the file as
+text; killing the server leaves a **labelled** edition; the install control renders
+when the prompt event is dispatched, prints the named recipe when it is not, and is
+`display: none` in print; `pnpm check` stays green with no new dependency.
+
+## WP17 — TLS, because the install needs a secure context
+
+**Gap.** A service worker registers only in a **secure context**. `http://127.0.0.1:8787`
+is one; `http://192.168.0.223:8787` — the address the LAN reader has, and the one D-034
+made the wall — is not. So WP16 is unreachable from the devices that want it, and a
+plain-HTTP LAN page puts the reading list's text in the clear.
+
+**Build.** `server.tls: { cert, key }` in the config (paths; absent means plain HTTP,
+which is today's behaviour and stays the default). The process answers `https://` and
+the boot reach-lines print the scheme, the typeable URLs and the firewall command, as
+they do now. Keys live in `data/` (gitignored) and `scripts/check-secrets.mjs` fails a
+committed `-----BEGIN … KEY-----` — rule 17 as a scan, not a hope. The docs carry the
+`mkcert` recipe and the `openssl` one. Nothing authenticates a reader to the server:
+TLS proves **the server to the browser**, the address stays the wall (D-034), and no
+token, cookie or shared secret appears (rule 20).
+
+**Accept.** A boot with a self-signed pair answers `https://127.0.0.1:8787/api/state`,
+answers `http://` with a refusal that names the scheme, and logs the same reach lines;
+the switch is tested at the socket, not by reading `start.ts`; a key in the repo fails
+`pnpm check:secrets`; `config.example.json` carries the shape and
+`config/test/examples.test.ts` validates it; a panel that trusts no private CA is
+documented as the kiosk case (D-039), not fixed by lowering the wall.

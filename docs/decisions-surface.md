@@ -7,7 +7,8 @@ control (D-034) and the page’s one overlay (D-035).
 Numbering is shared across the decision files: pipeline, identity, diff, scoring
 and detection in `decisions.md`; tooling, dependencies and testing in
 `decisions-tooling.md`; selectors, the ladder, `gone` and the measured cost of the
-browser in `decisions-detection.md`.
+browser in `decisions-detection.md`; the **device** — where the server sits, the
+display axes, install and TLS — in `decisions-display.md` (D-037, D-038, D-039).
 
 ## D-002 — The page is the product; no static edition, no SSR (**reversed from the first cut**)
 
@@ -148,7 +149,7 @@ panel’s own status region, with the paper behind it.
 the modal is a **pattern to extract** - the rules above are the pattern’s, not the
 sources editor’s - and the page still gets exactly one kind of overlay, styled once.
 
-## D-036 - The picker is a DevTools-style inspector in a real Edge window  _(scoped 2026-11-11, not built)_
+## D-036 - The picker is a DevTools-style inspector in a real Edge window  _(implemented 2026-11-11)_
 
 The requirement is the reader's: _open the URL, click the item I want to observe, and
 let that click be the selector._ The tool that does this already exists - DevTools'
@@ -170,3 +171,17 @@ to run it, and what a click is allowed to write.
 swallows a capture-phase click. Then CDP `Overlay.setInspectMode` is the fallback,
 because it is drawn by the browser's own compositor and a page cannot intercept it, and
 the round-trip is bought for a **proven** need rather than in advance.
+
+**What the build added to the decision** (2026-11-11, `docs/roadmap-closed.md` WP6).
+The table said "the click fills the modal's editor", singular; the modal can have **two
+editors open** (each row owns its own open state), so the job and the fill are keyed by
+**source id** — un-keyed, one reader's click labelled a row nobody picked on and
+overwrote bytes in a box nobody opened. The CLI's argv is a **decision in data**
+(`parsePickArgs`), because every refusal has to be testable on a machine with no
+browser (rule 16), and a **bare url writes nothing, ever**: inventing a source file
+from a click would author the reader's reading list behind their back. Two facts the
+code had to learn by measurement: `new Response(body, { status: 304 })` **throws** (a
+304 needs a null body), and the two refusals of `/api/pick` are **not symmetric** — a
+LAN `POST` dies at the mutation guard before routing, a LAN `GET` reaches the route and
+dies at the reading-list wall — so the order is pinned in `pick-http.test.ts`, because a
+test that asserted only the second would hide the first.

@@ -92,6 +92,45 @@ the streak over settled polls, and the paper prints _Archived_ as the third kick
 
 ## WP3 — The scheduler  _(built 2026-11-11, MVP shape)_
 
+**Was.** Nothing ran a poll on a cadence: `core` had `cadence.ts` and
+`cadenceCron.ts` (parsing, next-run arithmetic) and `db` had the lock
+(`claimLock`, `extendLock`, `releaseLock`), with no caller.
+
+**Is.** Two modules, split at the seam that made them testable.
+`packages/server/src/schedulePlan.ts` is a **pure** function of (source, failure
+count, instant) → the next instant, the interval it implies, and the rule that made
+it: paused at `maxFailuresBeforePause` → ×4 backoff → cron (only at zero failures,
+so a cron-anchored source cannot re-hammer a `429`) → cadence, with the rendered
+floor and the quiet-hours push applied on top. `packages/server/src/scheduler.ts` is
+the loop: `dueSources(now, limit)`, one poll at a time, the plan written **after**
+each poll — including a poll that threw, because a source with no plan is a source
+the next batch picks up immediately, which is how a fault becomes a hammer — the
+claim taken at start, extended per batch, released on stop, a catch per poll **and**
+a catch per batch, and a `tally()` so every tick's decisions are countable (D-020).
+
+**MVP spends, and names what it does not.** Polls are sequential, so
+`AppConfig.scheduler.maxConcurrentFetches` is **unused** — parallel polls interleave
+at their `await`s and the write budget is one transaction, so the knob is a
+follow-up rather than a comment claiming it works. Jitter is once per **batch**, not
+per source; a batch takes 24; the tick is 60 s; cron is honoured only at zero
+failures. `nextRunAt` is **not** on the wire: `SourceHealthView` has no such field
+and the paper does not ask for one.
+
+**`render: true` needed no special case, and that was checked, not assumed.** The
+transport refuses it **by name** (`reason: 'render-required'`, `errorKind: 'render'`,
+D-007), so a render source is a poll that _reports_, and the scheduler relaxes it to
+the ceiling and then the pause: the paper says so, nothing is swallowed (rule 5).
+
+**Accept — 18 plan tests and 18 loop/batch tests over a real db.** A fresh database
+polls everything first (a null `next_run_at` leads the batch); 30 sources are caught
+up in 24 + 6; a disabled source is neither polled nor planned; `health: 'ok'` clears
+the streak; a thrown poll is a log line, a counted failure and a plan; the claim is
+live at the end of a batch and gone after `stop()`; a refused claim names its owner
+and polls nothing; a batch that throws leaves the loop running. The plan tests pin
+the ×4, the ceiling, the pause, cron winning at 0 failures and yielding at 1, the
+5-minute floor on a 1-minute render source, and quiet hours in a daytime window and
+in one that wraps past midnight.
+
 ## WP12 — retired: the two "health defects" are not defects
 
 **What happened.** The notes recorded two bugs: that
@@ -177,3 +216,79 @@ source, and sees it in `/api/state`. `paper/test/sources-*.test.tsx` (31) on the
 speech and its affordances. `web/test/unit/sources-*.test.tsx` (39) on the wire, the
 stated states, the phone case, the two mutations and the language. Coverage: paper
 100/100/100/100, web 98.7/96.4/97.9/98.9, server 99.0/95.3/97.2/99.2.
+
+## WP6 - closed: the picker, a click in real Edge that fills a source file (2026-11-11)
+
+**Was.** An `html` source's `list` and `fields` were authored by hand, and the failure
+mode was the one D-026 measured: a selector matching `0` nodes, or `999`, pollutes the
+paper quietly. The requirement was the reader's: _go to the URL, click the item I want
+to observe, and make the selector from that click._
+
+**Is.** Four layers, each in the package that owns it (D-036).
+`packages/fetch/src/pick/` launches headed Edge (`playwright-core`,
+`channel: 'msedge'`), gives it `profiles/<id>` only for a source that declared
+`profile: true`, and injects an inspector that mirrors DevTools' picker: hover rings one
+element and names it, a **click** captures it, **Up/Down walk the ancestor chain**,
+**Esc** cancels, and a budget with no click is a **timeout, named** — never an empty
+answer. The payload is a **structural fingerprint** (the nth-child path from `<html>`,
+the nearest `a[href]`, the node's `outerHTML`, the document URL): the page is a witness,
+not an author. `packages/config`'s `applyPick` merges the proved selectors into the
+reader's **own text** — `fields.link` is replaced including by absence, `fields.summary`
+is kept when the pick derived none, `render` becomes `false` with a line saying the file
+said otherwise, `matchCount` is re-based (D-026), a positional list says "positional",
+and the result is parsed by the loader's own parser before anyone sees it.
+`packages/core/src/apiPick.ts` is the wire contract of a session (`api.ts` is the
+paper's, and at rule 1's cap). `packages/server` runs it as a job: `POST /api/pick`
+answers **202 `running` at once** (a request that waits for a cursor dies in a proxy),
+`GET /api/pick?id=` reports, **one window at a time** (a second start is a 409 naming
+the running source), and the answer carries the merged **text** — `PickApiDeps` has no
+write function at all, so a click cannot put D-011's truth under a mouse. The page's
+PICK control fills the editor and the reader presses SAVE.
+
+**The CLI is the same sequence, told by the same sentence.** `pnpm pick -- <url>`
+proves a selector and prints the keys to paste, and writes **nothing, ever**: a bare
+url has no file, and inventing one from a click is authoring the reader's reading list
+behind their back. `pnpm pick -- --id <source> [--write]` runs against a real file, and
+`--write` is the only verb that touches it. A pick needs no database, so it runs while
+the server runs, with no `db_lock` to fight over. `commands.ts` holds the argv as a
+**decision in data** (a token recursion, then the rules), so every refusal is tested
+where a browser is not, and `commands.test.ts`'s gate — every command a root script
+names has an answer — is what made moving `pick` from the cut list to the built ones
+legal.
+
+**Measured, and it changed the code.**
+
+- `new Response(body, { status: 304 })` **throws**: a 304 needs a null body. A fixture
+  that fakes a conditional-GET answer is written with the spec, not the shortcut.
+- `pathOf` answered `''` for an empty request target, which fell **past every route**
+  and out of the server with no reason attached. It answers `/` now.
+- The two refusals of `/api/pick` are **not symmetric**, and the order is the rule: a
+  LAN `POST` dies at the mutation guard **before routing**; a LAN `GET` reaches the
+  route and dies at the reading-list wall. A test that asserted only the second would
+  hide the first, so `pick-http.test.ts` pins both, and the reason names `/api/pick` —
+  a refusal that points at another route's URL is a dead end (rule 5).
+- `join('profiles', id)` yields **backslashes** on Windows: assert with `join`, never
+  with a spelled path.
+- The pick's report fills the editor, and the panel can have **two editors open** (each
+  row owns its own `editing` state). Un-keyed, one reader's click put `Picking...` on
+  both rows and dropped a stranger's selectors into a box nobody picked on, so `pick`
+  and `pickFill` are keyed by **source id** and the row shows nothing for the others.
+- StrictMode invokes an effect twice: an un-armed setup arm left the poll dead for the
+  rest of the modal's life after the first simulated unmount, so the lifetime flag is
+  written as setup **and** teardown.
+- `SourcesPanel.tsx` crossed rule 1's cap under the new props, so the skeleton menu is
+  `SourcesNew.tsx`, registered in `locale-boundary.test.tsx`'s file list on purpose.
+
+**Accept.** fetch 380 + the **real-Edge** loop (`packages/fetch/test/browser/`, 8:
+the click on the third card derives a list the parser re-reads on the served bytes;
+a real cursor walks Up two steps and captures at that depth; Esc cancels; a budget
+with no click times out; a scripted page's click exists in the DOM **and the bytes
+refuse it by name**, D-007); config 117 (99.67/97.24/100/100), including the merge
+arms where a merge says **nothing**; server 316 (98.81/95.43/96.75/99.21) — the job,
+the five ways a pick writes nothing (each sentence pinned **equal to**
+`describePickRun`'s, so page and CLI cannot tell two stories), the route over a socket,
+the CLI, the transport; paper 172, web 185 on the control, the gate, the fill, the
+id keying, the poll stopping on `picked`/`failed`/error/unmount, and **no
+`POST /api/sources`** when a pick lands. The stub window reports a real fingerprint
+against a real page, so the pre-commit floor (rule 16) runs all of this on a machine
+with no browser.

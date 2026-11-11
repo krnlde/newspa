@@ -70,7 +70,15 @@ deliberately **not** reimplemented: the pipeline is hard-coded
 11. **Paper visuals follow docs/design.md + docs/design-page.md** (one law, two
     files: type, measure, rules, the one overlay, marks, colour here; the front
     page's grid, behaviour and print there): one typeface, columns by measure,
-    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. The page has
+    hairline rules, grayscale, `--paper: #f4ecd8` in light mode. The display has
+    **two axes, not a ladder of themes** (D-038): `data-theme` answers which stock,
+    `data-contrast` answers how hard, and the pair composes. High contrast is the
+    **palette only** — the marks, the images and the page's one shadow stay, because a
+    page that hides its own content because the reader asked to be legible is punishing
+    the ask. The values live in `tokens.css` (unlayered, so they beat `@layer base` for
+    the same names: one owner per value); the system's `prefers-contrast: more` block is
+    gated on `:root:not([data-contrast])`, so the page's choice beats the OS; and no
+    component writes a `dark:`-style variant. The page has
     **exactly one overlay** (D-035): the sources editor, a native `<dialog>`
     opened with `showModal()`, a **scrim and no shadow** (the scroll edge is the
     page's only shadow), two ways out — Esc and the close control — no radius, and
@@ -177,7 +185,11 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     mutation without it, and no credential, token, cookie or "shared secret" may be
     introduced to make a LAN write safe (rule 17). `/api/sources` answers the source
     files' **verbatim text**, so **every verb of it** is loopback-only
-    (`readingListAllowed`): the phone gets the paper, not the watchwords. `/api/state`
+    (`readingListAllowed`): the phone gets the paper, not the watchwords. `/api/pick`
+    is loopback-only **on both verbs** for two reasons at once: launching a browser on
+    the machine that runs the server is a write, and a pick reads a source file — so a
+    LAN `POST` dies at the mutation guard **before routing** and a LAN `GET` dies at the
+    reading-list wall, and each refusal names the route it refused. `/api/state`
     **is** the reading list (rule 18), so binding past loopback is announced at boot: the
     typeable URLs, the fact that the household can read the source list, and the firewall
     command.
@@ -190,14 +202,19 @@ packages/core     Types, record schema, API contract, normalize, diff, score, he
 packages/paper    React newspaper components + the paper CSS (browser-safe, used by the app)
 packages/config   zod source/app schemas + file loading + watchlist/OPML (sources/*.json is truth)
 packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
-packages/fetch    http, rss, html, json, fixtures. `render`/`pick` (msedge) are WP6,
-                  not built: the transport refuses a `render: true` source by name.
+packages/fetch    http, rss, html, json, fixtures. `pick` is built (WP6, D-036):
+                  launch (msedge) + the injected inspector + the derivation, proved
+                  against the raw bytes. The polling `render` tier (WP6b) is not:
+                  the transport refuses a `render: true` source by name.
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
-                  routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE —
-                  loopback-only, rule 18 — the built page), the SSE hub,
-                  the address policy (D-034), `export --bundle` (rule 18's backup).
-                  Cut commands answer by name (`commands.ts`); toasts (WP10), `import`
-                  and the picker (WP6) are not built.
+                  routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE and
+                  `/api/pick` POST/GET — all loopback-only, rules 18 and 20), the built
+                  page, the SSE hub, the address policy (D-034), the pick job
+                  (`pickApi`/`pickHttp`/`pickCli`/`pickTransport`), `export --bundle`
+                  (rule 18's backup). `sourcesApi.ts` is the **only** writer of
+                  `sources/*.json` (pinned in `boundary.test.ts`) — a pick fills, never
+                  writes. Cut commands answer by name (`commands.ts`); toasts (WP10)
+                  and `import` are not built.
 sources.example/  Example source definitions (public). `sources/` is your reading
                   list: local, gitignored, not version-controlled; the backup is
                   `pnpm export --bundle` (built — take a copy off this machine, since
@@ -211,7 +228,9 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
                   verbs, the dev loop), roadmap.md (what is not built) +
                   roadmap-closed.md (what landed, and what it measured),
                   decisions.md + decisions-surface.md (the page, the address, the
-                  reading list, the one overlay), decisions-tooling.md,
+                  reading list, the one overlay, the picker) + decisions-display.md
+                  (the device: the server's place, the two display axes, install and
+                  TLS), decisions-tooling.md,
                   decisions-detection.md (selectors, the ladder, `gone`, measured
                   cost), fetching.md, design.md + design-page.md (the design law,
                   split at the 300-line cap), testing.md, tooling.md
@@ -225,8 +244,9 @@ pnpm start              # the paper: poll + routes + page. Bind is config (D-034
 pnpm server             # the process alone: poll + API, page only if `dist` exists (no build)
 pnpm ui                 # Vite (5173, loopback) proxying /api to 8787: hot reload on live news
 pnpm dev                # Vite on the seed from fixtures (`pnpm seed`): the paper offline
-pnpm pick -- <url>      # not built: each of pick/login/status/search prints a line
-pnpm login -- <url>     # naming where the answer lives (commands.ts, roadmap WP6/WP8)
+pnpm pick -- <url>      # a real Edge window on this machine: click the item, prints the keys
+pnpm pick -- --id <s> --write   # the same for a source file; --write merges it (no --write: prints)
+pnpm login -- <url>     # naming where the answer lives (commands.ts, roadmap WP8)
 pnpm sources:init       # once per clone: copies sources.example/ into sources/ (D-025)
 pnpm check              pnpm typecheck      pnpm lint    pnpm format
 pnpm test               pnpm coverage       pnpm test:design

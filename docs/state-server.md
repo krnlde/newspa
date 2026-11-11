@@ -52,7 +52,29 @@ that failed to parse is a `BundleRefusedError` with every issue line and **no fi
 written**, because rule 18 makes this the reading list's only copy and a backup that
 silently dropped a source is a backup that lies. What is still absent: the items and
 search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
-(WP10), the picker and the renderer (WP6).
+(WP10) and the polling render tier (WP6b).
+
+**The pick is built** (WP6, D-036), and it is the one route that **launches a program**.
+`POST /api/pick` with `{"id": "…"}` opens a headed Edge window **on the machine that
+runs the server** and answers **202 `running` at once** — a request that waits for a
+cursor dies in a proxy — and `GET /api/pick?id=` reports the job
+(`running` → `picked`/`failed`, with the merged text and the sentence). Four rules the
+shape enforces: **one window at a time** (a second start is a 409 naming the running
+source, because two Edge windows compete for one reader); **the body is an id, never a
+url** (the url, the headers, the limits and the `profile: true` fact belong to the
+source file, and a route that fetched an address a request named is a fetch the reading
+list never agreed to); **the answer carries text and no route writes a file**
+(`PickApiDeps` has no write function, so a click cannot put D-011's truth under a
+mouse — the editor fills and SAVE is the reader's act); and **the job is never a
+floating promise** — a throw, including one that is not an `Error`, becomes a `failed`
+state with a sentence, because a job that dies in a promise leaves the page watching
+`running` forever (rule 5). The address is the wall twice over: launching a browser on
+a machine is a write (rule 20) and a pick reads the reading list (rule 18), so **every
+verb** is loopback-only — a LAN `POST` dies at the mutation guard **before routing**, a
+LAN `GET` reaches the route and dies at the reading-list wall, and both refusals name
+`/api/pick` in their reason. The CLI is the same sequence (`pnpm pick -- <url>` proves
+a selector and writes nothing, ever; `--id <source> [--write]` merges into the file),
+it needs no database, and it runs while the server runs.
 
 **The sources routes and the panel are built** (WP14). `sourcesApi.ts`
 answers `GET /api/sources` with the directory as it is - every `*.json`, **its own
@@ -89,6 +111,17 @@ mutations, both queries settled after any answer (a write upserts the row, so th
 paper's news moves with it) - and a refusal **rejects the mutation** (`RefusalError`),
 which is the only way the editor learns to keep the reader's typed JSON beside the
 loader's reason instead of closing the box on it.
+
+**The page's two display axes are client state, not server state** (D-002, D-038):
+`data-theme` and `data-contrast` on `<html>`, `localStorage` under `newspa.theme` /
+`newspa.contrast`, and the inline script in `apps/web/index.html` that applies **both**
+before first paint, because a dark device or an e-ink wall must not flash the yellowed
+stock. The order of arrival is the **url**, then storage, then the system — so a device
+on the wall is set by a link (`?theme=dark&contrast=more`, D-037) with no keyboard and
+no storage to clear, and a url visit **writes nothing**: a phone that opens a wall link
+once keeps the choice it made for itself. Nothing is sent to the server, no cookie is
+set, and the paper's components take the pair as props and render the control only when
+the app has one to offer.
 
 **The four run verbs** are pinned by tests, not by prose: `pnpm start` = `pnpm build`
 then the process (the product: poll + routes + the built page, bind is config);

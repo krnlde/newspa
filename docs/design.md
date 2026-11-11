@@ -176,6 +176,32 @@ LIGHT  --paper: #f4ecd8   (yellowed stock)   --paper-2: #efe5cc  --ink: #1f1b16 
 DARK   --paper: #16150f   (warm charcoal)    --paper-2: #1c1b14  --ink: #e9e4d6  --ink-2: #c3bcab  --muted: #8d8778  --rule: #34322a  --rule-strong: #4a463a
 ```
 
+**The second axis (D-038): `data-contrast`.** `data-theme` answers which stock,
+`data-contrast` answers how hard, and the two compose — a wall device wants black on
+white **and** white on black, which is a pair of knobs, not four themes. The reason is
+a panel, not a taste: an e-ink screen dithers `#f4ecd8` into a grey fog and swallows
+`--rule: #d8cdb4` whole, so the mode is pure stock, pure ink, rules in ink at 1px.
+
+```
+LIGHT + more  --paper: #ffffff  --ink: #000000  --ink-2: #1a1a1a  --muted: #333333  --rule/-strong: #000000  --hair: 1px
+DARK  + more  --paper: #000000  --ink: #ffffff  --ink-2: #ededed  --muted: #cccccc  --rule/-strong: #ffffff  --hair: 1px
+```
+
+It is the **palette, and the palette only**: the marks, the stock's crossings, the crop
+marks, the images and the page's one shadow all stay. Hiding a page's own ornaments
+because the reader asked to be legible is a penalty for asking, and the ask is about
+dithering. Three laws of ownership, all measured: `tokens.css` is **unlayered**, so its
+blocks beat `@layer base` for the same names — one owner per value, and the duplicate
+block `base.css` briefly had is dead CSS, now gone; the system's `prefers-contrast:
+more` block is gated on `:root:not([data-contrast])`, so a page that wrote `normal`
+**beats the OS**; and the pair selector `[data-theme='dark'][data-contrast='more']` is
+last in the file, because two attributes outrank one. No component knows the axis
+exists: the utilities emit `var(--paper)`, which is what `@theme inline` is for.
+Measured, and recorded in `apps/web/test/design/contrast.test.tsx`: **Chromium floors a
+border width to one device pixel**, so `--hair: 0.5px` computes to `1px` at a
+device-pixel-ratio of 1 — the axis's colour change is what a 1x panel sees, and the
+thickness is what a 2x one sees.
+
 No saturated hue anywhere. The only non-gray marks in the paper are
 
 - `inserted text` in an edit diff: **underlined**, and

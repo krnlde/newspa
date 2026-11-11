@@ -102,6 +102,34 @@ content this is; the short-form stub is now in **docs/decisions-tooling.md**.
 (thresholds 95 on lines/functions/branches/statements, `all: true`).
 Vitest browser mode through `playwright-core` + `channel: 'msedge'` asserts the
 visual contract on real computed CSS: the measure, the column count, the
-`#f4ecd8` stock, hairline rules, grayscale images, dark mode, and the teaser
-linking out with `target="_blank"`. It is excluded from coverage because it
+`#f4ecd8` stock, hairline rules, grayscale images, dark mode, the **four display
+combinations** of the two axes (D-038), and the teaser linking out with
+`target="_blank"`. It is excluded from coverage because it
 asserts CSS, not code paths, and the components it mounts are already covered.
+
+## The two layers applied twice: the picker, and the display axis
+
+**The picker (D-036) is tested at two tiers on purpose.** The node project drives the
+whole sequence — the job registry, the merge, the CLI, the route over a socket, the
+transport — against a **stub window** that reports a real fingerprint against a real
+page, so the derivation, the counts and the merge are the shipped ones and only the
+browser is a stub. That is what makes the pre-commit floor (rule 16) able to run a
+picker at all: it cannot launch Edge, and neither can a headless box. The browser
+project (`packages/fetch/test/browser/`, 8) then runs the same sequence with a **real
+cursor in real Edge**: the click on the third card derives a list the parser re-reads
+on the served bytes, Up walks the ancestor chain, Esc cancels, a budget with no click
+is a named timeout, and a page a script builds is refused **by name** (D-007) because
+the DOM clicked is not the DOM fetched.
+
+**A media query is not reachable from a viewport, so the axis is split the same way.**
+`apps/web/test/design/contrast.test.tsx` measures what the cascade **computes** in
+Edge — the tokens on `:root`, the utilities that emit `var(--paper)`/`var(--ink)`, the
+rule's colour — over all four combinations, and prints the marks to prove they stay.
+What only a text scan can pin is in `packages/paper/test/design-contract.test.tsx`:
+that `tokens.css` carries the two attribute blocks **in the order the cascade needs**
+(the pair selector last), that both `prefers-contrast: more` blocks are gated on
+`:root:not([data-contrast])` so the page's choice beats the OS, that the attribute
+block lives in exactly the files that can own each value, and that no component beyond
+the two passing the prop through mentions the axis — the claim that no `dark:`-style
+variant was born. Print is pinned the same way, and `@media print` gains
+`[data-part='contrast-switch']` beside the theme switch.
