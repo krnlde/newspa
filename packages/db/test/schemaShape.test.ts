@@ -67,7 +67,7 @@ describe('the shape of the schema', () => {
       'sources_enabled',
     ]);
     expect(schemaOf(db, 'migrations')).toContain('primary key');
-    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2, 3, CURRENT_VERSION]);
+    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2, 3, 4, CURRENT_VERSION]);
     db.close();
   });
 
@@ -144,7 +144,39 @@ describe('the shape of the schema', () => {
       'missing_streak',
       'gone_at',
     ]);
-    expect(MIGRATIONS.at(-1)?.name).toBe('disappearance');
+    expect(MIGRATIONS.find((m) => m.name === 'disappearance')?.statements.length).toBe(2);
+    expect(db.tx.get('pragma integrity_check')?.['integrity_check']).toBe('ok');
+    db.close();
+  });
+
+  it('appends the scheduler’s countdown to `sources`, in the order a write binds by', () => {
+    const db = seeded();
+    // Migration 5 only appends: migration 1's `create table sources` is not
+    // touched, so a file written by an older build and a fresh one have the same
+    // shape — which is what the walk in test/migrations.test.ts proves, and what
+    // makes `order by …, id` and a positional write bind to the same columns.
+    expect(db.tx.all('pragma table_info (sources)').map((r) => String(r['name']))).toEqual([
+      'id',
+      'kind',
+      'label',
+      'url',
+      'group_name',
+      'enabled',
+      'cadence_minutes',
+      'weight',
+      'match_count',
+      'source_json',
+      'time_spec_json',
+      'health',
+      'note',
+      'last_status',
+      'last_polled_at',
+      'last_success_at',
+      'created_at',
+      'next_run_at',
+      'consecutive_failures',
+    ]);
+    expect(MIGRATIONS.at(-1)?.name).toBe('scheduling');
     expect(MIGRATIONS.at(-1)?.statements.length).toBe(2);
     expect(db.tx.get('pragma integrity_check')?.['integrity_check']).toBe('ok');
     db.close();

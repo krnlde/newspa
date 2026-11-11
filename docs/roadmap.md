@@ -131,26 +131,36 @@ response that fails its own schema is a failing test, not a broken page); an SSE
 test that a publish produces one event and that a client disconnect stops the
 writer; the dev plugin stays for offline dev and is never in the bundle.
 
-## WP5 — `cli.ts`: the seven commands the scripts already name
+## WP5 — the entry point (`start.ts`), not a CLI  _(re-scoped 2026-11-11 for MVP)_
 
 **Gap.** `package.json` runs `node packages/server/src/cli.ts …` for `start`,
-`pick`, `login`, `status`, `search`, `export`, `import`; the file is absent, so
-all seven exit non-zero.
+`pick`, `login`, `status`, `search`, `export`, `import`; the file is absent, so all
+seven exit non-zero — a module-not-found, where the rule is that a silent zero is a
+bug.
 
-**Build.** One file per command under `packages/server/src/cli/`, a thin argv
-dispatcher, and `start` = ensure the source dir (`ensureSourcesDir`, D-025: a
-fresh clone has no `sources/`, and creating it is boot's job, not a side effect
-of a read), load and report it, open the db, migrate, take the lock, start the
-scheduler, serve. `status` prints per source: state, last poll, outcome, item
-count, cadence — the health strip in a terminal (rule 5). Node builtins only
-(`node:sqlite` via `newspa-db`, `node:fs/promises`).
+**Re-scope.** A terminal UI is not on the path to a paper that fills itself, so MVP
+builds the **entry point** and one data-safety command:
 
-**Accept.** Each command runs from a fresh `data/` and exits 0; `start` prints
-the URL, then serves a paper from a real poll; every command has a test that
-drives `main(argv)` with a temp db and asserts on stdout, no network. **From a
-fresh clone** — no `sources/` — `start` creates the directory, prints the
-`no-sources` report and the `pnpm sources:init` hint, and serves an empty paper
-without polling anything (rule 5: the emptiness is stated).
+- **`start`** — load and report the config and the watchlist, `ensureSourcesDir`
+  (D-025: creating the directory is boot's job, not a side effect of a read), open
+  and migrate the db, take the lock, run the scheduler, serve. No argv dispatcher,
+  no flags, no help text: `node packages/server/src/start.ts`.
+- **`export --bundle`** — rule 18: `sources/` is gitignored, so the bundle **is the
+  only backup of the reading list**. About forty lines, and its absence is data
+  loss, not a missing nicety.
+
+**Cut, named, not deleted:** `status` (the paper's health strip says it), `search`
+(the paper's box; FTS5 is built), `pick` (WP6), `login` (WP8), `sources:migrate`
+(D-030 rung 3 — rung 1 self-heals a permanent redirect, and the reader moves a URL
+by editing the file, which is where the truth lives, D-011). A cut script prints a
+one-line named refusal rather than a stack trace, so `pnpm status` cannot read as a
+broken pipe.
+
+**Accept.** `pnpm build && pnpm start` serves a paper built from a **real** poll of
+the local `sources/`, on the configured port, and `pnpm export --bundle` writes a
+bundle `import` reads back. From a fresh clone — no `sources/` — `start` creates the
+directory, prints the `no-sources` report and the `pnpm sources:init` hint, and
+serves an empty paper without polling anything (rule 5: the emptiness is stated).
 
 ## WP6 — `render` and the headed picker
 

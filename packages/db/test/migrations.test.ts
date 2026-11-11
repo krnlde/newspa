@@ -35,6 +35,7 @@ describe('migrations: 0 to head', () => {
       'validator-state',
       'selection-rung',
       'disappearance',
+      'scheduling',
     ]);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
     expect(db.tx.get("select name from sqlite_master where name = 'source_validators'")?.['name']).toBe(
@@ -52,16 +53,18 @@ describe('migrations: 0 to head', () => {
       [1, 'base'],
       [2, 'validator-state'],
       [3, 'selection-rung'],
-      [CURRENT_VERSION, 'disappearance'],
+      [4, 'disappearance'],
+      [CURRENT_VERSION, 'scheduling'],
     ]);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
     expect(db.tx.all('select version, name, applied_at from migrations order by version')).toEqual([
       { version: 1, name: 'base', applied_at: FIXED.toISOString() },
       { version: 2, name: 'validator-state', applied_at: FIXED.toISOString() },
       { version: 3, name: 'selection-rung', applied_at: FIXED.toISOString() },
-      { version: CURRENT_VERSION, name: 'disappearance', applied_at: FIXED.toISOString() },
+      { version: 4, name: 'disappearance', applied_at: FIXED.toISOString() },
+      { version: CURRENT_VERSION, name: 'scheduling', applied_at: FIXED.toISOString() },
     ]);
-    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, 3, CURRENT_VERSION]);
+    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, 3, 4, CURRENT_VERSION]);
     db.close();
   });
 
@@ -103,7 +106,7 @@ describe('migrations: 0 to head', () => {
     const now = new Date(FIXED.getTime() + 60_000);
     const newer = openTestDatabase({ file, token: 'newer', now: () => now });
     expect(newer.version).toBe(CURRENT_VERSION);
-    expect(newer.migrations.map((m) => m.version)).toEqual([2, 3, CURRENT_VERSION]);
+    expect(newer.migrations.map((m) => m.version)).toEqual([2, 3, 4, CURRENT_VERSION]);
 
     const rows = (
       newer.tx.all('select version, name, applied_at from migrations order by version') as {
@@ -115,6 +118,7 @@ describe('migrations: 0 to head', () => {
       [1, FIXED.toISOString()],
       [2, now.toISOString()],
       [3, now.toISOString()],
+      [4, now.toISOString()],
       [CURRENT_VERSION, now.toISOString()],
     ]);
     newer.close();
@@ -247,7 +251,7 @@ describe('migrations: all of it, or none of it', () => {
     expect(() => migrate(db.tx, { now: () => FIXED, migrations: failing })).toThrow(MigrationFailedError);
     expect(db.sources.ids()).toEqual(['seeded-one']);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
-    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, 3, CURRENT_VERSION]);
+    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, 3, 4, CURRENT_VERSION]);
     db.close();
   });
 

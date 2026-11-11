@@ -70,6 +70,7 @@ export {
   readLock,
   releaseLock,
 } from './lock.ts';
+export { CURRENT_VERSION, MIGRATIONS } from './migrationHistory.ts';
 export {
   type AppliedMigration,
   appliedOf,
@@ -86,9 +87,7 @@ export {
   CHECK_EVENT_KINDS,
   CHECK_HEALTH_STATES,
   CHECK_KINDS,
-  CURRENT_VERSION,
   MAX_MIGRATION_VERSION,
-  MIGRATIONS,
   type Migration,
   SNAPSHOT_OUTCOMES,
 } from './schema.ts';
@@ -111,6 +110,12 @@ export {
   type StoredSource,
   sourcesRepository,
 } from './sources.ts';
+export {
+  MAX_DUE_SOURCES,
+  type ScheduledSource,
+  type ScheduleMembers,
+  sourcesSchedulingRepository,
+} from './sourcesScheduling.ts';
 export { type Statements, statementsOf, type Tx } from './statement.ts';
 export { parseTimeSpec, type SourceTimeSpec, TimeSpecError, timeSpecOf } from './timeSpec.ts';
 export {

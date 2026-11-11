@@ -12,7 +12,8 @@
  * migration whose statement fails is rolled back with the version unchanged —
  * which is why the fixture's row counts stay verifiable.
  */
-import { MAX_MIGRATION_VERSION, MIGRATIONS, type Migration } from './schema.ts';
+import { MIGRATIONS } from './migrationHistory.ts';
+import { MAX_MIGRATION_VERSION, type Migration } from './schema.ts';
 import type { Tx } from './statement.ts';
 import { decodeCount, decodeText, RowShapeError } from './value.ts';
 

@@ -10,16 +10,22 @@
  * `insert` and `upsert` both report the source id on failure: a `CHECK`
  * violation, a duplicate id or a JSON column that does not parse is a report
  * naming the source, never a row that quietly is not there.
+ *
+ * Two columns are in neither `StoredSource` nor the writes below: `next_run_at`
+ * and `consecutive_failures` are the scheduler's countdown (migration 5), read
+ * and written by `sourcesScheduling.ts`. The upsert does not name them, so
+ * re-importing a source the scheduler is watching never resets its own plan —
+ * the same reason `items.ts` leaves the streak columns out of its upsert.
  */
 
 import type { SourceSpec } from 'newspa-config';
 import type { HealthState } from 'newspa-core';
+import { specOf, specWithoutTime } from './sourceSpec.ts';
+import { type ScheduleMembers, sourcesSchedulingRepository } from './sourcesScheduling.ts';
 import type { Tx } from './statement.ts';
-import { parseTimeSpec, timeSpecOf } from './timeSpec.ts';
+import { timeSpecOf } from './timeSpec.ts';
 import {
-  decodeBoolean,
   decodeCount,
-  decodeJsonColumn,
   decodeOptionalInteger,
   decodeOptionalText,
   decodeText,
@@ -51,7 +57,7 @@ export interface SourceListOptions {
   readonly enabledOnly?: boolean;
 }
 
-export interface SourcesRepository {
+export interface SourcesRepository extends ScheduleMembers {
   readonly insert: (spec: SourceSpec, createdAt: string) => void;
   readonly upsert: (spec: SourceSpec, createdAt: string) => void;
   readonly get: (id: string) => StoredSource | undefined;
@@ -96,26 +102,6 @@ const bindOf = (spec: SourceSpec, createdAt: string): (string | number | null)[]
   createdAt,
 ];
 
-/** `cadenceCron`/`quietHours` live in their own column, so they leave the spec JSON. */
-const specWithoutTime = (spec: SourceSpec): Record<string, unknown> => {
-  const out: Record<string, unknown> = { ...spec };
-  delete out['cadenceCron'];
-  delete out['quietHours'];
-  return out;
-};
-
-const specOf = (sourceId: string, row: Row): SourceSpec => {
-  const stored = decodeJsonColumn<Record<string, unknown>>('source_json', sourceId, row['source_json']);
-  const timeSpec = parseTimeSpec(sourceId, decodeText('time_spec_json', sourceId, row['time_spec_json']));
-  if (timeSpec.cadenceCron !== null) stored['cadenceCron'] = timeSpec.cadenceCron;
-  if (timeSpec.quietHours !== null) stored['quietHours'] = timeSpec.quietHours;
-  // `enabled` is the one spec field the app changes on its own (D-011: the paper
-  // has no UI, and `setEnabled` is the seam a future one uses), so the column,
-  // not the JSON copied from `sources/*.json`, is the answer.
-  stored['enabled'] = decodeBoolean('enabled', `source ${sourceId}`, row['enabled']);
-  return stored as SourceSpec;
-};
-
 const sourceOf = (row: Row): StoredSource => {
   const id = decodeText('id', 'a source row', row['id']);
   return {
@@ -149,6 +135,15 @@ export const sourcesRepository = (db: Tx): SourcesRepository => {
   };
 
   return {
+    /*
+     * The scheduler's two members are contributed by `sourcesScheduling.ts`: the
+     * countdown columns are not in `StoredSource`, are not named by the two
+     * writes below (a re-import must not reset a live countdown), and are read
+     * by one caller — so the module that owns them is not this one, the same
+     * split `itemsStreaks.ts` makes for `items`.
+     */
+    ...sourcesSchedulingRepository(db),
+
     insert: (spec, createdAt) =>
       runSpec(
         `insert into sources (${COLUMNS}) values (${Array.from({ length: 17 }, () => '?').join(', ')})`,

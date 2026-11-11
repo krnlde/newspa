@@ -260,20 +260,23 @@ describe('the ladder, driven by core’s own arithmetic', () => {
 });
 
 describe('migration 4: disappearance', () => {
-  it('walks a file written at version 3, and reports its pre-migration row as never missed', async () => {
+  it('walks a file written below the ladder, and reports its pre-migration row as never missed', async () => {
     const { file, cleanup } = await tempFile('newspa-db-gone-');
-    const atThree = openTestDatabase({ file, token: 'three', now: () => FIXED, migrations: MIGRATIONS.slice(0, 3) });
-    expect(atThree.version).toBe(3);
-    atThree.sources.insert(RSS_SPEC, CREATED);
-    atThree.items.upsert({ item: anItem(), section: 'world' });
-    const columnsAtThree = atThree.tx.all('pragma table_info (items)').map((row) => String(row['name']));
-    expect(columnsAtThree).not.toContain('missing_streak');
-    expect(columnsAtThree).not.toContain('gone_at');
-    atThree.close();
+    // Below **`disappearance`’s parent**, not one below head: with migration 5 at
+    // head, `slice(0, CURRENT_VERSION - 1)` opens above the migration under test.
+    const parent = MIGRATIONS.findIndex((m) => m.name === 'disappearance');
+    const migrations = MIGRATIONS.slice(0, parent);
+    const preLadder = openTestDatabase({ file, token: 'pre-ladder', now: () => FIXED, migrations });
+    expect(preLadder.version).toBe(parent);
+    preLadder.sources.insert(RSS_SPEC, CREATED);
+    preLadder.items.upsert({ item: anItem(), section: 'world' });
+    const columnsBefore = preLadder.tx.all('pragma table_info (items)').map((row) => String(row['name']));
+    expect(columnsBefore.filter((name) => ['missing_streak', 'gone_at'].includes(name))).toEqual([]);
+    preLadder.close();
 
     const atHead = openTestDatabase({ file, token: 'four', now: () => later(FIXED, 60_000) });
     expect(atHead.version).toBe(CURRENT_VERSION);
-    expect(atHead.migrations.map((m) => m.name)).toEqual(['disappearance']);
+    expect(atHead.migrations.map((m) => m.name)).toEqual(['disappearance', 'scheduling']);
     const columns = atHead.tx.all('pragma table_info (items)').map((row) => String(row['name']));
     expect(columns.slice(-2)).toEqual(['missing_streak', 'gone_at']);
     // The row a pre-migration build wrote is the ladder's "never missed" state.
