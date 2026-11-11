@@ -175,7 +175,14 @@ export const ensureSourcesDir = async (dir: string): Promise<{ created: boolean 
   return { created: true };
 };
 
-export const sourcePath = (dir: string, spec: SourceSpec): string => path.join(dir, `${spec.id}.json`);
+/**
+ * The one id → file rule: `sources/<id>.json` (D-011: the directory listing **is**
+ * the source list). Every route that needs a file from an id asks this, so the rule
+ * cannot be spelled twice and drift.
+ */
+export const sourceFilePath = (dir: string, id: string): string => path.join(dir, `${id}.json`);
+
+export const sourcePath = (dir: string, spec: SourceSpec): string => sourceFilePath(dir, spec.id);
 
 /**
  * Writes the definition file. `matchCount` is included because it is the
@@ -190,5 +197,5 @@ export const writeSource = async (dir: string, spec: SourceSpec): Promise<string
 
 export const removeSource = async (dir: string, id: string): Promise<void> => {
   const { rm } = await import('node:fs/promises');
-  await rm(path.join(dir, `${id}.json`), { force: true });
+  await rm(sourceFilePath(dir, id), { force: true });
 };

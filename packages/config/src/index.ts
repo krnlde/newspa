@@ -16,6 +16,7 @@ export {
   removeSource,
   type SourceIssue,
   type SourceLoadResult,
+  sourceFilePath,
   sourcePath,
   writeSource,
 } from './load.ts';
@@ -26,6 +27,12 @@ export {
   parseOpml,
   serializeOpml,
 } from './opml.ts';
+export {
+  type ApplyPickResult,
+  applyPick,
+  type PickPatch,
+  type PickPatchFields,
+} from './pick.ts';
 export {
   type AppConfig,
   appConfigSchema,
