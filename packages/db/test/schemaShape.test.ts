@@ -67,7 +67,7 @@ describe('the shape of the schema', () => {
       'sources_enabled',
     ]);
     expect(schemaOf(db, 'migrations')).toContain('primary key');
-    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2, CURRENT_VERSION]);
+    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2, 3, CURRENT_VERSION]);
     db.close();
   });
 
@@ -113,6 +113,40 @@ describe('the shape of the schema', () => {
       "check (outcome in ('not-modified', 'same-body', 'declared-unchanged', 'selection-unchanged', 'changed', 'error'))",
     );
     expect(snapshotsSql).not.toContain('snapshots_v3');
+    db.close();
+  });
+
+  it('appends the ladder’s state to `items`, in the order a write binds by', () => {
+    const db = seeded();
+    // Migration 4 only appends: `alter table add column` puts the new columns
+    // last, and migration 1's DDL is untouched, so a migrated file and a fresh
+    // one have the same shape — which is what the migration walk in
+    // test/migrations.test.ts is proving.
+    expect(db.tx.all('pragma table_info (items)').map((r) => String(r['name']))).toEqual([
+      'source_id',
+      'key',
+      'kind',
+      'title',
+      'link',
+      'summary',
+      'image',
+      'author',
+      'published_at',
+      'body',
+      'section',
+      'first_seen_at',
+      'last_seen_at',
+      'last_changed_at',
+      'edit_count',
+      'read_at',
+      'score_realtime',
+      'score_digest',
+      'missing_streak',
+      'gone_at',
+    ]);
+    expect(MIGRATIONS.at(-1)?.name).toBe('disappearance');
+    expect(MIGRATIONS.at(-1)?.statements.length).toBe(2);
+    expect(db.tx.get('pragma integrity_check')?.['integrity_check']).toBe('ok');
     db.close();
   });
 

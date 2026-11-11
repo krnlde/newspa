@@ -4,14 +4,18 @@
  * not by a row position, and a poll that re-sees 60 items writes 60 rows
  * without creating any.
  *
- * `ItemRecord` is the record, and it round-trips exactly. Two columns are not
- * in it, and both are stated:
+ * `ItemRecord` is the record, and it round-trips exactly. Four columns are not
+ * in it, and all are stated:
  *  - `body` (from `PickedItem`) is the capped scrape for edit detection and
  *    scoring. `ItemView` has no `body`, so it is read by `bodyOf`, which the
  *    server uses and the browser never sees (D-017).
  *  - `section` is the value the server's `sectionFor` computed. `ItemRecord`
  *    carries no section, so the paper's "items in section X" filter is a DB-side
  *    column, written by `setSection`.
+ *  - `missing_streak` and `gone_at` are the disappearance ladder's state
+ *    (D-029): a streak is not part of the story, and it is read and written by
+ *    `itemsStreaks.ts`, whose read is the whole key set and not a page. The
+ *    upsert below does not name them, so re-seeing a key never resets its count.
  *
  * The upsert is the diff's write side: `first_seen_at` and `read_at` are
  * insert-only, `edit_count` **adds** the caller's delta (so the caller never
@@ -19,6 +23,7 @@
  * it was given — clearing it is not an operation this table offers.
  */
 import type { ItemRecord } from 'newspa-core';
+import { itemsStreaksRepository, type StreakMembers } from './itemsStreaks.ts';
 import type { Tx } from './statement.ts';
 import {
   decodeBoolean,
@@ -60,7 +65,7 @@ export type ItemRead =
   | { readonly key: string; readonly item: ItemRecord; readonly section: null }
   | { readonly key: string; readonly item: undefined; readonly section: undefined };
 
-export interface ItemsRepository {
+export interface ItemsRepository extends StreakMembers {
   readonly upsert: (write: ItemWrite) => void;
   readonly itemOf: (sourceId: string, key: string) => ItemRecord | undefined;
   readonly find: (sourceId: string, key: string) => ItemRecord;
@@ -153,6 +158,14 @@ export const itemsRepository = (db: Tx): ItemsRepository => {
     db.get(`${sql} where source_id = ? and key = ?`, sourceId, key);
 
   return {
+    /*
+     * The ladder's two members are contributed by `itemsStreaks.ts`: they are a
+     * separate responsibility — not in `ItemRecord`, never sent to the browser,
+     * and read as a source's whole key set, not a page — and adding them here
+     * would put this file past rule 1's 300-line cap.
+     */
+    ...itemsStreaksRepository(db),
+
     upsert: (write) => {
       const { item, section } = write;
       const values: (string | number | null)[] = [

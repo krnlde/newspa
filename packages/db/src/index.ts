@@ -53,6 +53,12 @@ export {
   MAX_ITEM_LIMIT,
 } from './items.ts';
 export {
+  itemsStreaksRepository,
+  type StoredKeyRow,
+  type StreakMembers,
+  type StreakWrite,
+} from './itemsStreaks.ts';
+export {
   claimLock,
   extendLock,
   LOCK_TABLE_SQL,

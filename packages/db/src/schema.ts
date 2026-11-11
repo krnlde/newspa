@@ -13,6 +13,9 @@
  *    no section, so the value the server computed is kept DB-side to filter by.
  *  - `snapshots.outcome` — the change-detection ladder's name (docs/fetching.md);
  *    core's `FetchOutcome` is the numeric result, not the rung that ended the poll.
+ *  - `items.missing_streak` / `items.gone_at` — the disappearance ladder's state
+ *    (D-029). Core's `StoredKey` is the shape they are read in, and the write
+ *    shape (`GoneVerdict`) is not a record, so neither column is in `ItemRecord`.
  *
  * Timestamps are UTC ISO strings produced by core. SQLite's strict tables are
  * available (measured: a text value in an integer column is rejected) but are
@@ -218,10 +221,35 @@ const MIGRATION_3 = [
   `create index snapshots_source on snapshots (source_id, taken_at desc, id desc)`,
 ];
 
+/*
+ * The disappearance ladder (D-029, level 1): the two columns core's
+ * `goneVerdicts` moves, stored **beside the item** because a disappearance is a
+ * property of one key. A side table would be a join per verdict, and the ladder
+ * reads a source's whole key set on every poll.
+ *
+ *  - `missing_streak` — the polls, complete and successful, that did **not**
+ *    list this key. `0` is the ladder's "never missed".
+ *  - `gone_at` — the instant the paper said so, and `null` while the key is on
+ *    the list. Writing `null` is the reopen arm of the ladder, so no CHECK
+ *    belongs on this column.
+ *
+ * `not null default 0` is what makes a row written before this migration
+ * correct rather than unknown: nothing had been counted against it, so its
+ * streak is zero and it takes K absent polls before the paper says anything.
+ * Measured on this SQLite: `alter table … add column` appends to a `without
+ * rowid` table, fills every existing row with the default, and
+ * `integrity_check` is `ok` afterwards.
+ */
+const MIGRATION_4 = [
+  'alter table items add column missing_streak integer not null default 0',
+  'alter table items add column gone_at text',
+];
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: 'base', statements: MIGRATION_1 },
   { version: 2, name: 'validator-state', statements: MIGRATION_2 },
   { version: 3, name: 'selection-rung', statements: MIGRATION_3 },
+  { version: 4, name: 'disappearance', statements: MIGRATION_4 },
 ];
 
 export const CURRENT_VERSION = MIGRATIONS.at(-1)?.version ?? 0;
