@@ -109,6 +109,31 @@ export { withBase } from './item.ts';
  */
 export { derivePick } from './pick/derivePick.ts';
 export { parseFingerprint } from './pick/fingerprint.ts';
+/**
+ * The picker (WP6, D-036): the browser's click in, a proved selector out.
+ *
+ * `runPick` is the sequence, and it takes the browser and the transport as
+ * arguments — the unit project runs it with a stub window, `test/browser/` runs
+ * it in real Edge, and both call this one function. `describePickRun` is the
+ * single sentence the CLI and the page print, so neither can round a fault off
+ * into "no items" (rule 5). `openPickSession` is the browser tier, and the only
+ * module `vitest.coverage.json` excludes.
+ */
+export { INSPECTOR_SOURCE, PICK_BINDING } from './pick/inspector.ts';
+export {
+  openPickSession,
+  type PickLaunchFault,
+  type PickLaunchOptions,
+  type PickSessionResult,
+  pickBudgetMs,
+} from './pick/launch.ts';
+export {
+  describePickRun,
+  type PickDeps,
+  type PickRun,
+  type PickTarget,
+  runPick,
+} from './pick/pickSession.ts';
 export {
   outerHtmlCap,
   type PathStep,

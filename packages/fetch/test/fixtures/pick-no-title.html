@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+  Hand-written fixture. What it pins for the picker (WP6): a set whose items link
+  everywhere and say **nothing** — every `a` carries an href and an empty text node,
+  and there is no heading in the card. So the list derives (the bare `li` matches
+  exactly the three items), `fields.link` derives, and the title is a **refusal**
+  (`no-title`): the schema requires `fields.title`, and writing a selector that
+  reads an empty string would print a story with no headline. The byline span is
+  here to prove the derivation does not grab the only text it can find.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example Blanks — links with no words</title>
+    <meta name="generator" content="hand-written" />
+  </head>
+  <body>
+    <div class="wrap">
+      <ul>
+        <li class="item"><a href="/e1"></a><span class="by">Ann Example</span></li>
+        <li class="item"><a href="/e2"></a><span class="by">Ann Example</span></li>
+        <li class="item"><a href="/e3"></a><span class="by">Ann Example</span></li>
+      </ul>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<!--
+  Hand-written fixture. What it pins for the picker (WP6): **the item is the link.**
+  Each item is an `a.card` carrying its own `href`, with no deck and no heading —
+  the CNN lite shape (`li.card--lite > a`) one step further along.
+
+  So `deriveFields` writes **no** `fields.link`: `linkFrom` reads the item's own
+  attribute first, and a `fields.link` naming a descendant anchor that does not
+  exist would be a field that reads empty. `fields.title` is `a`, which cheerio's
+  `filter` resolves to the item itself (`find` excludes the root, which is the
+  measured reason `fieldNode` tries both), and `fields.summary` is omitted, with the
+  ratio named.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example Direct — the item is the link</title>
+    <meta name="generator" content="hand-written" />
+  </head>
+  <body>
+    <div class="feed">
+      <a class="card" href="/l1">Story one, and the anchor is the card</a>
+      <a class="card" href="/l2">Story two, and the anchor is the card</a>
+      <a class="card" href="/l3">Story three, and the anchor is the card</a>
+    </div>
+  </body>
+</html>

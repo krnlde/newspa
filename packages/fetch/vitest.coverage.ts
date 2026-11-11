@@ -27,7 +27,10 @@ export default defineConfig({
     name: 'fetch',
     environment: 'node',
     include: ['test/**/*.test.ts'],
-    exclude: ['**/fixtures/**', 'node_modules/**'],
+    // Mirrors `vitest.config.ts`, and for the same reason: `test/browser/` drives
+    // real Edge (`pnpm test:design`), and under this root config it inherits the
+    // 5 s default timeout a browser launch cannot meet.
+    exclude: ['**/fixtures/**', '**/browser/**', 'node_modules/**'],
     restoreMocks: true,
     unstubEnvs: true,
     coverage: parsedPolicy as CoverageOptions,

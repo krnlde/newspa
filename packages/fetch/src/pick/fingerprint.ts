@@ -8,18 +8,21 @@ import { outerHtmlCap, type PathStep, type PickFingerprint, pathMax, pickFail, t
  * problems says three things, because a refusal that names one field and hides two
  * sends the reader on a hunt (rule 5's posture, one step up from the parser).
  *
- * Three rules are load-bearing:
+ * The shape is deliberate: the fields are read into an accumulator, every check
+ * pushes a problem, and **one** branch decides. A second guard that re-tests the
+ * fields for null after the problem check is dead code by construction — every
+ * null implies a problem — and dead code is a branch no test can reach, which is
+ * how a coverage gate turns into a lie.
  *
- *  - the tag is lower-cased here, because the path is compared against a cheerio
- *    document (`xml: false`, so tag names arrive lower-cased) while a browser's
- *    `tagName` is upper-case for HTML;
- *  - the caps **truncate, they do not refuse** — long markup is a normal page, and
- *    the fingerprint's text and markup are evidence for a human, never input to the
- *    derivation. The path length is the opposite: a 40-deep click is a bug in the
- *    injected script, and a runaway path is refused, not trimmed;
- *  - a missing `href` and a `null` href are the same fact — the click had no link —
- *    and both are accepted. Refusing them would throw away the pick of a list whose
- *    items are not anchors.
+ * Three rules the checks encode:
+ *
+ *  - tags are lower-cased, because the path is compared against a cheerio document
+ *    (`xml: false`) while a browser spells `tagName` in upper case;
+ *  - the caps **truncate** the evidence (markup and text are for a human, never
+ *    input to the derivation) and **refuse** the runaway path (a 40-deep click is a
+ *    bug in the injected script, and a derivation over a path that deep is a hang);
+ *  - a missing `href` and a `null` href are the same accepted fact: the click had no
+ *    link. Refusing that would throw away a list whose items are not anchors.
  */
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
@@ -27,29 +30,47 @@ const asRecord = (value: unknown): Record<string, unknown> | null =>
 
 const cap = (value: string, limit: number): string => (value.length > limit ? value.slice(0, limit) : value);
 
-const tagOfStep = (value: unknown): string | null =>
-  typeof value === 'string' && value.length > 0 && value.length <= 40 ? value.trim().toLowerCase() : null;
+const MAX_TAG = 40;
 
 const stepOf = (value: unknown, at: number, problems: string[]): PathStep | null => {
   const step = asRecord(value);
-  const tag = step === null ? null : tagOfStep(step['tag']);
+  const tag = step?.['tag'];
   const index = step?.['index'];
-  if (tag === null) {
-    problems.push(`path[${String(at)}].tag: an element name is required`);
+  if (typeof tag !== 'string' || tag.trim().length === 0 || tag.length > MAX_TAG) {
+    problems.push(`path[${String(at)}].tag: an element name of at most ${String(MAX_TAG)} characters`);
     return null;
   }
   if (typeof index !== 'number' || !Number.isInteger(index) || index < 1) {
     problems.push(`path[${String(at)}].index: a 1-based integer is required`);
     return null;
   }
-  return { tag, index };
+  return { tag: tag.trim().toLowerCase(), index };
 };
 
-/** The path, with the shape rules the derivation cannot do without. */
-const pathOf = (value: unknown, problems: string[]): PathStep[] => {
+/** The accumulator: sentinels until every check has spoken, and the sentinels never escape. */
+interface Fields {
+  url: string;
+  path: PathStep[];
+  href: string | null;
+  outerHtml: string;
+  text: string;
+  siblings: number;
+}
+
+const emptyFields = (): Fields => ({ url: '', path: [], href: null, outerHtml: '', text: '', siblings: 0 });
+
+const readUrl = (value: unknown, fields: Fields, problems: string[]): void => {
+  if (typeof value === 'string' && value.length > 0 && value.length <= 2_048) {
+    fields.url = value;
+    return;
+  }
+  problems.push('url: the document address, as a string');
+};
+
+const readPath = (value: unknown, fields: Fields, problems: string[]): void => {
   if (!Array.isArray(value)) {
     problems.push('path: the array of steps from <html>');
-    return [];
+    return;
   }
   const path: PathStep[] = [];
   value.forEach((step, at) => {
@@ -61,57 +82,62 @@ const pathOf = (value: unknown, problems: string[]): PathStep[] => {
   if (value.length > pathMax) {
     problems.push(`path: ${String(value.length)} steps, over the guard of ${String(pathMax)}`);
   }
-  return path;
+  fields.path = path;
 };
 
-const urlOf = (value: unknown, problems: string[]): string | null => {
-  if (typeof value === 'string' && value.length > 0 && value.length <= 2_048) return value;
-  problems.push('url: the document address, as a string');
-  return null;
-};
-
-const hrefOf = (body: Record<string, unknown>, problems: string[]): string | null => {
-  if (body['href'] === null || body['href'] === undefined) return null;
-  if (typeof body['href'] === 'string') return body['href'];
+const readHref = (value: unknown, fields: Fields, problems: string[]): void => {
+  if (value === null || value === undefined) return;
+  if (typeof value === 'string') {
+    fields.href = value;
+    return;
+  }
   problems.push('href: an absolute URL, or null');
-  return null;
 };
 
-const textOf = (body: Record<string, unknown>, name: string, problems: string[]): string | null => {
-  const field = body[name];
-  if (typeof field === 'string') return field;
+const readText = (name: 'outerHtml' | 'text', value: unknown, fields: Fields, problems: string[]): void => {
+  if (typeof value === 'string') {
+    fields[name] = value;
+    return;
+  }
   problems.push(`${name}: a string`);
-  return null;
 };
 
-const siblingsOf = (value: unknown, problems: string[]): number | null => {
-  if (typeof value === 'number' && Number.isInteger(value) && value >= 1) return value;
+const readSiblings = (value: unknown, fields: Fields, problems: string[]): void => {
+  if (typeof value === 'number' && Number.isInteger(value) && value >= 1) {
+    fields.siblings = value;
+    return;
+  }
   problems.push('siblings: the element count under the same parent');
-  return null;
 };
-
-export type FingerprintResult = { readonly ok: true; readonly fp: PickFingerprint } | ReturnType<typeof pickFail>;
 
 const PROVENANCE = 'the pick inspector sends url, path, href, outerHTML, text and siblings';
+
+export type FingerprintResult = { readonly ok: true; readonly fp: PickFingerprint } | ReturnType<typeof pickFail>;
 
 export const parseFingerprint = (value: unknown): FingerprintResult => {
   const body = asRecord(value);
   if (body === null) return pickFail('bad-fingerprint', 'the pick payload is not an object', [PROVENANCE]);
 
   const problems: string[] = [];
-  const url = urlOf(body['url'], problems);
-  const path = pathOf(body['path'], problems);
-  const href = hrefOf(body, problems);
-  const outer = textOf(body, 'outerHtml', problems);
-  const text = textOf(body, 'text', problems);
-  const siblings = siblingsOf(body['siblings'], problems);
+  const fields = emptyFields();
+  readUrl(body['url'], fields, problems);
+  readPath(body['path'], fields, problems);
+  readHref(body['href'], fields, problems);
+  readText('outerHtml', body['outerHtml'], fields, problems);
+  readText('text', body['text'], fields, problems);
+  readSiblings(body['siblings'], fields, problems);
 
-  if (problems.length > 0) {
-    return pickFail('bad-fingerprint', problems.join('; '), [PROVENANCE]);
-  }
-  if (url === null || path.length === 0 || outer === null || text === null || siblings === null) {
-    return pickFail('bad-fingerprint', 'the pick payload is incomplete', [PROVENANCE]);
-  }
+  if (problems.length > 0) return pickFail('bad-fingerprint', problems.join('; '), [PROVENANCE]);
 
-  return { ok: true, fp: { url, path, href, outerHtml: cap(outer, outerHtmlCap), text: cap(text, textCap), siblings } };
+  return {
+    ok: true,
+    fp: {
+      url: fields.url,
+      path: fields.path,
+      href: fields.href,
+      outerHtml: cap(fields.outerHtml, outerHtmlCap),
+      text: cap(fields.text, textCap),
+      siblings: fields.siblings,
+    },
+  };
 };

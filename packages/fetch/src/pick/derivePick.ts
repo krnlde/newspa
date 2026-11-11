@@ -46,6 +46,11 @@ export const derivePick = (fp: PickFingerprint, rawHtml: string): PickOutcome =>
 
   const collected = collectNodes($, derived.list, mapped.siblings.length);
   if (!collected.ok) {
+    // Unreachable by construction — the ladder proved set equality on this same
+    // document one rung above — and kept, because this file's claim is that the
+    // source is authored **through the code that will poll it**. The coverage
+    // report shows this arm uncovered, and that is the honest reading: no page
+    // produces it. Deleting the rung would raise the number and drop the claim.
     return pickFail(
       'generalize-failed',
       `'${derived.list}' did not resolve in the parser's own reader: ${collected.detail}`,

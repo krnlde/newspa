@@ -9,6 +9,8 @@ export default defineProject({
     name: 'fetch',
     environment: 'node',
     include: ['test/**/*.test.ts'],
-    exclude: ['**/fixtures/**', 'node_modules/**'],
+    // `test/browser/` launches real Edge: it belongs to `pnpm test:design`, and
+    // rule 16 keeps a browser out of the pre-commit floor on purpose.
+    exclude: ['**/fixtures/**', '**/browser/**', 'node_modules/**'],
   },
 });

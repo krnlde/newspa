@@ -15,7 +15,7 @@ import { defineConfig } from 'vitest/config';
  */
 export default defineConfig({
   test: {
-    projects: ['apps/web/vitest.design.config.ts'],
+    projects: ['apps/web/vitest.design.config.ts', 'packages/fetch/vitest.browser.config.ts'],
     reporters: ['default'],
     coverage: { enabled: false },
     browser: {
