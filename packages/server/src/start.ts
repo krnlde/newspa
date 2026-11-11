@@ -46,6 +46,7 @@ import { pollOne } from './poll.ts';
 import { pollDepsOf } from './pollDeps.ts';
 import type { PollResult } from './pollTypes.ts';
 import { type Scheduler, type SchedulerTally, startScheduler } from './scheduler.ts';
+import { sourcesRoutesOf } from './sourcesApi.ts';
 import { createHub, type Hub } from './sse.ts';
 import { stateOf } from './state.ts';
 
@@ -207,6 +208,7 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
           now,
         }),
       hub,
+      sources: sourcesRoutesOf({ dir, db, now, log }),
       dist: join(deps.root, 'apps', 'web', 'dist'),
       log,
       addressOf: (req: IncomingMessage) => req.socket.remoteAddress,

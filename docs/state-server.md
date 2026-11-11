@@ -30,17 +30,20 @@ by that upsert would reset a countdown at every restart.
 
 **The surface is built** (WP4/WP5, MVP). `cli.ts` is the process edge — argv, signals,
 exit codes, coverage-excluded as `main.tsx` is — and its commands are **data** in
-`commands.ts`: one built (`start`), the rest refused **by name**, each with the place
-the answer lives; `test/commands.test.ts` pins the root scripts against that list, so
-`package.json` cannot name a command with no answer. `start.ts`'s `boot(deps)` reads
+`commands.ts`: two built (`start`, `export --bundle`), the rest refused **by name**,
+each with the place the answer lives; `test/commands.test.ts` pins the root scripts
+against that list — by the **argv command inside each script body**, because `pnpm
+server` runs `cli.ts start` and it is `start` that needs an answer — so `package.json`
+cannot name a command with no answer. `start.ts`'s `boot(deps)` reads
 and reports the config, `ensureSourcesDir`s the watchlist directory (D-025), opens and
 migrates the db (the open is what takes the `db_lock` claim), upserts the sources,
 starts the scheduler publishing its cycles to the SSE hub, and serves. `httpApp.ts` is
-the router (`GET /api/state`, `GET /api/events`, the page from `apps/web/dist`, and a
-404 that names what is not built), `sse.ts` the fan-out, `staticFiles.ts` the cache
-rules (`index.html` never cached, a hashed asset forever, a missing build answered
-with `pnpm build`), `net.ts` the address policy (D-034: reads for the LAN, writes
-loopback-only, the reach line with the typeable URLs and the firewall command). The
+the router (`GET /api/state`, `GET /api/events`, the sources routes, the page from
+`apps/web/dist`, and a 404 that names what is not built), `sse.ts` the fan-out,
+`staticFiles.ts` the cache rules (`index.html` never cached, a hashed asset forever, a
+missing build answered with `pnpm build`), `net.ts` the address policy (D-034: reads
+for the LAN, writes loopback-only, the reach line with the typeable URLs and the
+firewall command). The
 paper fills itself from a poll of the local `sources/`, and `start.test.ts` proves it
 over a socket with a fixture feed, offline. `bundleExport.ts` answers
 `export --bundle` (WP11): `config/src/bundle.ts` is the shape (`newspa.bundle.v1`, the
@@ -50,6 +53,24 @@ written**, because rule 18 makes this the reading list's only copy and a backup 
 silently dropped a source is a backup that lies. What is still absent: the items and
 search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
 (WP10), the picker and the renderer (WP6).
+
+**The sources routes are built** (WP14, the half before the form). `sourcesApi.ts`
+answers `GET /api/sources` with the directory as it is — every `*.json`, **its own
+text**, the loader's issues for that file, the row's health and `enabled`, and the
+peer's `writable` fact — `POST` with a write of **raw file text** through the loader's
+own `parseSourceJson` (so the editor can never disagree with the poll, and the browser
+carries no second copy of the source schema), and `DELETE ?id=` with a removal of the
+file **and the disabling of the row**: the poll stops, the items and history stay, and
+the source is listed as disabled instead of vanishing (rule 5 applied to a deletion).
+A posted `filename` is checked, not obeyed — the file written is `<id>.json`, because
+D-011's one-file-per-id rule is what makes a directory listing readable as a source
+list. `requestBody.ts` reads a body with a 64 KiB ceiling and answers 413 **mid-body**;
+measured, `req.destroy()` on overflow kills the connection and the client sees
+`TypeError: fetch failed` instead of the 413, so the answer goes first, the request is
+paused, and the 413 says `connection: close` (the body was never consumed, so the
+socket is not reusable). Nothing in these routes authenticates anything: `net.ts`
+refused the LAN write **before routing** (a test's spy proves the route was not
+reached), and rule 20 forbids inventing a token to make a LAN write safe.
 
 **The four run verbs** are pinned by tests, not by prose: `pnpm start` = `pnpm build`
 then the process (the product: poll + routes + the built page, bind is config);

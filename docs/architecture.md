@@ -15,10 +15,13 @@ newspa (one node process)
 ├── db             node:sqlite, WAL, FTS5  (synchronous: bounded queries only)
 ├── http           node:http; host and port from config.json (default 127.0.0.1:8787;
 │                  `0.0.0.0` opens it to the LAN, and the boot says what that means, D-034)
-│                  built:  GET /api/state · GET /api/events (SSE) · / (apps/web/dist)
-│                  named as not built, in the body of a 404: /api/items, /api/search,
-│                  POST /api/sources (the file writer, D-025)
-│                  writes from a non-loopback peer: refused 403, on the address (D-034)
+│                  built:  GET /api/state · GET /api/events (SSE) · /api/sources (GET the
+│                  files, POST writes sources/<id>.json from raw text, DELETE disables
+│                  the row and removes the file — D-011) · / (apps/web/dist)
+│                  named as not built, in the body of a 404: /api/items, /api/search
+│                  writes from a non-loopback peer: refused 403, on the address, before
+│                  routing (D-034) — no route authenticates, and rule 20 forbids adding
+│                  a token to make a LAN write safe
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
 child processes: Edge (scrape/pick), PowerShell (toast). Nothing else.

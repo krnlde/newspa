@@ -178,29 +178,47 @@ slots in `editionOf`; the export → import round trip is byte-stable for the
 same input; an imported file that violates the schema fails with the zod issue
 and writes nothing (D-014).
 
-## WP14 — Managing sources from the page  _(next, decided 2026-11-11)_
+## WP14 — Managing sources from the page  _(routes built 2026-11-11; the form is next)_
 
-**Gap.** Sources are files, and the page shows them read-only: `apps/web` has no
-router and no form, `POST /api/sources` is named in the 404 body, and the only
-writer is `packages/config`'s `writeSource`/`removeSource` (built, tested). The
-precondition for a route already exists: D-034's guard refuses every write from a
-non-loopback peer **before routing**, and the server authenticates nothing (rule 17).
+**Built: the routes.** `GET /api/sources` answers the directory — every `*.json`,
+**its own text**, the loader's issues for it, the row's health and `enabled`, and
+`writable` for the peer who asked. `POST` takes core's existing
+`addSourceRequestSchema` — **raw file text** — validates with `parseSourceJson` (the
+loader's own function, so the editor can never disagree with the poll), writes
+`sources/<id>.json`, refreshes the row (so the paper shows it and `dueSources` polls
+it first), and answers the path it wrote. `DELETE ?id=` removes the file and
+**disables the row**: the poll stops, the items and history stay, and the source is
+listed as disabled rather than vanished. A posted `filename` is **checked, not
+obeyed** — writing `<id>.json` is D-011's rule, so a body naming `evil.json` with
+`id: "bbc"` is refused rather than given a second name.
 
-**Build.** `POST /api/sources` (validate with core's `addSourceRequestSchema`,
-write with `writeSource`, answer with the **file path it wrote**, 4xx with the zod
-issue — never a stack) and a small form under `HealthStrip`: `kind`, `label`, `url`,
-`cadenceMinutes`, `section`, `weight`. Three rules: the file stays the truth (D-011,
-D-025 — the form writes a file and says which, it is not a CMS and edits no story
-text); a `kind: 'html'` source **says** it needs the picker (WP6) instead of
-offering a selector box nothing can validate; and no route may add a token, cookie
-or "shared secret" to make a LAN write safe (rule 20).
+**The body is read with a ceiling** (`MAX_SOURCE_BODY_BYTES`, 64 KiB) and 413 is
+answered **while the body is still arriving** — measured: `req.destroy()` on overflow
+kills the connection and the client sees `TypeError: fetch failed` instead of the 413,
+so the answer is written first and the request is paused, with `connection: close`
+because the body was never consumed.
 
-**Accept.** A loopback POST writes `sources/<id>.json` and the answer names the
-path; the same request from a LAN peer is the 403 (the guard, not the route); an
-invalid body is the zod issue with no file written; the form renders the refusal a
-source file got at load (rule 5: the paper runs without it, and says so); the
-`html` path prints the picker sentence; a source with no file is stated in the
-health strip, not shown as a silent zero.
+**Boundary, and it is the whole security story**: `net.ts`'s guard runs **before
+routing**, so every write from a non-loopback peer is a 403 that never reaches this
+code (pinned: the routes bag's spy records that `remove` was not called). Rule 20
+forbids bolting a token on to make a LAN write safe; `writable:false` in the list
+answer is that same fact, told so a form on a phone can say "editing is from this
+machine only" instead of offering a button that must fail.
+
+**Open: the form.** `packages/paper/src/SourcesPanel.tsx` (a `panel` with
+`data-part` hooks, per rule 11), the app's fetch/save/delete wiring, the chrome
+strings in both locales, and `kind: 'html'` saying the picker is WP6 rather than
+offering a selector box nothing can validate.
+
+**Accept, for the half built.** 34 tests: `sources-api.test.ts` drives the handlers on
+a temp tree and a real db (list, a file that does not parse listed with its issues,
+the filename-is-the-id refusal, the writable flag, the empty and missing directories;
+write → file + row + due-at-once, invalid JSON, schema issues, the filename check,
+the `render: true` note; delete → file gone + row disabled + items kept, 404 naming
+the directory, traversal ids refused by shape); `sources-routes.test.ts` the same over
+a socket (verbs, 405, 413 mid-body, non-JSON 400 in the write shape, LAN 403 that
+never reaches the route); `start.test.ts` boots a temp tree and adds a source through
+the route, then sees it in `/api/state`.
 
 ## WP10 — Notifications
 

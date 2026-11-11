@@ -2,56 +2,25 @@
  * The routes (WP4, MVP), over a real socket.
  *
  * The list is the app's: `apps/web/src/api.ts` calls `/api/state` and opens
- * `/api/events`, so those two are built, and everything else is **named** — a 404
- * that says which routes exist and which are not built, because a bare 404 is a
- * silent zero (rule 5) and the reader cannot tell "not built" from "not running".
+ * `/api/events`, so those are built, and everything else is **named** — a 404 that
+ * says which routes exist and which are not built, because a bare 404 is a silent
+ * zero (rule 5) and the reader cannot tell "not built" from "not running".
+ *
+ * The sources routes and the write boundary (D-034) are in
+ * `sources-routes.test.ts`; the static resolver's guard arms are in
+ * `static-files.test.ts`. This file is the API the paper calls, the built page, and
+ * what a failure answers.
  *
  * The dist is a temp directory, so the cache rules and the missing-build answer are
  * asserted, not assumed.
  */
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stateResponseSchema } from 'newspa-core';
-import { openInMemory } from 'newspa-db';
 import { describe, expect, it } from 'vitest';
-import { type HttpDeps, handleRequest } from '../src/httpApp.ts';
-import { createHub, type Hub } from '../src/sse.ts';
-import { getJson, readStream, withServer } from './httpSupport.ts';
-import { addSource, anRssSpec, stateOfDb } from './support.ts';
-
-const builtDist = async (): Promise<string> => {
-  const dir = await mkdtemp(join(tmpdir(), 'newspa-dist-'));
-  await writeFile(join(dir, 'index.html'), '<!doctype html><title>the paper</title>\n', 'utf8');
-  await mkdir(join(dir, 'assets'), { recursive: true });
-  await writeFile(join(dir, 'assets', 'app-4f2a.js'), 'console.log(1);\n', 'utf8');
-  return dir;
-};
-
-const depsFor = (dist: string, over: Partial<HttpDeps> = {}) => {
-  const db = openInMemory({ now: () => new Date('2026-11-09T10:00:00Z'), token: 'tok-http' });
-  addSource(db, anRssSpec());
-  const logs: string[] = [];
-  const hub = createHub({ log: (line) => logs.push(line) });
-  const deps: HttpDeps = {
-    state: () => stateOfDb(db),
-    hub,
-    dist,
-    log: (line) => logs.push(line),
-    addressOf: () => '127.0.0.1',
-    ...over,
-  };
-  return { deps, logs, hub };
-};
-
-const serve = async (
-  dist: string,
-  run: (base: string, h: ReturnType<typeof depsFor>) => Promise<void>,
-  over: Partial<HttpDeps> = {},
-): Promise<void> => {
-  const h = depsFor(dist, over);
-  await withServer(handleRequest(h.deps), ({ base }) => run(base, h));
-};
+import { handleRequest } from '../src/httpApp.ts';
+import type { Hub } from '../src/sse.ts';
+import { builtDist, depsFor, getJson, readStream, serve, withServer } from './httpSupport.ts';
 
 describe('the API the app calls', () => {
   it('answers /api/state with a paper that parses on its own schema, and never a cache', async () => {
@@ -80,7 +49,11 @@ describe('the API the app calls', () => {
       const answer = await getJson(base, '/api/items');
       expect(answer.status).toBe(404);
       expect(JSON.stringify(answer.body)).toContain('not built');
-      expect(answer.body['api']).toMatchObject({ state: '/api/state', search: expect.stringContaining('FTS5') });
+      expect(answer.body['api']).toMatchObject({
+        state: '/api/state',
+        sources: expect.stringContaining('loopback-only'),
+        search: expect.stringContaining('FTS5'),
+      });
     });
   });
 
@@ -95,37 +68,16 @@ describe('the API the app calls', () => {
   });
 });
 
-describe('the LAN boundary (D-034)', () => {
-  it('refuses a write from a non-loopback peer, on the address, before routing', async () => {
+describe('the LAN reads (D-034)', () => {
+  it('lets a LAN peer read the paper, the stream route and the static page — that is the requirement', async () => {
     await serve(
       await builtDist(),
-      async (base, h) => {
-        const answer = await getJson(base, '/api/sources', { method: 'POST', body: '{}' });
-        expect(answer.status).toBe(403);
-        expect(JSON.stringify(answer.body)).toContain('D-034');
-        expect(h.logs.join('\n')).toContain('refused POST /api/sources');
-      },
-      { addressOf: () => '192.168.1.42' },
-    );
-  });
-
-  it('answers the same write from loopback with 404, not 403: the guard allowed it, the route is not built', async () => {
-    await serve(await builtDist(), async (base) => {
-      const answer = await getJson(base, '/api/sources', { method: 'POST', body: '{}' });
-      expect(answer.status).toBe(404);
-      expect(JSON.stringify(answer.body)).toContain('no such route');
-    });
-  });
-
-  it('lets a LAN peer read the paper (that is the requirement), and the static page', async () => {
-    const dist = await builtDist();
-    await serve(
-      dist,
       async (base) => {
         expect((await fetch(`${base}/api/state`)).status).toBe(200);
         expect((await fetch(`${base}/`)).status).toBe(200);
+        expect((await fetch(`${base}/api/sources`)).status).toBe(200);
       },
-      { addressOf: () => '192.168.1.42' },
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
     );
   });
 });
@@ -228,7 +180,48 @@ describe('a route that fails', () => {
         expect(body === '' || body === 'aborted').toBe(true);
         expect(h.logs.join('\n')).toContain('request failed: GET /api/events — socket died mid-header');
       },
-      { hub: brokenHub },
+      (deps) => ({ ...deps, hub: brokenHub }),
+    );
+  });
+
+  it('answers a write whose route throws with 400, in the write shape, and logs the cause', async () => {
+    await serve(
+      await builtDist(),
+      async (base, h) => {
+        const answer = await getJson(base, '/api/sources', { method: 'POST', body: '{"text":"{}"}' });
+        expect(answer.status).toBe(400);
+        expect(answer.body).toMatchObject({ ok: false, file: null });
+        expect(JSON.stringify(answer.body)).toContain('the disk is gone');
+        expect(h.logs.join('\n')).not.toContain('the disk is gone');
+      },
+      (deps) => ({
+        ...deps,
+        sources: {
+          list: async () => ({ status: 200, body: { dir: 'sources', files: [], writable: true } }),
+          write: async () => {
+            throw new Error('the disk is gone');
+          },
+          remove: async () => ({ status: 200, body: { ok: true, file: null, messages: [] } }),
+        },
+      }),
+    );
+  });
+
+  it('answers a thrown value that is not an Error in the same shape, so a route cannot leak a stack', async () => {
+    await serve(
+      await builtDist(),
+      async (base, h) => {
+        const answer = await getJson(base, '/api/state');
+        expect(answer.status).toBe(500);
+        expect(JSON.stringify(answer.body)).toContain('a string, not an Error');
+        expect(h.logs.join('\n')).toContain('request failed: GET /api/state — a string, not an Error');
+      },
+      (deps) => ({
+        ...deps,
+        state: () => {
+          throw 'a string, not an Error';
+        },
+      }),
     );
   });
 
@@ -243,11 +236,12 @@ describe('a route that fails', () => {
         expect(answer.text).not.toContain('    at ');
         expect(h.logs.join('\n')).toContain('request failed: GET /api/state');
       },
-      {
+      (deps) => ({
+        ...deps,
         state: () => {
           throw new Error('the read side exploded');
         },
-      },
+      }),
     );
   });
 });

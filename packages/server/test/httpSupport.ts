@@ -1,14 +1,23 @@
 /**
  * The seam for the HTTP tests: a **real** `node:http` server on port 0, driven by
  * `fetch` over loopback, plus the two readers the routes need (a JSON answer, and
- * the first bytes of an open stream).
+ * the first bytes of an open stream), plus the deps bag on a real in-memory database
+ * and a real `dist` in a temp directory.
  *
  * A real server, not a fake request pair: the routes' contract is bytes on a
  * socket — the SSE headers, the `cache-control` a proxy obeys, a body a browser
  * shows. A mock would prove the mock, and the LAN requirement (D-034) is about
  * exactly those headers.
  */
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { type Database, openInMemory } from 'newspa-db';
+import { type HttpDeps, handleRequest } from '../src/httpApp.ts';
+import type { SourcesRoutes } from '../src/sourcesApi.ts';
+import { createHub, type Hub } from '../src/sse.ts';
+import { addSource, anRssSpec, stateOfDb } from './support.ts';
 
 /** What the routes are built to: a request in, a response written. */
 export type RouteHandler = (req: IncomingMessage, res: ServerResponse) => void;
@@ -74,4 +83,56 @@ export const readStream = async (
   }
   await reader.cancel().catch(() => undefined);
   return { status: response.status, headers: response.headers, body };
+};
+
+/**
+ * The deps bag, on a **real** in-memory database and a real dist in a temp
+ * directory, so a route test asserts the facts the routes actually read (rows
+ * SQLite returned, files on disk) and not a stub's opinions.
+ *
+ * Overrides arrive as a **function over the whole bag**, not a `Partial`: with
+ * `exactOptionalPropertyTypes`, spreading a partial with an explicitly-`undefined`
+ * key unsets a required dependency, and the compiler is right to be angry about it.
+ */
+export const depsFor = (
+  dist: string,
+  over: (deps: HttpDeps) => HttpDeps = (deps) => deps,
+): { deps: HttpDeps; logs: string[]; hub: Hub; db: Database } => {
+  const db = openInMemory({ now: () => new Date('2026-11-09T10:00:00Z'), token: 'tok-http' });
+  addSource(db, anRssSpec());
+  const logs: string[] = [];
+  const hub = createHub({ log: (line) => logs.push(line) });
+  const sources: SourcesRoutes = {
+    list: async (writable: boolean) => ({ status: 200, body: { dir: 'sources', files: [], writable } }),
+    write: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
+    remove: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
+  };
+  const deps = over({
+    state: () => stateOfDb(db),
+    hub,
+    sources,
+    dist,
+    log: (line) => logs.push(line),
+    addressOf: () => '127.0.0.1',
+  });
+  return { deps, logs, hub, db };
+};
+
+/** A dist with an index and one hashed asset: the pair the cache rules are about. */
+export const builtDist = async (): Promise<string> => {
+  const dir = await mkdtemp(join(tmpdir(), 'newspa-dist-'));
+  await writeFile(join(dir, 'index.html'), '<!doctype html><title>the paper</title>\n', 'utf8');
+  await mkdir(join(dir, 'assets'), { recursive: true });
+  await writeFile(join(dir, 'assets', 'app-4f2a.js'), 'console.log(1);\n', 'utf8');
+  return dir;
+};
+
+/** Serve the routes on port 0 for one test, with a temp dist. */
+export const serve = async (
+  dist: string,
+  run: (base: string, h: ReturnType<typeof depsFor>) => Promise<void>,
+  over: (deps: HttpDeps) => HttpDeps = (deps) => deps,
+): Promise<void> => {
+  const h = depsFor(dist, over);
+  await withServer(handleRequest(h.deps), ({ base }) => run(base, h));
 };

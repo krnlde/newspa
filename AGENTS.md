@@ -183,7 +183,8 @@ packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
 packages/fetch    http, rss, html, json, fixtures. `render`/`pick` (msedge) are WP6,
                   not built: the transport refuses a `render: true` source by name.
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
-                  routes (`/api/state`, `/api/events`, the built page), the SSE hub,
+                  routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE,
+                  the built page), the SSE hub,
                   the address policy (D-034), `export --bundle` (rule 18's backup).
                   Cut commands answer by name (`commands.ts`); toasts (WP10), `import`
                   and the picker (WP6) are not built.

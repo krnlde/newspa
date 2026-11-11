@@ -8,7 +8,7 @@
  * schema, and starts a scheduler that polls. No network: the poll is a stub, so the
  * boot's own behaviour is what is under test.
  */
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SourceSpec } from 'newspa-config';
@@ -122,6 +122,35 @@ describe('the boot', () => {
     expect(text).toContain('not starting:');
     expect(text).toContain('another process holds this database');
     await first.running.close();
+  });
+
+  it('serves the reading list as files, and writes one on a loopback POST (WP14)', async () => {
+    const root = await tempRoot();
+    await writeJson(join(root, 'sources', 'bbc.json'), anRssSpec());
+    const { running } = await bootOnce(root);
+
+    const listed = (await (await fetch(`${base(running.port)}/api/sources`)).json()) as {
+      dir: string;
+      writable: boolean;
+      files: { file: string; id: string | null; text: string }[];
+    };
+    expect(listed.dir).toBe(join(root, 'sources'));
+    expect(listed.writable).toBe(true);
+    expect(listed.files.map((file) => [file.file, file.id])).toEqual([['bbc.json', 'bbc']]);
+    expect(JSON.parse(listed.files[0]?.text ?? '{}').kind).toBe('rss');
+
+    const written = await fetch(`${base(running.port)}/api/sources`, {
+      method: 'POST',
+      body: JSON.stringify({ text: JSON.stringify(anRssSpec({ id: 'reuters', label: 'Reuters' })) }),
+    });
+    expect(written.status).toBe(200);
+    expect(JSON.parse(await readFile(join(root, 'sources', 'reuters.json'), 'utf8')).id).toBe('reuters');
+
+    // The write refreshed the row, so the paper shows the source before any poll —
+    // and `next_run_at` is null, so the next batch polls it first.
+    const state = stateResponseSchema.parse(await (await fetch(`${base(running.port)}/api/state`)).json());
+    expect(state.sources.map((source) => source.id)).toEqual(['bbc', 'reuters']);
+    await running.close();
   });
 
   it('says what a loopback bind means, and where to change it', async () => {

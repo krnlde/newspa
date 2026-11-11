@@ -19,7 +19,9 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StateResponse } from 'newspa-core';
-import { mutationAllowed } from './net.ts';
+import { isLoopback, mutationAllowed } from './net.ts';
+import { BodyError, readJsonBody } from './requestBody.ts';
+import { MAX_SOURCE_BODY_BYTES, type SourcesRoutes } from './sourcesApi.ts';
 import type { Hub } from './sse.ts';
 import { staticFor } from './staticFiles.ts';
 
@@ -27,6 +29,8 @@ export interface HttpDeps {
   /** The paper, read from the db: `stateOf` wired to the repositories. */
   readonly state: () => StateResponse;
   readonly hub: Hub;
+  /** The reading list, as files (WP14). */
+  readonly sources: SourcesRoutes;
   /** `apps/web/dist`. */
   readonly dist: string;
   readonly log: (line: string) => void;
@@ -50,12 +54,76 @@ const sendText = (res: ServerResponse, status: number, text: string): void => {
 const API_INDEX = {
   state: '/api/state',
   events: '/api/events (text/event-stream)',
+  sources: '/api/sources (GET) · POST writes sources/<id>.json · DELETE ?id=… — writes are loopback-only (D-034)',
   items: 'not built: the app has no items page in the MVP',
   search: 'not built: FTS5 exists in `packages/db`; the route and the box are WP7',
 } as const;
 
-/** The API: two routes, a 405 for a verb a route cannot mean, a named 404 for the rest. */
-const apiRoute = (deps: HttpDeps, req: IncomingMessage, res: ServerResponse, method: string, path: string): void => {
+/** The sources route: the list, a write of raw file text, a removal by id. */
+const sourcesRoute = async (
+  deps: HttpDeps,
+  req: IncomingMessage,
+  res: ServerResponse,
+  method: string,
+  writable: boolean,
+): Promise<void> => {
+  if (method === 'GET') {
+    const answer = await deps.sources.list(writable);
+    sendJson(res, answer.status, answer.body);
+    return;
+  }
+  if (method === 'POST') {
+    await sourcesWrite(deps, req, res);
+    return;
+  }
+  if (method === 'DELETE') {
+    const query = new URL(req.url ?? '/api/sources', 'http://internal');
+    const answer = await deps.sources.remove(query.searchParams.get('id') ?? '');
+    sendJson(res, answer.status, answer.body);
+    return;
+  }
+  sendJson(res, 405, { error: '/api/sources is GET, POST (write a source file) and DELETE ?id=…' });
+};
+
+/** A POST: read the body with a ceiling, then let the route decide. */
+const sourcesWrite = async (deps: HttpDeps, req: IncomingMessage, res: ServerResponse): Promise<void> => {
+  try {
+    const raw = await readJsonBody(req, MAX_SOURCE_BODY_BYTES);
+    const answer = await deps.sources.write(raw);
+    sendJson(res, answer.status, answer.body);
+  } catch (cause) {
+    // A body that cannot be read is the same shape as a write that cannot land:
+    // `{ok, file, messages}`, so the form renders one kind of answer, not two.
+    const status = cause instanceof BodyError ? cause.status : 400;
+    const message = cause instanceof Error ? cause.message : String(cause);
+    const headers: Record<string, string> = {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    };
+    if (status === 413) {
+      // The body was never read to the end, so the connection cannot be reused: say
+      // so in the same answer, or the client's next request on that socket fails in
+      // a way that looks like the server is flaky.
+      headers['connection'] = 'close';
+    }
+    res.writeHead(status, headers);
+    res.end(`${JSON.stringify({ ok: false, file: null, messages: [message] })}\n`);
+  }
+};
+
+/** The API: the routes, a 405 for a verb a route cannot mean, a named 404 for the rest. */
+const apiRoute = async (
+  deps: HttpDeps,
+  req: IncomingMessage,
+  res: ServerResponse,
+  method: string,
+  path: string,
+  writable: boolean,
+): Promise<void> => {
+  if (path === '/api/sources') {
+    await sourcesRoute(deps, req, res, method, writable);
+    return;
+  }
   if (path === '/api/events') {
     if (method !== 'GET') {
       sendJson(res, 405, { error: '/api/events is a GET: it is an open stream, not a POST target' });
@@ -102,11 +170,9 @@ const route = (
   res: ServerResponse,
   method: string,
   path: string,
+  writable: boolean,
 ): Promise<void> => {
-  if (path.startsWith('/api/')) {
-    apiRoute(deps, req, res, method, path);
-    return Promise.resolve();
-  }
+  if (path.startsWith('/api/')) return apiRoute(deps, req, res, method, path, writable);
   if (method !== 'GET' && method !== 'HEAD') {
     sendJson(res, 405, { error: `${method} is not supported on ${path}` });
     return Promise.resolve();
@@ -139,13 +205,17 @@ export const handleRequest =
     const method = req.method ?? 'GET';
     const path = pathOf(req);
     try {
-      const guard = mutationAllowed(method, deps.addressOf(req));
+      const address = deps.addressOf(req);
+      const guard = mutationAllowed(method, address);
       if (guard.allowed === false) {
         deps.log(`refused ${method} ${path}: ${guard.reason}`);
         sendJson(res, 403, { error: guard.reason });
         return;
       }
-      await route(deps, req, res, method, path);
+      // The same fact the guard just used, told to the client so a form on a phone
+      // can say "editing is from this machine only" instead of offering a button
+      // that is guaranteed to fail (D-034).
+      await route(deps, req, res, method, path, isLoopback(address));
     } catch (cause) {
       fail(deps, res, method, path, cause);
     }
