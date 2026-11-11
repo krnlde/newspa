@@ -168,6 +168,36 @@ export const showPaper = (): void => {
   );
 };
 
+/**
+ * The paper on an explicit pair of display axes (D-038).
+ *
+ * The app applies both before first paint (the script in `index.html`), so a suite
+ * that wants the cascade to have decided has to write the attributes on
+ * `documentElement` and mount with the matching props: the CSS reads the markup, the
+ * controls read the props, and a test that set only one of the two would measure a
+ * state no real page can be in.
+ */
+export const showPaperIn = (theme: 'light' | 'dark', contrast: 'normal' | 'more'): void => {
+  const at = document.documentElement;
+  at.dataset['theme'] = theme;
+  at.dataset['contrast'] = contrast;
+  render(
+    <Paper
+      masthead={THE_MASTHEAD}
+      edition={THE_EDITION}
+      sources={SOURCES}
+      labels={LABELS}
+      format={THE_FORMAT}
+      theme={theme}
+      onToggleTheme={() => undefined}
+      themeLabel={theme === 'dark' ? 'Light' : 'Dark'}
+      contrast={contrast}
+      onToggleContrast={() => undefined}
+      contrastLabel={contrast === 'more' ? 'Plain' : 'High contrast'}
+    />,
+  );
+};
+
 /** Everything the paper owns: a scan over this cannot be vacuous. */
 export const paperElements = (): HTMLElement[] => {
   const sheet = document.querySelector<HTMLElement>("[data-part='sheet']");

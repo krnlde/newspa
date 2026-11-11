@@ -57,6 +57,60 @@
   }
 }
 
+/*
+ * High contrast (D-038): the same names, in black and white.
+ *
+ * It is a **second axis**, not a third theme: `data-theme` answers "which stock"
+ * and `data-contrast` answers "how hard". The reader's wall is an e-ink panel, and
+ * a 16-level panel dithers `#f4ecd8` into a grey fog and swallows `--rule: #d8cdb4`
+ * whole — the tint is not decoration there, it is noise the panel has to draw. So
+ * the mode is pure stock, pure ink, and the rules in ink at 1px: the palette
+ * changes and nothing else does, which is why the marks, the images and the one
+ * shadow are left alone — a page that hides its own content because the contrast
+ * is high would be a penalty for asking.
+ *
+ * The order is the cascade, stated: light-high after dark, and the pair selector
+ * (`dark` + `more`) last, because `[data-a][data-b]` (two attributes) outranks
+ * each single one. The `prefers-color-scheme` arm mirrors the OS default for a
+ * reader who has expressed no opinion, and `prefers-contrast: more` is honoured in
+ * `base.css`, gated on `:root:not([data-contrast])` so an explicit choice on the
+ * page always beats the OS.
+ */
+[data-contrast='more'] {
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-2: #1a1a1a;
+  --muted: #333333;
+  --rule: #000000;
+  --rule-strong: #000000;
+  --hair: 1px;
+}
+
+[data-theme='dark'][data-contrast='more'] {
+  --paper: #000000;
+  --paper-2: #000000;
+  --ink: #ffffff;
+  --ink-2: #ededed;
+  --muted: #cccccc;
+  --rule: #ffffff;
+  --rule-strong: #ffffff;
+  --hair: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme])[data-contrast='more'] {
+    --paper: #000000;
+    --paper-2: #000000;
+    --ink: #ffffff;
+    --ink-2: #ededed;
+    --muted: #cccccc;
+    --rule: #ffffff;
+    --rule-strong: #ffffff;
+    --hair: 1px;
+  }
+}
+
 @theme inline {
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);

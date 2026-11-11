@@ -4,7 +4,7 @@ import { FrontPage } from './FrontPage.tsx';
 import { type HealthLabels, HealthStrip } from './HealthStrip.tsx';
 import { Masthead } from './Masthead.tsx';
 import { Section } from './Section.tsx';
-import type { FormatProps, SourcesControl, StoryLabels } from './types.ts';
+import type { Contrast, FormatProps, SourcesControl, StoryLabels } from './types.ts';
 
 /**
  * The page: masthead, front page, sections, the edited strip, source health.
@@ -56,6 +56,15 @@ export interface PaperProps {
   readonly onToggleTheme: () => void;
   readonly themeLabel: string;
   /**
+   * The contrast axis (D-038): a second, orthogonal knob. Omitted, and the strip
+   * prints one control, as it did. The pair is deliberate — the e-ink wall wants
+   * *black on white* and *white on black*, which is two axes, not four modes, and
+   * the CSS rebinds the same token names under `[data-contrast]`.
+   */
+  readonly contrast?: Contrast | undefined;
+  readonly onToggleContrast?: (() => void) | undefined;
+  readonly contrastLabel?: string | undefined;
+  /**
    * The editor's entry, printed in the dateline strip (WP14). Omitted, and the
    * page is the paper alone. Named `editor`, not `sources`: `sources` is the
    * health strip's array, and one prop that is a list and a control is a lie.
@@ -79,6 +88,9 @@ export const Paper = ({
   theme,
   onToggleTheme,
   themeLabel,
+  contrast,
+  onToggleContrast,
+  contrastLabel,
   editor,
 }: PaperProps) => (
   <div data-part="sheet" className={sheetClass}>
@@ -90,6 +102,9 @@ export const Paper = ({
       theme={theme}
       onToggleTheme={onToggleTheme}
       themeLabel={themeLabel}
+      contrast={contrast}
+      onToggleContrast={onToggleContrast}
+      contrastLabel={contrastLabel}
       {...(editor === undefined ? {} : { sources: editor })}
     />
     {sources.length === 0 ? (

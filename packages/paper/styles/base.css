@@ -111,9 +111,24 @@
     }
   }
 
-  /* A reader who asks for contrast gets the rules in ink, not in beige. */
+  /*
+   * A reader who asks for contrast gets the rules in ink, not in beige — the law
+   * for the **system's** trigger (D-038). The page's own trigger,
+   * `[data-contrast='more']`, is answered in `tokens.css`, and the split is the
+   * cascade, measured: `tokens.css`'s blocks are unlayered, so they beat this
+   * `@layer base` rule for the same names. Repeating the declarations here would be
+   * dead CSS, so the palette has one owner and this block keeps the one job the
+   * tokens cannot do: speak for a reader who never touches the control.
+   *
+   * The `:not()` is what lets the page win: a wall device set to `normal` has
+   * expressed an opinion, and an OS signal does not overrule a reader's.
+   *
+   * Rules and greys only. The marks, the images and the one shadow stay: a page
+   * that hides its own content because the contrast is high would be a penalty
+   * for asking (the ruling docs/decisions-surface.md D-038 records).
+   */
   @media (prefers-contrast: more) {
-    :root {
+    :root:not([data-contrast]) {
       --rule: var(--ink);
       --rule-strong: var(--ink);
       --hair: 1px;
@@ -176,6 +191,7 @@
        watchlist directory. The health strip goes for the same reason — both are
        the machine's report, not the edition. */
     [data-part='theme-switch'],
+    [data-part='contrast-switch'],
     [data-part='health'],
     [data-part='sources-open'],
     [data-part='sources-close'],

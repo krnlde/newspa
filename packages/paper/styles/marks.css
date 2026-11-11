@@ -57,11 +57,20 @@
   --dot-image: radial-gradient(var(--pattern-fg) 1px, transparent 0);
 }
 
+/* The marks are drawn in faded ink, so a reader who asks for contrast gets them
+   faded less. Two triggers, one law (D-038): the OS signal, gated so the page's
+   own `data-contrast` wins, and the attribute. The marks are never removed —
+   a high-contrast page that hid its own ornaments would be a penalty for asking. */
 @media (prefers-contrast: more) {
-  :root {
+  :root:not([data-contrast]) {
     --pattern-fg: color-mix(in oklab, var(--ink) 22%, transparent);
     --guide: var(--ink-2);
   }
+}
+
+[data-contrast='more'] {
+  --pattern-fg: color-mix(in oklab, var(--ink) 22%, transparent);
+  --guide: var(--ink-2);
 }
 
 @utility pattern-crossings {

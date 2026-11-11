@@ -71,6 +71,52 @@ describe('the theme switcher', () => {
   });
 });
 
+describe('the contrast axis (D-038)', () => {
+  const withAxis = (over: Partial<typeof THE_MASTHEAD_PROPS> = {}) =>
+    showMasthead({
+      contrast: 'more',
+      onToggleContrast: vi.fn(),
+      contrastLabel: 'Plain',
+      ...over,
+    });
+
+  it('prints no second control at all when the app has no contrast to offer', () => {
+    const { container } = showMasthead();
+    expect(container.querySelector(PART.contrastSwitch)).toBeNull();
+    expect(container.querySelectorAll(PART.themeSwitch)).toHaveLength(1);
+  });
+
+  it('is a real button of type button, labelled by the app', () => {
+    const { container } = withAxis();
+    const button = one<HTMLButtonElement>(PART.contrastSwitch, container);
+    expect(button.tagName).toBe('BUTTON');
+    expect(button.getAttribute('type')).toBe('button');
+    expect(button.textContent).toBe('Plain');
+  });
+
+  it('is pressed when the axis is on, and not when it is off: the state, not the label', () => {
+    const pressed = (contrast: 'normal' | 'more'): string | null =>
+      one(PART.contrastSwitch, withAxis({ contrast }).container).getAttribute('aria-pressed');
+    expect(pressed('normal')).toBe('false');
+    expect(pressed('more')).toBe('true');
+  });
+
+  it('fires onToggleContrast once per press, and never the theme with it', () => {
+    const onToggleContrast = vi.fn();
+    const { container, onToggleTheme } = withAxis({ onToggleContrast });
+    fireEvent.click(one(PART.contrastSwitch, container));
+    expect(onToggleContrast).toHaveBeenCalledOnce();
+    expect(onToggleTheme).not.toHaveBeenCalled();
+  });
+
+  it('prints beside the theme switch, in the page’s one control row', () => {
+    const { container } = withAxis();
+    const strip = one(PART.datelineStrip, container);
+    expect(strip.contains(one(PART.themeSwitch, container))).toBe(true);
+    expect(strip.contains(one(PART.contrastSwitch, container))).toBe(true);
+  });
+});
+
 describe('the masthead block', () => {
   it('is one header that prints the dateline strip, then the name, then the tagline, then the stats', () => {
     const header = one(`header${PART.masthead}`, showMasthead().container);

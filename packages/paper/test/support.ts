@@ -196,6 +196,7 @@ export const PART = {
   datelineStrip: "[data-part='dateline-strip']",
   dateline: "[data-part='dateline']",
   themeSwitch: "[data-part='theme-switch']",
+  contrastSwitch: "[data-part='contrast-switch']",
   title: "[data-part='title']",
   tagline: "[data-part='tagline']",
   summaryStrip: "[data-part='summary-strip']",

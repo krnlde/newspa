@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CONTRAST_KEY } from '../../src/contrast.ts';
 import { en } from '../../src/i18n/locales/en.ts';
 import { THEME_KEY } from '../../src/theme.ts';
 import { html, one, renderPaper } from './support/render.tsx';
@@ -88,5 +89,49 @@ describe('the theme switch', () => {
     expect(button.getAttribute('aria-pressed')).toBe('true');
     fireEvent.click(button);
     expect(html().dataset['theme']).toBe('light');
+  });
+});
+
+describe('the contrast axis (D-038)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete html().dataset['contrast'];
+  });
+
+  it('prints a second control in the same row, on its own two stores, and leaves the theme alone', async () => {
+    await renderPaper();
+    const button = one<HTMLButtonElement>("[data-part='contrast-switch']");
+    expect(one("[data-part='theme-switch']").parentElement?.parentElement?.getAttribute('data-part')).toBe(
+      'dateline-strip',
+    );
+    expect(button.textContent).toBe(en.paper.contrast.toMore);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(button);
+    expect(html().dataset['contrast']).toBe('more');
+    expect(globalThis.localStorage.getItem(CONTRAST_KEY)).toBe('more');
+    expect(button.textContent).toBe(en.paper.contrast.toNormal);
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    // Two axes: pressing contrast must not move the stock, and the theme's store is
+    // untouched — `useTheme` writes `data-theme` only on its own press, so the
+    // honest claim here is that the attribute is still absent. The CSS composes the
+    // pair; nothing in JavaScript does.
+    expect(html().dataset['theme']).toBeUndefined();
+    expect(globalThis.localStorage.getItem(THEME_KEY)).toBeNull();
+  });
+
+  it('takes the axis from the url, so a wall device is set by a link with no clicks', async () => {
+    vi.stubGlobal('location', { ...globalThis.location, search: '?theme=dark&contrast=more' });
+    await renderPaper();
+    const button = one<HTMLButtonElement>("[data-part='contrast-switch']");
+    expect(button.textContent).toBe(en.paper.contrast.toNormal);
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    // A url visit writes nothing: the phone that opens a wall link keeps its own choice.
+    expect(globalThis.localStorage.getItem(CONTRAST_KEY)).toBeNull();
+  });
+
+  it('starts from what the pre-paint script wrote to the document', async () => {
+    html().dataset['contrast'] = 'more';
+    await renderPaper();
+    expect(one("[data-part='contrast-switch']").textContent).toBe(en.paper.contrast.toNormal);
   });
 });

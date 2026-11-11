@@ -179,7 +179,15 @@ describe('the paper contract, in CSS and in the components', () => {
     const hiddenInPrint = [...printRules.matchAll(/([^{}]+)\{\s*display:\s*none\s*;?\s*\}/gu)].flatMap(
       (rule) => (rule[1] ?? '').match(/\[data-part='[a-z-]+'\]/gu) ?? [],
     );
-    for (const part of ['theme-switch', 'health', 'sources', 'sources-open', 'sources-close', 'sources-modal']) {
+    for (const part of [
+      'theme-switch',
+      'contrast-switch',
+      'health',
+      'sources',
+      'sources-open',
+      'sources-close',
+      'sources-modal',
+    ]) {
       expect(hiddenInPrint, `base.css print: [data-part='${part}'] prints`).toContain(`[data-part='${part}']`);
     }
   });
@@ -210,6 +218,52 @@ describe('the paper contract, in CSS and in the components', () => {
       'padding-inline: var(--spacing-gutter)',
     );
     expect(body, 'base.css: no block air for the corner ticks').toContain('padding-block: var(--mark-offset)');
+  });
+
+  /*
+   * The contrast axis (D-038), as the law the CSS must keep. Two triggers, one law —
+   * the system's `prefers-contrast: more` and the page's own `data-contrast` — and
+   * **the page's choice beats the system's**, which is the whole point of the second
+   * trigger: a wall device set to `normal` has expressed an opinion, and an OS signal
+   * may not overrule a reader's. The computed half (what the four combinations
+   * resolve to) is `apps/web/test/design/contrast.test.tsx`, in real Edge; what is
+   * pinned here is the shape, because a media query is not reachable from a viewport.
+   */
+  it('makes the contrast axis one law with two triggers, the page’s beating the system’s', () => {
+    const tokens = cssOf('tokens.css');
+    // Palette in the tokens, and the pair selector last: `[data-a][data-b]` outranks
+    // each single attribute, so dark + high needs its own block.
+    expect(tokens).toContain("[data-contrast='more'] {");
+    expect(tokens).toContain("[data-theme='dark'][data-contrast='more'] {");
+    expect(tokens.indexOf("[data-theme='dark'][data-contrast='more']")).toBeGreaterThan(
+      tokens.indexOf("[data-contrast='more'] {"),
+    );
+
+    for (const file of ['base.css', 'marks.css']) {
+      const block = /@media \(prefers-contrast: more\) \{([\s\S]*?)\n {2}\}/u.exec(cssOf(file))?.[1] ?? '';
+      expect(block, `${file}: the system signal must be gated so the page can win`).toContain(
+        ':root:not([data-contrast])',
+      );
+    }
+    // One owner per value (measured, 2026-11-11): `tokens.css` is unlayered, so its
+    // attribute blocks beat `@layer base` for the same names — the palette is
+    // therefore the tokens' and `base.css` keeps only the system trigger. `marks.css`
+    // carries the attribute block too, because the tokens say nothing about a mark.
+    expect(cssOf('marks.css'), 'marks.css: the marks must darken on the attribute as well').toContain(
+      "[data-contrast='more'] {",
+    );
+    expect(cssOf('base.css'), 'base.css: a repeating palette block is dead CSS').not.toContain(
+      "[data-contrast='more'] {",
+    );
+
+    // The axis is CSS, not a component concern: nothing beyond passing the prop
+    // through knows it exists, and no `dark:`-style variant is born.
+    for (const { name, text } of components()) {
+      if (name === 'Masthead.tsx' || name === 'Paper.tsx' || name === 'types.ts') continue;
+      expect(text, `${name}: the contrast axis is tokens and attributes, not a class`).not.toMatch(
+        /data-contrast|contrast='more'/u,
+      );
+    }
   });
 
   /*

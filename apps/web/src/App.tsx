@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import 'newspa-paper/styles/paper.css';
 import { Onboarding, Paper, SourcesModal, sheetClass } from 'newspa-paper';
 import { fetchState, openEvents } from './api.ts';
+import { useContrast } from './contrast.ts';
 import { formatFor } from './format.ts';
 import { paperLabelsOf, sourcesModalLabelsOf } from './labels.ts';
 import { useLocale } from './lib/useLocale.ts';
@@ -13,8 +14,9 @@ import { useTheme } from './theme.ts';
 /**
  * The app: state from `/api/state`, live invalidation from `/api/events`, and the
  * sources editor in a modal above the sheet (WP14). Layout is `newspa-paper`'s;
- * strings and dates come from the locale seam (D-019); the theme is `data-theme`
- * on `<html>`.
+ * strings and dates come from the locale seam (D-019); the two display axes are
+ * `data-theme` and `data-contrast` on `<html>` (D-002, D-038), applied before first
+ * paint by the script in `index.html`.
  *
  * The flash on a pushed item is a DOM attribute, not React state: the paper
  * re-renders from the query refetch a moment later, and a flash that survives a
@@ -46,6 +48,7 @@ export const App = () => {
   const { t } = useTranslation();
   const locale = useLocale();
   const { theme, toggle } = useTheme();
+  const { contrast, toggle: toggleContrast } = useContrast();
   const client = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [returnTo, setReturnTo] = useState<Element | null>(null);
@@ -76,6 +79,9 @@ export const App = () => {
   const modalLabels = sourcesModalLabelsOf(t);
   const format = formatFor(locale);
   const themeLabel = theme === 'dark' ? t('paper.theme.toLight') : t('paper.theme.toDark');
+  // The second axis names its own state, the same way (D-038): the label is what the
+  // press gives, never the mode the page is in, so the control reads the same twice.
+  const contrastLabel = contrast === 'more' ? t('paper.contrast.toNormal') : t('paper.contrast.toMore');
 
   if (state.isPending) {
     return (
@@ -117,6 +123,9 @@ export const App = () => {
         theme={theme}
         onToggleTheme={toggle}
         themeLabel={themeLabel}
+        contrast={contrast}
+        onToggleContrast={toggleContrast}
+        contrastLabel={contrastLabel}
         editor={{
           label: t('sources.open'),
           onOpen: (control: HTMLElement) => {

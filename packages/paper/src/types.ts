@@ -89,6 +89,14 @@ export interface SourcesControl {
   readonly onOpen: (control: HTMLElement) => void;
 }
 
+/**
+ * The stock's two axes (D-038): `theme` answers "which stock", `contrast` answers
+ * "how hard". They are **not** one enum of four modes: the pair composes, the CSS
+ * rebinds the same token names under `[data-theme]` and `[data-contrast]`, and a
+ * wall device can be set by URL (`?theme=dark&contrast=more`) with no clicks.
+ */
+export type Contrast = 'normal' | 'more';
+
 export interface MastheadProps {
   readonly name: string;
   readonly tagline: string;
@@ -99,6 +107,14 @@ export interface MastheadProps {
   readonly onToggleTheme: () => void;
   /** The switcher's own words, and its accessible name. */
   readonly themeLabel: string;
+  /**
+   * The contrast axis, omitted when the app has no contrast control to offer. The
+   * strip prints the button only when the app asks for it: a control that does
+   * nothing is a lie, and the paper owns no opinion about which axes to expose.
+   */
+  readonly contrast?: Contrast | undefined;
+  readonly onToggleContrast?: (() => void) | undefined;
+  readonly contrastLabel?: string | undefined;
   /** The editor's entry, omitted when the app has no editor to open. */
   readonly sources?: SourcesControl;
 }

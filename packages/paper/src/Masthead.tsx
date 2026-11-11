@@ -16,9 +16,11 @@ import type { MastheadProps } from './types.ts';
  * that reaches outside the scale.
  *
  * The dateline strip is the page's one **control row**, so the editor's entry
- * (`sources`, WP14) prints beside the switcher, in the same `CONTROL` vocabulary:
- * two controls, one look. The masthead owns no data for it — the list is fetched
- * when the modal opens, and this only asks for the opening.
+ * (`sources`, WP14) and the two display switches print beside each other, in the
+ * same `CONTROL` vocabulary: several controls, one look. The masthead owns no data
+ * for the editor — the list is fetched when the modal opens, and this only asks for
+ * the opening. The switches only reflect what the app applies **before first paint**
+ * (D-002 for the theme, D-038 for the contrast axis).
  */
 export const Masthead = ({
   name,
@@ -28,6 +30,9 @@ export const Masthead = ({
   theme,
   onToggleTheme,
   themeLabel,
+  contrast,
+  onToggleContrast,
+  contrastLabel,
   sources,
 }: MastheadProps) => (
   <header data-part="masthead" className="pt-3 pb-2 border-t-2 border-t-ink text-center">
@@ -60,6 +65,20 @@ export const Masthead = ({
         >
           {themeLabel}
         </button>
+        {/* The second axis (D-038), and no more of the strip than the theme switch
+            is: the button names the state the press gives, and `aria-pressed` says
+            whether it is on. Rendered only when the app has the control to offer. */}
+        {contrast === undefined || onToggleContrast === undefined || contrastLabel === undefined ? null : (
+          <button
+            type="button"
+            data-part="contrast-switch"
+            className={CONTROL}
+            onClick={onToggleContrast}
+            aria-pressed={contrast === 'more'}
+          >
+            {contrastLabel}
+          </button>
+        )}
       </div>
     </div>
     {/* `leading-display`, not the sheet's 1.03: three leading values exist

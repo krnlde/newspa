@@ -17,18 +17,37 @@
       href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%23f4ecd8'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='20'%20text-anchor='middle'%20fill='%231f1b16'%3E%E2%9D%A6%3C/text%3E%3C/svg%3E"
     />
     <script>
-      // The theme is applied before first paint: a dark-theme device must not
-      // flash the yellowed stock. The key is `newspa.theme` (see src/theme.ts),
-      // and `data-theme` is the hook the paper's CSS reads.
+      // Both display axes are applied **before first paint** (D-002, D-038): a
+      // dark-theme device, or an e-ink wall, must not flash the yellowed stock.
+      // `data-theme` and `data-contrast` are the hooks the paper's CSS reads, and
+      // the keys are `newspa.theme` / `newspa.contrast` (src/theme.ts,
+      // src/contrast.ts).
+      //
+      // The url answers first, and is **not** stored: a device on the wall is set by
+      // a link — `?theme=dark&contrast=more` — with no clicks and no storage to
+      // clear, and a phone that opens that link once must not lose its own choice.
       (() => {
         const at = document.documentElement;
-        try {
-          const saved = localStorage.getItem('newspa.theme');
-          const dark = saved === 'dark' || (saved === null && matchMedia('(prefers-color-scheme: dark)').matches);
-          at.dataset.theme = dark ? 'dark' : 'light';
-        } catch {
-          at.dataset.theme = 'light';
-        }
+        const query = new URLSearchParams(location.search);
+        const chosen = (name) => {
+          const inUrl = query.get(name);
+          if (inUrl !== null) return inUrl;
+          try {
+            return localStorage.getItem(`newspa.${name}`);
+          } catch {
+            return null;
+          }
+        };
+        const theme = chosen('theme');
+        const darkWanted =
+          theme === 'dark' || (theme === null && matchMedia('(prefers-color-scheme: dark)').matches);
+        at.dataset.theme = darkWanted ? 'dark' : 'light';
+        // Silence is not "off": with no attribute written, `prefers-contrast: more`
+        // from the system still applies (base.css gates that block on
+        // `:root:not([data-contrast])`). A page that wrote `normal` here would
+        // overrule a reader's own system setting.
+        const contrast = chosen('contrast');
+        if (contrast === 'more' || contrast === 'normal') at.dataset.contrast = contrast;
       })();
     </script>
   </head>
