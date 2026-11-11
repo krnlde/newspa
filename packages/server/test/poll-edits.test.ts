@@ -23,10 +23,11 @@ const KRAKOW = 'Krakow shooting suspect has died in hospital, police say';
 /**
  * A second version of the capture: the story changed **and** the feed says so.
  *
- * The re-stamp is not decoration — layer 2 of the ladder trusts the payload's
- * declared timestamp, so a publisher that stamps its feed once a day and edits
- * it hourly is a source whose intraday edits are skipped. That boundary is its
- * own test below; every test here is about what happens when the parse runs.
+ * The re-stamp is decoration — the declared timestamp is **recorded, never
+ * obeyed** (D-027). A publisher that stamps its feed once a day and edits it
+ * hourly has those intraday edits parsed, which is the point of the test that
+ * used to name the boundary; every test here is about what the parse publishes
+ * once it runs.
  */
 const restamped = (find: string, replace: string) => () =>
   okResponse(fixture(FEED).replace(STAMP, 'Tue, 10 Nov 2026 08:00:00 GMT').replace(find, replace), '"cap-2"');
@@ -151,10 +152,11 @@ describe('an edited story is one row, with a report', () => {
     expect(h.db.itemEvents.count({ sourceId: 'bbc', kind: 'edited' })).toBe(0);
   });
 
-  it('layer 2 is the boundary: an edit the feed does not declare is never parsed', async () => {
-    // The same story, rewritten, with `<lastBuildDate>` left where it was. This
-    // is the honest cost of trusting the payload's own timestamp (D-020), and
-    // the counters make it visible: a source that stamps once a day hits.
+  it('an edit the feed does not declare is parsed (D-027: the stamp records, it never suppresses)', async () => {
+    // The same story, rewritten, with `<lastBuildDate>` left where it was. Under
+    // the rung this test used to pin, the poll answered `declared-unchanged`, the
+    // rewrite stayed invisible until the stamp moved, and the paper printed a
+    // stale headline. The declared stamp is a **note** now; the news is parsed.
     const h = pollHarness(anRssSpec(), (call) =>
       call === 1
         ? okResponse(fixture(FEED))
@@ -162,12 +164,13 @@ describe('an edited story is one row, with a report', () => {
     );
     const first = await h.poll();
     expect(first.itemCount).toBe(h.db.items.count({ sourceId: 'bbc' }));
+    // The key is the canonical link, so the row survives its own rewrite.
+    const key = keyOfTitle(h.db, KRAKOW);
 
     const second = await h.pollAt(LATER);
-    expect(second.outcome).toBe('declared-unchanged');
-    expect(second.itemCount).toBeNull();
-    expect(second.editedItems).toBe(0);
-    expect(story(h.db, keyOfTitle(h.db, KRAKOW)).title).toBe(KRAKOW);
+    expect(second.outcome).toBe('changed');
+    expect(second.editedKeys).toEqual([key]);
+    expect(story(h.db, key).title).toBe('A headline nobody will read');
   });
 
   it('a story the feed adds is a `new` event, and the rest stay `new`-of-the-first-poll', async () => {

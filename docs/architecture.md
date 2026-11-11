@@ -64,9 +64,11 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    sends pinned headers/cookies and `If-None-Match`/`If-Modified-Since`
    (`conditionalHeaders`, one second before the stored `Last-Modified`).
 3. **Cheap-signal ladder** (docs/fetching.md, D-020): `304` → body hash equals
-   the last stored body → the payload's declared timestamp equals the stored one
-   (`pageSignals`) → only then the full path. A rung may skip work; it may never
-   suppress an item. The `outcome` lands on the `snapshots` row and the
+   the last stored body → the payload's stored body, and the **selection hash**
+   of the node the source watches equals the stored one
+   (D-027) → only then the full path. A rung may skip work; it may never suppress
+   an item, and the declared timestamp is recorded, not obeyed: the rung that
+   skipped the parse on an unchanged stamp is gone. The `outcome` lands on the `snapshots` row and the
    per-source `fastPathHits`/`fastPathMisses` counters keep an inert fast path visible.
 4. `sniff` decides what arrived by content, not by `content-type`
    (`<?xml`/`<rss`/`<feed`), because `old.reddit.com/….rss` measured as

@@ -31,6 +31,13 @@ const KIND_CHECK = `check (kind in ('rss', 'html', 'json'))`;
 const EVENT_KIND_CHECK = `check (kind in ('new', 'edited', 'gone'))`;
 const HEALTH_CHECK = `check (health in ('unknown', 'ok', 'blocked', 'no-matches', 'restructured', 'error', 'stale'))`;
 const OUTCOME_CHECK = `check (outcome in ('not-modified', 'same-body', 'declared-unchanged', 'changed', 'error'))`;
+/**
+ * The widened list, installed by migration 3 (the selection rung, D-027).
+ * `declared-unchanged` **stays**: a CHECK is a rule for inserts, not a statement
+ * about what the ladder does today, and a schema that refuses the paper's own
+ * history is how a corpus fails to restore.
+ */
+const OUTCOME_CHECK_V3 = `check (outcome in ('not-modified', 'same-body', 'declared-unchanged', 'selection-unchanged', 'changed', 'error'))`;
 const ERROR_KIND_CHECK = `check (error_kind is null or error_kind in ('network', 'timeout', 'tls', 'http', 'parse', 'kind-mismatch', 'render'))`;
 const SOURCE_JSON_CHECK = `check (json_valid (source_json) and json_type (source_json) = 'object')`;
 const TIME_SPEC_JSON_CHECK = `check (json_valid (time_spec_json) and json_type (time_spec_json) = 'object')`;
@@ -175,9 +182,46 @@ const MIGRATION_2 = [
 /** Versions with no file in the repo (`user_version > head`) are refused. */
 export const MAX_MIGRATION_VERSION = 100;
 
+/*
+ * The selection rung (D-027): the third rung's state, and the outcome name it
+ * writes.
+ *
+ * `selection_hash` is the hash of the **selected node's** normalized text. A
+ * page-mode source leaves it `null`: there the page is the whole selection, and
+ * rung 2's bytes hash is strictly stronger for "nothing moved".
+ *
+ * `snapshots` is **rebuilt**, not altered — SQLite cannot change a `check`, and
+ * the widened list is where the new rung's name lives. The copy keeps every
+ * `id`, so a snapshot's position in the paper's history does not move; the index
+ * is recreated because `drop table` takes it with the table. The table being
+ * dropped is the *child* of `sources`, so this needs no `defer_foreign_keys`.
+ */
+const MIGRATION_3 = [
+  `alter table source_validators add column selection_hash text`,
+  `create table snapshots_v3 (
+    id integer primary key autoincrement,
+    source_id text not null,
+    taken_at text not null,
+    outcome text not null ${OUTCOME_CHECK_V3},
+    status integer not null,
+    bytes integer not null,
+    duration_ms integer,
+    item_count integer,
+    error_kind text ${ERROR_KIND_CHECK},
+    note text,
+    foreign key (source_id) references sources (id) on delete cascade
+  )`,
+  `insert into snapshots_v3 (id, source_id, taken_at, outcome, status, bytes, duration_ms, item_count, error_kind, note)
+     select id, source_id, taken_at, outcome, status, bytes, duration_ms, item_count, error_kind, note from snapshots`,
+  `drop table snapshots`,
+  `alter table snapshots_v3 rename to snapshots`,
+  `create index snapshots_source on snapshots (source_id, taken_at desc, id desc)`,
+];
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: 'base', statements: MIGRATION_1 },
   { version: 2, name: 'validator-state', statements: MIGRATION_2 },
+  { version: 3, name: 'selection-rung', statements: MIGRATION_3 },
 ];
 
 export const CURRENT_VERSION = MIGRATIONS.at(-1)?.version ?? 0;
@@ -203,10 +247,11 @@ export const CHECK_ERROR_KINDS: readonly ErrorKind[] = [
   'kind-mismatch',
   'render',
 ];
-export const SNAPSHOT_OUTCOMES: readonly ['not-modified', 'same-body', 'declared-unchanged', 'changed', 'error'] = [
+export const SNAPSHOT_OUTCOMES: readonly [
   'not-modified',
   'same-body',
   'declared-unchanged',
+  'selection-unchanged',
   'changed',
   'error',
-];
+] = ['not-modified', 'same-body', 'declared-unchanged', 'selection-unchanged', 'changed', 'error'];

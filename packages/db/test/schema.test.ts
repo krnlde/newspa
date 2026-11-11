@@ -139,6 +139,7 @@ describe('the CHECK sets, pinned to core', () => {
       'not-modified',
       'same-body',
       'declared-unchanged',
+      'selection-unchanged',
       'changed',
       'error',
     ];

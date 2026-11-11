@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  CURRENT_VERSION,
   type Database,
   DatabaseLockedError,
   extendClaim,
@@ -35,7 +36,7 @@ describe('opening', () => {
     expect(db.journalMode).toBe('wal');
     expect(db.version).toBe(MIGRATIONS.at(-1)?.version);
     expect(db.head).toBe(db.version);
-    expect(db.migrations.map((m) => m.version)).toEqual([1, 2]);
+    expect(db.migrations.map((m) => m.version)).toEqual([1, 2, CURRENT_VERSION]);
     expect(db.owner.owner).toBe('first');
     expect(db.token).toBe('first');
 
@@ -103,7 +104,8 @@ describe('opening', () => {
 
     const atTwo = openTestDatabase({ file: shared, token: 'two', now: () => later(FIXED, 61_000) });
     expect(claimOf(atTwo).owner).toBe('two');
-    expect(atTwo.version).toBe(2);
+    // The file was pushed back to version 1, so this open walks the rest of the way to head.
+    expect(atTwo.version).toBe(CURRENT_VERSION);
     atTwo.close();
   });
 
@@ -134,7 +136,7 @@ describe('opening', () => {
 
     const upgraded = openTestDatabase({ file, token: 'two', now: () => later(FIXED, 60_000) });
     expect(upgraded.version).toBe(MIGRATIONS.at(-1)?.version);
-    expect(upgraded.migrations.map((m) => m.version)).toEqual([2]);
+    expect(upgraded.migrations.map((m) => m.version)).toEqual([2, CURRENT_VERSION]);
     expect(upgraded.tx.get("select name from sqlite_master where name = 'source_validators'")?.['name']).toBe(
       'source_validators',
     );

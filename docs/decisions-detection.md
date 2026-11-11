@@ -9,9 +9,9 @@ Scope split: pipeline/data/behaviour in `decisions.md`, tooling and dependencies
 in `decisions-tooling.md`, detection in this file. Numbering is shared, so
 D-025 (reading list local) lives in `decisions.md` and is referenced here.
 
-**Status rule.** D-026 … D-033 are **agreed**; D-028 is **implemented**
-(page-mode identity, 2026-11-11) and the rest are not built — each entry says
-what. `docs/fetching.md` and `docs/state.md` describe what the code does
+**Status rule.** D-026 … D-033 are **agreed**; D-027 (the selection rung) and
+D-028 (page-mode identity) are **implemented**, the rest are not built — each
+entry says what. `docs/fetching.md` and `docs/state.md` describe what the code does
 _today_, and are amended by the commit that lands each rung, not by
 this document. Every number below is measured in this session (Node 26.2.0,
 cheerio 1.9.2, playwright-core 1.60.1 + Edge 142, real pages, local).
@@ -33,7 +33,7 @@ ten new items yields one item, and the reader finds the other nine on the site.
 | **What works on the same page**       | CSS `section[data-release-anchor]` → 10 nodes in the saved payload, in logged-out Chromium and in Edge. A data attribute, not layout.                                                                                                                                               |
 | **Reverse if**                        | A reader genuinely wants a page's full list mirrored. Then a `multi` mode with an item ceiling (feeds have `maxItems`, HTML has none) — and the browser cost above is paid, not waved away.                                                                                         |
 
-## D-027 — The HTML ladder: `304` → body hash → **selection hash** → parse
+## D-027 — The HTML ladder: `304` → body hash → **selection hash** → parse  _(implemented 2026-11-11)_
 
 `D-020`'s order, specialized for HTML. Three rungs, not four.
 
@@ -44,17 +44,26 @@ ten new items yields one item, and the reader finds the other nine on the site.
 | **Selection hash** | parse + serialize the **matched node** (not the document) | "the headline changed" vs "a footer changed".                                   |
 | Parse + diff       | parse, measured 2.2–52 ms                                 | the facts.                                                                      |
 
-- **The declared-timestamp skip is removed.** It fired at `signals.declaredStamp
-  <= validators.declared_stamp && !changedByLength` — i.e. **after** the body was
-  in hand — so it saved no traffic and about 50 ms of a 1 171 ms poll, and it
-  suppressed items when the site edited a page without moving `Last-Modified`.
-  It stays available as a _feed_ optimization (a feed's stamp is its publish time,
-  cheap and meaningful); it is not a rung for HTML.
-- **Cheaper signals never suppress** (D-020): `unchanged-by-selection-hash`
-  _skips_ the diff, it cannot mark an item read.
-- **Counters** on `source_validators`: `fast_path_hits` per rung, plus a **cheap
-  hit / deep miss** counter for the selection-hash rung — that pair is how a
-  stealth edit becomes visible (an optimization that never fires is invisible).
+- **The declared-timestamp skip is removed — for every kind, not only HTML.** It
+  fired at `signals.declaredStamp <= validators.declared_stamp &&
+  !changedByLength` — i.e. **after** the body was in hand — so it saved no
+  traffic and about 50 ms of a 1 171 ms poll, and it suppressed items when the
+  site edited a page without moving `Last-Modified`. A feed is exposed to the
+  same failure (a publisher restamps on publish, and edits afterwards), so the
+  rung is gone for feeds and JSON as well; `declared_modified_at` is still
+  written, because the freshness note reads it. `declared-unchanged` stays a
+  legal `outcome` value: the rows it wrote are history.
+- **Cheap signals never suppress** (D-020): the rung's name is
+  `selection-unchanged`, it _skips_ the item pass, and it cannot mark an item
+  read. Its own `null` contract is what keeps it honest — page mode, a feed,
+  JSON, a selector that matched nothing and CSS the engine rejects all answer
+  "no opinion", and a `null` never matches.
+- **Counters** on `source_validators` are the pair that already existed,
+  `fast_path_hits` / `fast_path_misses`, where a **hit is any poll that skipped
+  the item pass** — so the selection rung counts as a hit and a `changed` poll
+  is the miss. That is one pair, not per-rung counters: `hits: 0` with 400
+  misses already reads as "the cheap signals are inert here", which is the
+  visibility the rule asks for, and it is the number a health note can print.
 - **The comparison unit stays the item**: `textOf` = title + body, with
   `minEditRatio` as the noise floor. A **document** text-diff is the number that
   reads the template: on CNN's lite page, one added article = **1 131 changed

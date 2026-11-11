@@ -15,9 +15,10 @@ import {
   type Migration,
   MigrationFailedError,
   migrate,
+  type SnapshotOutcome,
   versionOf,
 } from '../src/index.ts';
-import { FIXED, openTestDatabase, tempFile } from './support.ts';
+import { aSnapshot, FIXED, later, openTestDatabase, RSS_SPEC, tempFile } from './support.ts';
 
 const BASE: readonly Migration[] = [MIGRATIONS[0] as Migration];
 const ALL: readonly Migration[] = MIGRATIONS;
@@ -29,7 +30,11 @@ describe('migrations: 0 to head', () => {
   it('applies the package’s own migrations when the caller names none', () => {
     const db = openTestDatabase({ migrations: [] });
     expect(versionOf(db.tx)).toBe(0);
-    expect(migrate(db.tx, { now: () => FIXED }).map((record) => record.name)).toEqual(['base', 'validator-state']);
+    expect(migrate(db.tx, { now: () => FIXED }).map((record) => record.name)).toEqual([
+      'base',
+      'validator-state',
+      'selection-rung',
+    ]);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
     expect(db.tx.get("select name from sqlite_master where name = 'source_validators'")?.['name']).toBe(
       'source_validators',
@@ -45,13 +50,15 @@ describe('migrations: 0 to head', () => {
     expect(applied.map((m) => [m.version, m.name])).toEqual([
       [1, 'base'],
       [2, 'validator-state'],
+      [CURRENT_VERSION, 'selection-rung'],
     ]);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
     expect(db.tx.all('select version, name, applied_at from migrations order by version')).toEqual([
       { version: 1, name: 'base', applied_at: FIXED.toISOString() },
       { version: 2, name: 'validator-state', applied_at: FIXED.toISOString() },
+      { version: CURRENT_VERSION, name: 'selection-rung', applied_at: FIXED.toISOString() },
     ]);
-    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2]);
+    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, CURRENT_VERSION]);
     db.close();
   });
 
@@ -93,7 +100,7 @@ describe('migrations: 0 to head', () => {
     const now = new Date(FIXED.getTime() + 60_000);
     const newer = openTestDatabase({ file, token: 'newer', now: () => now });
     expect(newer.version).toBe(CURRENT_VERSION);
-    expect(newer.migrations.map((m) => m.version)).toEqual([2]);
+    expect(newer.migrations.map((m) => m.version)).toEqual([2, CURRENT_VERSION]);
 
     const rows = (
       newer.tx.all('select version, name, applied_at from migrations order by version') as {
@@ -104,8 +111,50 @@ describe('migrations: 0 to head', () => {
     expect(rows).toEqual([
       [1, FIXED.toISOString()],
       [2, now.toISOString()],
+      [CURRENT_VERSION, now.toISOString()],
     ]);
     newer.close();
+    await cleanup();
+  });
+
+  it('rebuilds snapshots without moving a row, so the widened CHECK covers the history', async () => {
+    // Migration 3 copies `snapshots` into a new table: SQLite cannot widen a
+    // CHECK, and a copy is where a migration loses a paper's history.
+    const { file, cleanup } = await tempFile('newspa-db-rebuild-');
+    const atTwo = openTestDatabase({ file, token: 'two', now: () => FIXED, migrations: MIGRATIONS.slice(0, 2) });
+    expect(atTwo.version).toBe(2);
+    atTwo.sources.insert(RSS_SPEC, '2026-11-01T00:00:00Z');
+    const legacy: readonly SnapshotOutcome[] = ['changed', 'declared-unchanged', 'not-modified'];
+    for (const [index, outcome] of legacy.entries()) {
+      atTwo.snapshots.record(
+        aSnapshot({
+          takenAt: `2026-11-09T0${index}:00:00Z`,
+          outcome,
+          status: outcome === 'not-modified' ? 304 : 200,
+          itemCount: outcome === 'not-modified' ? null : 10,
+        }),
+      );
+    }
+    const before = atTwo.tx.all('select id, outcome, bytes from snapshots order by id');
+    expect(before.map((r) => Number(r['id']))).toEqual([1, 2, 3]);
+    atTwo.close();
+
+    const atHead = openTestDatabase({ file, token: 'three', now: () => later(FIXED, 60_000) });
+    expect(atHead.version).toBe(CURRENT_VERSION);
+    expect(atHead.tx.all('select id, outcome, bytes from snapshots order by id')).toEqual(before);
+    expect(atHead.tx.get('pragma integrity_check')?.['integrity_check']).toBe('ok');
+    // The index went with the dropped table, so the rebuild has to bring it back.
+    // No autoindex: `id` is the rowid alias, so the primary key needs no index.
+    expect(
+      atHead.tx
+        .all("select name from pragma_index_list ('snapshots')")
+        .map((r) => String(r['name']))
+        .sort(),
+    ).toEqual(['snapshots_source']);
+    expect(
+      atHead.snapshots.record(aSnapshot({ takenAt: '2026-11-09T09:00:00Z', outcome: 'selection-unchanged' })),
+    ).toBe(4);
+    atHead.close();
     await cleanup();
   });
 });
@@ -180,7 +229,10 @@ describe('migrations: all of it, or none of it', () => {
     );
     const failing: readonly Migration[] = [
       {
-        version: 3,
+        // Above the head, because `migrate` skips anything at or below the file's
+        // version: a planted migration at the head is never run, and the test
+        // would be asserting that a no-op is atomic.
+        version: CURRENT_VERSION + 1,
         name: 'writes-then-fails',
         statements: [
           "insert into sources (id, kind, label, url, group_name, enabled, cadence_minutes, weight, source_json, time_spec_json, health, created_at) values ('in-flight','rss','x','https://x.example','x',1,30,1,'{}','{}','unknown','2026-11-09T00:00:00Z')",
@@ -191,7 +243,7 @@ describe('migrations: all of it, or none of it', () => {
     expect(() => migrate(db.tx, { now: () => FIXED, migrations: failing })).toThrow(MigrationFailedError);
     expect(db.sources.ids()).toEqual(['seeded-one']);
     expect(versionOf(db.tx)).toBe(CURRENT_VERSION);
-    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2]);
+    expect(appliedOf(db.tx).map((m) => m.version)).toEqual([1, 2, CURRENT_VERSION]);
     db.close();
   });
 

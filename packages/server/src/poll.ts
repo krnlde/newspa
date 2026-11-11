@@ -3,12 +3,12 @@
  * publish` (D-001, hard-coded).
  *
  * This file is the ladder and the **commit**. The ladder decides what work is
- * needed (D-020): layer 0 a `304`, layer 1 a matching body hash, layer 2 a
- * matching declared timestamp, and only then the parse. Each rung's meaning is
- * in `pollVerdicts.ts`; this file decides the order, and is the only place the
- * package writes — one transaction, one `PollSnapshot` with its `outcome`, the
- * ladder state and its counters, the source's `HealthState`, and on the slow
- * path the items and their events.
+ * needed (D-020, D-027): layer 0 a `304`, layer 1 a matching body hash, layer 2
+ * a matching **selection hash** (the node the source watches), and only then the
+ * parse and the item pass. Each rung's meaning is in `pollVerdicts.ts`; this file
+ * decides the order, and is the only place the package writes — one transaction,
+ * one `PollSnapshot` with its `outcome`, the ladder state and its counters, the
+ * source's `HealthState`, and on the slow path the items and their events.
  *
  * The two numbers a reader judges this pipeline by:
  *
@@ -32,7 +32,7 @@
  */
 import type { SourceSpec } from 'newspa-config';
 import { pageSignals } from 'newspa-core';
-import { fetchSource, parsePayload, refusalOf, type TransportDeps } from 'newspa-fetch';
+import { fetchSource, parsePayload, refusalOf, selectionHash, type TransportDeps } from 'newspa-fetch';
 import { baselineOf, isFastPath, outcomeOf, previousStateOf } from './pollBaseline.ts';
 import { healthPatchOf, keptHealth } from './pollHealth.ts';
 import { publishItems, rulesOf } from './pollItems.ts';
@@ -145,7 +145,10 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
   }
 
   const signals = pageSignals(res.text, spec.kind);
-  const outcome = outcomeOf(res, signals, previous);
+  // The rung's cheap signal: `null` for a page/feed source and for a selector
+  // that matched nothing, and a `null` never matches (pollBaseline).
+  const selection = selectionHash(res.text, spec);
+  const outcome = outcomeOf(res, selection, previous);
   if (outcome === 'changed') {
     const parsed = parsePayload(res.text, spec);
     if (parsed.ok === false) return commit(spec, deps, clock, started, takenAt, parseVerdict(spec, res, parsed));
@@ -163,11 +166,18 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
       clock,
       started,
       takenAt,
-      changedVerdict(spec, res, signals, previous, pass, parsed.notes),
+      changedVerdict(spec, res, signals, selection, previous, pass, parsed.notes),
     );
   }
 
-  // `outcomeOf` answers `changed` only for the slow path, so `signals` is the
-  // payload's own declaration and the layer that fired names itself.
-  return commit(spec, deps, clock, started, takenAt, skippedVerdict(current, res, outcome, signals, previous));
+  // `outcomeOf` answers `changed` only for the slow path, so the rung that fired
+  // names itself in the note.
+  return commit(
+    spec,
+    deps,
+    clock,
+    started,
+    takenAt,
+    skippedVerdict(current, res, outcome, signals, selection, previous),
+  );
 };

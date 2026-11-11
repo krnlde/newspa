@@ -13,12 +13,12 @@ and `packages/server` (the state machine that uses them).
 
 ## The layers
 
-| #   | Check                                    | Cost                      | What it proves                            | Outcome recorded     |
-| --- | ---------------------------------------- | ------------------------- | ----------------------------------------- | -------------------- |
-| 0   | Conditional GET → `304`                  | one round trip, no body   | nothing changed (strong)                  | `not-modified`       |
-| 1   | Body hash equals the last stored body    | one round trip + one hash | nothing changed (strong, for our purpose) | `same-body`          |
-| 2   | Declared timestamp equals the stored one | parse of a few tags       | the page claims it has not moved (weak)   | `declared-unchanged` |
-| 3   | Parse → diff → score                     | the expensive path        | what actually changed                     | `changed`            |
+| #   | Check                                    | Cost                               | What it proves                            | Outcome recorded      |
+| --- | ---------------------------------------- | ---------------------------------- | ----------------------------------------- | --------------------- |
+| 0   | Conditional GET → `304`                  | one round trip, no body            | nothing changed (strong)                  | `not-modified`        |
+| 1   | Body hash equals the last stored body    | one round trip + one hash          | nothing changed (strong, for our purpose) | `same-body`           |
+| 2   | **Selection hash** equals the stored one | one load + the matched node's text | the news moved, the watched node did not  | `selection-unchanged` |
+| 3   | Parse → diff → score                     | the expensive path                 | what actually changed                     | `changed`             |
 
 Layer 1 is the biggest win and needs no cooperation from the publisher: the
 same bytes contain the same items, so parsing is redundant. It is also the
@@ -27,31 +27,47 @@ nonce, a `Date:` comment or a CSRF token never produces the same bytes twice.
 That is not a defect of the check, it is a property of the source, and the
 **per-source counters make it visible** (see below).
 
-Layer 2 is a hint. A publisher that stamps the footer with the build time
-declares a change on every poll — the cost of that is a full parse, which is
-the correct price for a page that tells us nothing.
+Layer 2 is the rung for that property, and it is only about the **node the
+source watches** (D-026: one HTML selector, one node). A footer stamp, a
+rotating sponsor, a re-navigated breadcrumb move every byte and no headline:
+the poll says `selection-unchanged`, writes no item, and the note tells the
+reader why the paper is quiet. `strip` and `NOISE_SELECTOR` are applied to the
+node before it is hashed, exactly as the item extraction applies them, so the
+hash is of the text the parser would have produced. The rung answers `null` —
+_no opinion_ — for a page-mode source, a feed, JSON, and a selector that
+matched nothing; a `null` never matches, so a broken selector can never read as
+"nothing changed".
+
+The rung that used to sit here — **the declared timestamp** — is gone, for every
+kind, not only HTML (D-027). It compared the payload's own newest stamp with the
+stored one, after the body was already in hand: it saved no traffic and ~50 ms
+of a measured 1 171 ms poll, and it suppressed items whenever a publisher edited
+a story without restamping it. The stamp is still **recorded**
+(`declared_modified_at`: the freshness note reads it) — it is simply no longer
+allowed to skip the news.
 
 ## The trust rule
 
 **A cheap signal may skip work. It may never suppress an item.**
 
-Concretely: a `304` and a matching body hash skip parse, diff and score,
-because no new bytes exist. The declared-timestamp rung sits **before** the
-parse, as the ladder's order says (`304 → body hash → declared timestamp → full
-parse`): when the payload's own newest timestamp is unchanged, the parse does not
-run. Nothing is extracted, so nothing is dropped — the items the last parse
-produced stay published, with their counts, and the ladder's counters record the
-hit.
+Concretely: a `304` and a matching body hash skip parse, diff and score, because
+no new bytes exist. The selection hash skips the **item pass** after the parse,
+because the bytes say the page moved and the node says the story did not. Every
+one of them names itself in `snapshots.outcome`, and none of them can mark a
+story read, retire one, or answer for a source the poll could not read.
 
-The cost is stated where it can be seen: a publisher that edits a story
-_without_ restamping its declared timestamp (`<lastBuildDate>`,
-`article:modified_time`, JSON's `dateModified`) is not seen until it restamps
-or the declared signal disappears. That is the deal D-020 makes — the payload's
-own declaration is the cheapest signal available, and it is trusted. The
-boundary is pinned by a test (`poll-edits.test.ts`: "layer 2 is the boundary"),
-and a source that stamps once a day shows up as `fastPathHits` climbing.
-Where the declaration is absent (most HTML pages, most JSON endpoints), layer 2
-never fires and the body hash is the only fast path below the `304`.
+The boundary of layer 2 is stated where it can be seen: it hashes the watched
+node's **text**, so a poll that skips the item pass cannot see a change inside
+that node which moves no word — an `href` retargeted, an image swapped, a class
+that hides it. That is the deal D-027 makes: the paper is an index of what the
+node _says_ (D-017), and the link the reader clicks is the node's own link, which
+is read again the moment any word moves. A source that churns its template shows
+up as `selection-unchanged` polls with `fastPathHits` climbing; a source whose
+node text churns shows up as the opposite (`changed` every poll, `fastPathHits:
+0`) — both are readable from the DB, and an inert rung is visible, which is the
+point of the counters. Where there is no selection (page mode, a feed, JSON) the
+rung answers `null`, never matches, and the body hash is the only fast path below
+the `304`.
 
 ## HTTP inputs
 
@@ -126,17 +142,18 @@ a `null` validator means "no fast path", which is always safe.
 ## State this requires
 
 Per source, in the DB (owned by `packages/db`, written by the pipeline):
-`etag`, `lastModified`, `responseDate`, `bodyHash`, `declaredModifiedAt`,
-`generator`, `vary`, `freshnessSeconds`, `ttlMinutes`, `noCacheMeta`, and two
-counters: `fastPathHits` (polls resolved by layer 0/1) and `fastPathMisses`.
-Each `snapshots` row carries the `outcome` and the byte count.
+`etag`, `lastModified`, `responseDate`, `bodyHash`, `selectionHash`,
+`declaredModifiedAt`, `generator`, `vary`, `freshnessSeconds`, `ttlMinutes`,
+`noCacheMeta`, and two counters: `fastPathHits` (polls a rung resolved) and
+`fastPathMisses`. Each `snapshots` row carries the `outcome` and the byte count.
 
 The counters are not decoration. `fastPathHits: 0, fastPathMisses: 400` says
-this source stamps its HTML; `freshnessSeconds: 300` against a 60 s cadence
-says the poll is wasted. Both are health notes on the paper, per rule 5.
+this source's cheap signals never fire — a page that stamps its footer, a feed
+that re-serializes; `freshnessSeconds: 300` against a 60 s cadence says the poll
+is wasted. Both are health notes on the paper, per rule 5.
 
-A **hit** is any rung that skipped the parse — the `304`, the body hash, the
-declared timestamp — and a **miss** is a poll that parsed, including every
+A **hit** is any rung that skipped the item pass — the `304`, the body hash, the
+selection hash — and a **miss** is a poll that published, including every
 failing poll. The first poll of a source counts its own miss (the state row is
 written before the counter moves, so a source's very first poll is countable).
 A failure writes **no** state at all: `bodyHash` is "the hash of the body the
@@ -147,10 +164,11 @@ the source sits at zero items behind a healthy-looking ladder.
 The `304` follows RFC 9110 §15.4.5 and §4.2.1: it updates the stored
 **validators** (`etag`, `lastModified`, `responseDate`) and the **freshness
 lifetime**, and nothing about the body — a `304` sent no body, so `bodyHash`,
-`declaredModifiedAt`, `generator`, `ttlMinutes` and the cache-hint set stay
-exactly as the parse left them. A CDN that answers a `304` with no validators
-must not cost the source its fast path, so an absent validator field keeps the
-stored one rather than clearing it (`poll-ladder.test.ts` pins both cases).
+`selectionHash`, `declaredModifiedAt`, `generator`, `ttlMinutes` and the
+cache-hint set stay exactly as the parse left them. A CDN that answers a `304`
+with no validators must not cost the source its fast path, so an absent
+validator field keeps the stored one rather than clearing it
+(`poll-ladder.test.ts` pins both cases).
 
 Who owns the seams: the **poll** injects the socket (a required dep, never a
 global it reaches for) and the clock, read once per poll so the snapshot, the

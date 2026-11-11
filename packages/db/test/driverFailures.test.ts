@@ -110,14 +110,17 @@ describe('a driver that fails', () => {
   it('refuses a file whose version the migrations did not move', () => {
     // The fake applies the DDL and ignores `pragma user_version`, which is the
     // one state where the audit rows and the version disagree.
-    expect(() => openWith({ version: 0 })).toThrow(/expected 2, got 0/);
+    expect(() => openWith({ version: 0 })).toThrow(new RegExp(`expected ${CURRENT_VERSION}, got 0`));
     expect(CURRENT_VERSION).toBe(MIGRATIONS.at(-1)?.version);
   });
 
   it('quotes a non-Error cause in each repository’s own error type', () => {
     // One open per statement: the fake fails only the SQL a pattern names, so
-    // each repository is seen failing on its own write.
-    const openOn = (pattern: RegExp): ReturnType<typeof openDatabase> => openWith({ version: 2, failsOn: pattern });
+    // each repository is seen failing on its own write. `version` is the head, so
+    // the open runs no DDL: migration 3's copy (`insert into snapshots_v3 …`)
+    // would otherwise be the statement that fails, not the repository's own.
+    const openOn = (pattern: RegExp): ReturnType<typeof openDatabase> =>
+      openWith({ version: CURRENT_VERSION, failsOn: pattern });
     expect(() => openOn(/insert into snapshots/).snapshots.record(aSnapshot())).toThrow(SnapshotError);
     expect(() => openOn(/insert into snapshots/).snapshots.record(aSnapshot())).toThrow(NOT_AN_ERROR);
     expect(() => openOn(/insert into items/).items.upsert({ item: anItem(), section: 'world' })).toThrow(ItemKeyError);
@@ -129,22 +132,36 @@ describe('a driver that fails', () => {
   });
 
   it('reports an un-writable validator state as an outcome, not a throw', () => {
-    const db = openWith({ version: 2, failsOn: /source_validators/ });
+    // At the head, so the open runs no DDL: migration 3's
+    // `alter table source_validators` would take the failure at the open, and the
+    // repository's own write — the thing under test — would never be reached.
+    const db = openWith({ version: CURRENT_VERSION, failsOn: /source_validators/ });
     expect(db.validators.write(RSS_SPEC.id, aValidatorState())).toEqual({ ok: false, reason: NOT_AN_ERROR });
     db.close();
   });
 
   it('refuses a second opener whose claim was refused, and names the keeper', () => {
-    const db = openWith({ version: 2 });
+    // A fake whose `user_version` is behind the head fails the open's version
+    // check, which comes after the claim; the head keeps this test about the claim.
+    const db = openWith({ version: CURRENT_VERSION });
     const refused = (): unknown =>
-      openDatabase(':memory:', { driver: fakeDriver({ version: 2, changes: 0 }), token: 'other', now: () => FIXED });
+      openDatabase(':memory:', {
+        driver: fakeDriver({ version: CURRENT_VERSION, changes: 0 }),
+        token: 'other',
+        now: () => FIXED,
+      });
     expect(refused).toThrow(DatabaseLockedError);
     expect(refused).toThrow(/keeper/);
     // The heartbeat: `changes` is the verdict, so a claim that is not ours is
     // reported as `false`, and the scheduler stops writing.
-    expect(extendClaim(':memory:', 'keeper', { driver: fakeDriver({ version: 2 }), now: () => FIXED })).toBe(true);
     expect(
-      extendClaim(':memory:', 'keeper', { driver: fakeDriver({ version: 2, changes: 0 }), now: () => FIXED }),
+      extendClaim(':memory:', 'keeper', { driver: fakeDriver({ version: CURRENT_VERSION }), now: () => FIXED }),
+    ).toBe(true);
+    expect(
+      extendClaim(':memory:', 'keeper', {
+        driver: fakeDriver({ version: CURRENT_VERSION, changes: 0 }),
+        now: () => FIXED,
+      }),
     ).toBe(false);
     db.close();
   });

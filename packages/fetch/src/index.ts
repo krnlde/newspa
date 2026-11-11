@@ -112,6 +112,7 @@ export type {
   SkippedItem,
   SuccessInput,
 } from './results.ts';
+export { selectionHash, selectionText } from './selection.ts';
 export { type FetchLike, fetchSource, refusalOf, type TransportDeps } from './transport.ts';
 export { bodyHashOf, HASH_PREFIX, probeLimit, readCapped } from './transportBody.ts';
 export { classifyThrown } from './transportErrors.ts';

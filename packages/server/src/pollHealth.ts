@@ -16,7 +16,7 @@
  * matching" and "the parser threw".
  */
 import type { SourceSpec } from 'newspa-config';
-import { classifyFetch, type ErrorKind, type HealthState, type PageSignals } from 'newspa-core';
+import { classifyFetch, type ErrorKind, type HealthState } from 'newspa-core';
 import type { SourceHealthPatch, StoredSource } from 'newspa-db';
 import {
   describeTransport,
@@ -92,8 +92,8 @@ export const noteOfTransport = (result: TransportResult): string => cap(describe
 export const noteOfParseFailure = (failure: ParseFailure): string =>
   cap(`parse/${failure.reason}: ${failure.detail}${failure.cause === null ? '' : ` :: ${failure.cause}`}`);
 
-/** The three outcomes that skipped the parse, so a typo in a caller is a compile error. */
-export type SkippedOutcome = 'not-modified' | 'same-body' | 'declared-unchanged';
+/** The outcomes that skipped the item pass, so a typo in a caller is a compile error. */
+export type SkippedOutcome = 'not-modified' | 'same-body' | 'selection-unchanged';
 
 /** Layer 0's line: the validators matched, and nothing about the content was learned. */
 export const noteOfNotModified = (): string =>
@@ -102,16 +102,17 @@ export const noteOfNotModified = (): string =>
 /**
  * Layers 1 and 2, in words a reader can act on: what the poll trusted.
  *
- * The declared-timestamp sentence interpolates the payload's own instant with no
- * fallback, because layer 2 only fires when both sides **have** one — "no
- * declared timestamp" is not evidence that nothing moved (`declaredUnchanged` in
- * `pollBaseline.ts`), so there is no `null` left to describe here.
+ * The selection sentence is the one that explains a **quiet** source whose bytes
+ * churn: the page moved (a footer stamp, a build nonce, a rotating sponsor) and
+ * the node the source watches did not, so there was no news to write. It is a
+ * rung with a name, not a silent skip, and the same pair of words tells the
+ * reader why the paper has nothing today.
  */
-export const noteOfSkipped = (outcome: Exclude<SkippedOutcome, 'not-modified'>, signals: PageSignals): string =>
+export const noteOfSkipped = (outcome: Exclude<SkippedOutcome, 'not-modified'>): string =>
   cap(
     outcome === 'same-body'
       ? 'body unchanged: the stored hash matched, so no parse was needed'
-      : `declared timestamp unchanged (${String(signals.declaredModifiedAt)}), so no parse was needed`,
+      : 'the bytes moved and the selected node did not: no news, no parse of the items',
   );
 
 /**

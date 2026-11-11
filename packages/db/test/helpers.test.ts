@@ -9,7 +9,7 @@
 
 import { stat } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
-import { emptyValidatorState } from '../src/index.ts';
+import { CURRENT_VERSION, emptyValidatorState } from '../src/index.ts';
 import { statementsOf } from '../src/statement.ts';
 import {
   aDriverSpy,
@@ -100,7 +100,8 @@ describe('the driver spy', () => {
     const db = openTestDatabase({ driver: spy.driver, busyTimeoutMs: 25, lockStaleAfterMs: 60_000, token: 'spy' });
     expect(db.journalMode).toBe('memory');
     expect(db.token).toBe('spy');
-    expect(db.version).toBe(2);
+    // The spy starts a file at version 2, so the open is a walk to this build's head.
+    expect(db.version).toBe(CURRENT_VERSION);
     db.close();
   });
 });

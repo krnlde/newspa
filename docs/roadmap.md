@@ -71,8 +71,9 @@ page for `html`, the Algolia front page for `json`, plus an items-path miss for
 whose `new`/`edited` counts equal the diff. A second identical poll answers
 `not-modified` with **zero** items, keeps the source's last good health, and
 prints `matchCount: null` (never an invented zero). Layer 1 (`same-body`) and
-layer 2 (`declared-unchanged`) each have their own test, and so does layer 2's
-cost: an edit the feed does not declare is never parsed. D-005's identity rule is
+layer 2 (`selection-unchanged`, D-027) each have their own test, and so does the
+rung that was **removed**: an edit the feed does not declare **is** parsed,
+because a declared stamp records and never suppresses. D-005's identity rule is
 pinned at the poll: a `?utm_source=` copy of a story is **one** row with one
 event history, the link the reader clicks keeps the publisher's own text, and —
 the deliberate boundary — a `?ref=` copy is a second story.

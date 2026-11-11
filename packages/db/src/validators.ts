@@ -61,7 +61,7 @@ export interface ValidatorRepository {
 }
 
 const COLUMNS = `source_id, etag, last_modified, response_date, cache_json, vary_json, weak_etag,
-  body_hash, declared_modified_at, generator, freshness_seconds, ttl_minutes, no_cache_meta,
+  body_hash, selection_hash, declared_modified_at, generator, freshness_seconds, ttl_minutes, no_cache_meta,
   fast_path_hits, fast_path_misses`;
 
 const FIELDS = COLUMNS.split(',').map((column) => column.trim());
@@ -86,6 +86,7 @@ export const emptyValidatorState = (cache: CacheHints = EMPTY_CACHE_HINTS): Vali
   vary: [],
   weakEtag: false,
   bodyHash: null,
+  selectionHash: null,
   declaredModifiedAt: null,
   generator: null,
   freshnessSeconds: null,
@@ -131,6 +132,7 @@ const stateOf = (sourceId: string, row: Row): ValidatorState => {
     vary,
     weakEtag: decodeBoolean('weak_etag', at('weak_etag'), row['weak_etag']),
     bodyHash: decodeOptionalText('body_hash', at('body_hash'), row['body_hash']),
+    selectionHash: decodeOptionalText('selection_hash', at('selection'), row['selection_hash']),
     declaredModifiedAt: decodeOptionalText('declared_modified_at', at('declared'), row['declared_modified_at']),
     generator: decodeOptionalText('generator', at('generator'), row['generator']),
     freshnessSeconds: decodeOptionalInteger('freshness_seconds', at('freshness'), row['freshness_seconds']),
@@ -149,6 +151,7 @@ const valuesOf = (state: ValidatorState): (string | number | null)[] => [
   encodeJsonColumn('vary_json', [...state.vary]),
   encodeBoolean(state.weakEtag),
   state.bodyHash,
+  state.selectionHash,
   state.declaredModifiedAt,
   state.generator,
   state.freshnessSeconds,
@@ -161,7 +164,7 @@ const valuesOf = (state: ValidatorState): (string | number | null)[] => [
 export const validatorRepository = (db: Tx): ValidatorRepository => {
   const updateSql = `update source_validators
        set etag = ?, last_modified = ?, response_date = ?, cache_json = ?, vary_json = ?, weak_etag = ?,
-           body_hash = ?, declared_modified_at = ?, generator = ?, freshness_seconds = ?, ttl_minutes = ?,
+           body_hash = ?, selection_hash = ?, declared_modified_at = ?, generator = ?, freshness_seconds = ?, ttl_minutes = ?,
            no_cache_meta = ?, fast_path_hits = ?, fast_path_misses = ?
      where source_id = ?`;
   const insertSql = `insert into source_validators (${COLUMNS}) values (${FIELDS.map(() => '?').join(', ')})`;

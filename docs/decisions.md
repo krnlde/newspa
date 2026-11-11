@@ -185,11 +185,14 @@ below it. **The rule that makes it safe: a cheap signal may skip work, it may
 never suppress an item** - a `304` and a matching body hash prove no new bytes
 exist; a matching declared stamp only skips scoring, after items were extracted.
 
-**Revised 2026-11-10 for HTML** (D-027, `decisions-detection.md`): the HTML
-ladder is `304` → body hash → **selection hash** → parse, and the
-declared-timestamp skip is **not a rung for HTML** - it fired after the body was
-already in hand, saved ~50 ms of a 1 171 ms poll, and suppressed items on
-stealth edits. It stays a feed optimization, where the stamp is the publish time.
+**Revised 2026-11-11** (D-027, `decisions-detection.md`): the ladder is `304` →
+body hash → **selection hash** → parse, and the declared-timestamp skip is **not
+a rung at all** - it fired after the body was already in hand, saved ~50 ms of a
+1 171 ms poll, and suppressed items on stealth edits (a page edited without its
+stamp moved). That was true of feeds as much as of HTML, so the rung is gone for
+every kind; the declared stamp is still **recorded** (`declared_modified_at`,
+which the freshness note reads). A feed has no selection, so below the `304` its
+only fast path is the body hash.
 
 Two consequences are load-bearing, and they are why this is a decision and not
 just a speed-up: a fast path that never fires must be **visible** (pages that

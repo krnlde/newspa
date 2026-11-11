@@ -74,6 +74,34 @@ describe('an html page is a source like any other', () => {
     expect(storedState(h.db, 'bbc').declaredModifiedAt).toBeNull();
   });
 
+  it('the bytes move and the selected node does not: the rung names the quiet poll (D-027)', async () => {
+    // A stamp **inside** the watched row, named in `strip`, so the node's text is
+    // identical while every cheap byte comparison moves. The page declares no
+    // timestamp, so before this rung the poll parsed, rebuilt the items, and
+    // reported an edit no reader could see — the noise this rung exists to name.
+    const pageWith = (stamp: string): string => `<html><body><table><tbody>
+      <tr><td>Krakow bridge reopens</td><td>The trams run again. ${stamp}</td><td><a href="https://bbc.example/bridge">Read</a></td></tr>
+      <tr><td>Ferry timetable slips</td><td>Winter hours begin. ${stamp}</td><td><a href="https://bbc.example/ferry">Read</a></td></tr>
+    </tbody></table></body></html>`;
+    const h = pollHarness(table, (call) =>
+      call === 1
+        ? okResponse(pageWith(''), '"cap-1"', HTML_TYPE)
+        : okResponse(pageWith('<span class="updated">updated 09:00</span>'), '"cap-2"', HTML_TYPE),
+    );
+    const first = await h.poll();
+    expect(first.outcome).toBe('changed');
+    // The first poll has no opinion to compare against: the hash is written here.
+    expect(storedState(h.db, 'bbc').selectionHash).toMatch(/^[0-9a-f]{8}$/);
+
+    const second = await h.pollAt(LATER);
+    expect(second.outcome).toBe('selection-unchanged');
+    expect(second.itemCount).toBeNull();
+    expect(second.editedItems).toBe(0);
+    expect(second.note).toContain('the selected node did not');
+    expect(storedState(h.db, 'bbc').fastPathHits).toBe(1);
+    expect(h.db.snapshots.last('bbc')?.snapshot.outcome).toBe('selection-unchanged');
+  });
+
   it('a scraped body is capped, and the strip rule keeps the noise out of it', async () => {
     const h = pollHarness(table, () => okResponse(fixture(PAGE), '"cap-1"', HTML_TYPE));
     await h.poll();

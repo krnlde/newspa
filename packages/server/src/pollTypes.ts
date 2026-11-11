@@ -67,8 +67,8 @@ export interface PollResult {
   readonly durationMs: number;
   /**
    * Items this poll **counted**. `null` = this poll did not count any, because
-   * the ladder skipped the parse (a `304`, a matching body hash, an unchanged
-   * declared timestamp) or no request was made. Not a zero.
+   * the ladder skipped the item pass (a `304`, a matching body hash, a matching
+   * selection hash) or no request was made. Not a zero.
    */
   readonly itemCount: number | null;
   readonly newItems: number;

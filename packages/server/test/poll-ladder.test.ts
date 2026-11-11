@@ -1,6 +1,6 @@
 /**
- * The ladder (D-020): `304` → body hash → declared timestamp → full parse, and
- * the counters that make it visible.
+ * The ladder (D-020, D-027): `304` → body hash → selection hash → full parse,
+ * and the counters that make it visible.
  *
  * The proof that a rung **skipped the parse** is `last_seen_at`. Only a poll
  * that writes items stamps it, so polling at a later instant and finding the
@@ -8,7 +8,8 @@
  * found nothing new" and "the pipeline did the work and re-wrote everything".
  *
  * And the counters: `fast_path_hits: 0, fast_path_misses: 400` is the only form
- * in which "this source stamps its own HTML on every poll" is ever seen, so the
+ * in which "this source's cheap signals never fire" is ever seen — a feed whose
+ * bytes change every poll, an HTML source whose watched node changes — so the
  * hit/miss of every rung is asserted here.
  */
 import type { Database } from 'newspa-db';
@@ -147,19 +148,22 @@ describe('the ladder: a cheap signal may skip work, never suppress an item', () 
     expect(state.etag).toBe('"cap-2"');
   });
 
-  it('layer 2: the declared timestamp is the signal, and new bytes alone do not wake the parser', async () => {
+  it('a feed’s declared timestamp no longer skips the parse: it is recorded, not obeyed (D-027)', async () => {
     // Trailing whitespace changes every cheap byte comparison and no timestamp.
+    // This poll used to answer `declared-unchanged` and skip; the rung earned
+    // ~50 ms of a 1 171 ms poll and could hide the news, so it is gone. The stamp
+    // is still stored, because the freshness note reads it.
     const h = pollHarness(anRssSpec(), (call) =>
       call === 1 ? okResponse(fixture(FEED)) : okResponse(`${fixture(FEED)}\n\n  `, '"cap-2"'),
     );
     await h.poll();
 
     const second = await h.pollAt(FIXED_LATER);
-    expect(second.outcome).toBe('declared-unchanged');
-    expect(second.itemCount).toBeNull();
-    expect(second.note).toContain('declared timestamp unchanged');
-    expect(stampOf(h.db)).toBe(TAKEN_AT);
-    expect(storedState(h.db, 'bbc').fastPathHits).toBe(1);
+    expect(second.outcome).toBe('changed');
+    expect(second.itemCount).not.toBeNull();
+    const state = storedState(h.db, 'bbc');
+    expect(state.fastPathHits).toBe(0);
+    expect(state.declaredModifiedAt).not.toBeNull();
   });
 
   it('a source that stamps its own feed parses every poll, and the counters record it', async () => {

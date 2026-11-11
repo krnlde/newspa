@@ -1,15 +1,22 @@
 /**
- * The ladder's state (docs/fetching.md, D-020): `304` → body hash → declared
- * timestamp → full parse, with its two counters.
+ * The ladder's state (docs/fetching.md, D-020): `304` → body hash → **selection
+ * hash** → full parse, with its two counters.
+ *
+ * The declared-timestamp rung that used to sit third is **gone** (D-027): it
+ * fired after the body was in hand, so it saved no traffic and ~50 ms of a
+ * measured 1 171 ms poll, and it suppressed items on a page edited without its
+ * stamp moving. The stamp is still recorded — it feeds the freshness note — it
+ * is just no longer allowed to skip the news.
  *
  * Two rules decide everything here.
  *
  * **A cheap signal may skip work, never suppress an item.** So the state is
  * written from what a poll actually read. A `304` carries the response
  * validators and *no body*: the body-derived fields (`body_hash`,
- * `declared_modified_at`, `generator`, `ttl`, `no-cache-meta`) stay exactly as
- * they were, because the body that produced them is still what is on the server.
- * A poll that read the body refreshes all of them.
+ * `selection_hash`, `declared_modified_at`, `generator`, `ttl`,
+ * `no-cache-meta`) stay exactly as they were, because the body that produced
+ * them is still what is on the server. A poll that read the body refreshes them
+ * — except a hash the poll has no opinion about, which is kept, not blanked.
  *
  * **`body_hash` is the hash of the body the item set was built from.** That is
  * why a failed parse writes nothing: storing the hash of a body the parser
@@ -57,13 +64,21 @@ const headerFieldsOf = (meta: TransportResponseMeta) => ({
 
 /**
  * The state after a poll that **read the body** — the parse, the `same-body`
- * check and the declared-timestamp check all read it. Every field is fresh,
- * including the body hash and the payload's own signals; the counters are not
- * touched here (`countFastPath` owns them, so one poll cannot move them twice).
+ * check and the selection check all read it. Every field is fresh, including the
+ * body hash, the selection hash and the payload's own signals; the counters are
+ * not touched here (`countFastPath` owns them, so one poll cannot move them twice).
  */
-export const stateFromBody = (res: TransportOk, signals: PageSignals, previous: ValidatorState): ValidatorState => ({
+export const stateFromBody = (
+  res: TransportOk,
+  signals: PageSignals,
+  previous: ValidatorState,
+  selection: string | null,
+): ValidatorState => ({
   ...headerFieldsOf(res),
   bodyHash: res.bodyHash,
+  // A source with no selection (page mode, a feed) has no opinion, and "no
+  // opinion" is not evidence to overwrite with: the stored hash stays.
+  selectionHash: selection ?? previous.selectionHash,
   declaredModifiedAt: signals.declaredModifiedAt,
   generator: signals.generator,
   ttlMinutes: signals.ttlMinutes,
@@ -94,6 +109,7 @@ export const stateFromNotModified = (meta: TransportResponseMeta, previous: Vali
   weakEtag: meta.etag === null ? previous.weakEtag : isWeakEtag(meta.etag),
   freshnessSeconds: meta.freshnessSeconds ?? previous.freshnessSeconds,
   bodyHash: previous.bodyHash,
+  selectionHash: previous.selectionHash,
   declaredModifiedAt: previous.declaredModifiedAt,
   generator: previous.generator,
   ttlMinutes: previous.ttlMinutes,
@@ -103,30 +119,38 @@ export const stateFromNotModified = (meta: TransportResponseMeta, previous: Vali
 });
 
 /**
- * Layer 2. The payload declares its own newest timestamp (core's `pageSignals`:
- * a feed's `lastBuildDate`, a page's `article:modified_time`, JSON's
- * `dateModified`). Both sides must have one: `null` never matches, because "no
- * declared timestamp" is not evidence that nothing moved.
+ * Layer 2. The payload's declared timestamp (`pageSignals`) is **recorded**
+ * (`declared_modified_at`: it feeds the freshness/cadence notes), but it is not
+ * a rung — revised 2026-11-11 (D-027). It fired at
+ * `signals.declaredModifiedAt === previous.declaredModifiedAt`, i.e. **after**
+ * the body was already in hand, so it saved no traffic and about 50 ms of a
+ * measured 1 171 ms poll, and it suppressed items whenever a site edited a page
+ * without moving its stamp (measured behaviour on stamped pages: the declared
+ * stamp lags the content). A rung that saves little and can hide the news is not
+ * a rung.
  */
-export const declaredUnchanged = (previous: ValidatorState, signals: PageSignals): boolean =>
-  previous.declaredModifiedAt !== null &&
-  signals.declaredModifiedAt !== null &&
-  signals.declaredModifiedAt === previous.declaredModifiedAt;
+export type LadderOutcome = 'changed' | 'same-body' | 'selection-unchanged';
 
-/** The ladder's verdict for a poll that read the body: the slow path, or the layer that skipped it. */
-export type LadderOutcome = 'changed' | 'same-body' | 'declared-unchanged';
-
-export const outcomeOf = (res: TransportOk, signals: PageSignals, previous: ValidatorState): LadderOutcome => {
+/**
+ * The ladder's verdict for a poll that read the body: the slow path, or the layer
+ * that skipped it.
+ *
+ * `selection` is `selectionHash(text, spec)` from the fetch package — `null`
+ * means "no opinion" (page mode, a feed, a selector that matched nothing), and a
+ * `null` never matches: an absent signal is not evidence that nothing moved,
+ * which is the same rule that kept `declaredUnchanged` from matching on `null`.
+ */
+export const outcomeOf = (res: TransportOk, selection: string | null, previous: ValidatorState): LadderOutcome => {
   if (res.sameBody) return 'same-body';
-  return declaredUnchanged(previous, signals) ? 'declared-unchanged' : 'changed';
+  return selection !== null && previous.selectionHash === selection ? 'selection-unchanged' : 'changed';
 };
 
 /**
- * The counters' definition: a **hit** is a poll that skipped the parse. Layer 0
- * (`not-modified`), layer 1 (`same-body`) and layer 2 (`declared-unchanged`)
+ * The counters' definition: a **hit** is a poll that skipped the item pass. Layer
+ * 0 (`not-modified`), layer 1 (`same-body`) and layer 2 (`selection-unchanged`)
  * hit; a full parse and any failure miss. `fastPathHits: 0` with 400 misses is
  * the visible form of "this source stamps its HTML" — an optimization that
  * never fires is otherwise invisible.
  */
 export const isFastPath = (outcome: SnapshotOutcome): boolean =>
-  outcome === 'not-modified' || outcome === 'same-body' || outcome === 'declared-unchanged';
+  outcome === 'not-modified' || outcome === 'same-body' || outcome === 'selection-unchanged';

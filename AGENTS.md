@@ -41,10 +41,11 @@ deliberately **not** reimplemented: the pipeline is hard-coded
    fragment-stripped canonical URLs, conditional GET as an optimization only
    (BBC returns 200 + full body for a valid `If-None-Match`), diff the normalized
    item set — never raw HTML (A/B variants), `render: true` is a pick-time decision.
-   Change detection is a ladder — `304` → body hash → declared timestamp → full
-   parse — and **a cheap signal may skip work, never suppress an item**; every
-   poll's `outcome` and the per-source fast-path counters are recorded, because
-   an optimization that never fires is invisible (docs/fetching.md).
+   Change detection is a ladder — `304` → body hash → the selection hash of
+   the watched node → full parse — and **a cheap signal may skip work, never
+   suppress an item**; every poll's `outcome` and the per-source fast-path
+   counters are recorded, because an optimization that never fires is invisible
+   (docs/fetching.md). A declared timestamp is recorded, never obeyed.
 7. **The paper is an index, not a mirror.** Show a teaser (headline + one
    paragraph) and link out (`target="_blank"`). `ItemView` has no `body` field —
    full text is never sent to the browser. Scraped body is capped and used only

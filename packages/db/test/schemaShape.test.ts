@@ -67,7 +67,52 @@ describe('the shape of the schema', () => {
       'sources_enabled',
     ]);
     expect(schemaOf(db, 'migrations')).toContain('primary key');
-    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, CURRENT_VERSION]);
+    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2, CURRENT_VERSION]);
+    db.close();
+  });
+
+  it('carries the third rung: a column on the state, a widened CHECK on the log', () => {
+    const db = seeded();
+    const columns = (table: string): string[] =>
+      db.tx.all(`pragma table_info (${table})`).map((r) => String(r['name']));
+    // `alter table add column` appends, so `selection_hash` is last: the
+    // repositories bind by position, and a re-ordered rebuild breaks every write.
+    expect(columns('source_validators')).toEqual([
+      'source_id',
+      'etag',
+      'last_modified',
+      'response_date',
+      'cache_json',
+      'vary_json',
+      'weak_etag',
+      'body_hash',
+      'declared_modified_at',
+      'generator',
+      'freshness_seconds',
+      'ttl_minutes',
+      'no_cache_meta',
+      'fast_path_hits',
+      'fast_path_misses',
+      'selection_hash',
+    ]);
+    // Migration 3 rebuilt this table; only the new name and the widened list survive.
+    expect(columns('snapshots')).toEqual([
+      'id',
+      'source_id',
+      'taken_at',
+      'outcome',
+      'status',
+      'bytes',
+      'duration_ms',
+      'item_count',
+      'error_kind',
+      'note',
+    ]);
+    const snapshotsSql = schemaOf(db, 'snapshots');
+    expect(snapshotsSql).toContain(
+      "check (outcome in ('not-modified', 'same-body', 'declared-unchanged', 'selection-unchanged', 'changed', 'error'))",
+    );
+    expect(snapshotsSql).not.toContain('snapshots_v3');
     db.close();
   });
 
@@ -75,7 +120,10 @@ describe('the shape of the schema', () => {
     for (const migration of MIGRATIONS) {
       for (const statement of migration.statements) {
         expect(statement).toBe(statement.toLowerCase());
-        expect(statement).toMatch(/^(create|pragma) /);
+        // The keywords a migration may open with. Migration 3 widens the outcome
+        // CHECK by rebuilding `snapshots` (D-027: the selection rung), and a
+        // rebuild is `alter`/`insert`/`drop` — SQLite cannot change a `check`.
+        expect(statement).toMatch(/^(create|pragma|alter|insert|drop) /);
       }
     }
   });

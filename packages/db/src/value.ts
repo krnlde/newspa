@@ -61,6 +61,14 @@ export interface ValidatorState {
   readonly vary: readonly string[];
   readonly weakEtag: boolean;
   readonly bodyHash: string | null;
+  /**
+   * The hash of the **selected node's** normalized text — the third rung's state
+   * (D-027): a poll compares this before it extracts any field, so "the template
+   * moved, the story did not" is a named rung and not an `edited` event. `null`
+   * for a page-mode source, where the page *is* the selection and rung 2's bytes
+   * hash is strictly stronger.
+   */
+  readonly selectionHash: string | null;
   readonly declaredModifiedAt: string | null;
   readonly generator: string | null;
   readonly freshnessSeconds: number | null;

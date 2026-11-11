@@ -62,10 +62,10 @@ migrations (`MIGRATIONS`, `migrate`, `CURRENT_VERSION`), a cooperative lock
 `validatorRepository`, plus `timeSpecOf` and the value codecs.
 
 **fetch**: the HTTP transport (`fetchSource(spec, baseline, deps)`) implementing
-the change-detection ladder of D-020 — `304` → body hash → declared timestamp →
-full parse, where a cheap signal may skip work and **never** suppress an item —
-charset detection, RSS/Atom parsing, HTML and JSON parsing, and 29 captured
-fixtures under `test/fixtures/`.
+the change-detection ladder of D-020 and D-027 — `304` → body hash → **selection
+hash** (the node the source watches) → full parse, where a cheap signal may skip
+work and **never** suppress an item — charset detection, RSS/Atom parsing, HTML
+and JSON parsing, and 31 captured fixtures under `test/fixtures/`.
 
 **server**: the read side **and** the poll. `index.ts` re-exports `editionOf`
 (rows → `Edition`), `stateOf` (+ `StateDeps`, `datelineFor`, the item/event

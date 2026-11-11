@@ -126,12 +126,13 @@ export const notModifiedVerdict = (
   succeeded: true,
 });
 
-/** Layers 1 and 2: the body was read, and a cheap signal said nothing moved. */
+/** Layers 1 and 2: the body was read, and a cheap signal said the news did not move. */
 export const skippedVerdict = (
   current: HealthState,
   res: TransportOk,
   outcome: Exclude<SkippedOutcome, 'not-modified'>,
   signals: PageSignals,
+  selection: string | null,
   previous: ValidatorState,
 ): Verdict => ({
   outcome,
@@ -140,12 +141,12 @@ export const skippedVerdict = (
   itemCount: null,
   errorKind: null,
   health: current,
-  note: noteOfSkipped(outcome, signals),
+  note: noteOfSkipped(outcome),
   log: logOf(res, res.notes),
   pass: NO_PASS,
   // The body was read, so every field of the state is fresh — including the
-  // payload's own declaration, which is the thing layer 2 just compared.
-  state: stateFromBody(res, signals, previous),
+  // selection hash, which is the thing layer 2 just compared.
+  state: stateFromBody(res, signals, previous, selection),
   succeeded: true,
 });
 
@@ -154,6 +155,7 @@ export const changedVerdict = (
   spec: SourceSpec,
   res: TransportOk,
   signals: PageSignals,
+  selection: string | null,
   previous: ValidatorState,
   pass: ItemPass,
   notes: readonly string[],
@@ -167,6 +169,6 @@ export const changedVerdict = (
   note: noteOfSuccess(pass.items, notes),
   log: logOf(res, notes),
   pass,
-  state: stateFromBody(res, signals, previous),
+  state: stateFromBody(res, signals, previous, selection),
   succeeded: true,
 });
