@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+  Hand-written fixture. What it pins for the picker (WP6, D-007, D-036): **the
+  page the reader sees is not the page the poller fetches.** The list exists only
+  after script has run, so the click's nth-child path — html:1 > body:1 > div:1 >
+  ul:1 > li:2 — walks into an empty `#app` and `mapPath` refuses by name
+  (`path-unmapped`), naming the step, the tag it found and the render answer.
+  The picker writes nothing, and the paper is not left with a source that polls a
+  quiet zero (rule 5).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example Shell — the list is built by script</title>
+    <meta name="generator" content="hand-written" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // The list a browser would show, and the only place these nodes exist.
+      const app = document.getElementById('app');
+      app.innerHTML =
+        '<ul>' +
+        '<li><a href="/s1">Story one</a></li>' +
+        '<li><a href="/s2">Story two</a></li>' +
+        '<li><a href="/s3">Story three</a></li>' +
+        '</ul>';
+    </script>
+  </body>
+</html>

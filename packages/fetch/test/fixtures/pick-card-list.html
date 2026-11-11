@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+  Hand-written fixture (fixtures/README.md: hand-written is allowed where a shape
+  cannot be captured, and this one says so). What it pins, for the picker
+  (WP6, D-036): the **general case** — a card list whose items carry a class hook,
+  on a page where the bare tag over-matches, because the nav and the footer are
+  `li` too. So `li` fails the set-equality test, `.card` passes it, and the
+  derivation must land on `.card` with matchCount 4.
+
+  The click this fixture is tested against: the second card.
+  path = html:1 > body:2 > main:2 > ul:2 > li:2
+  (body's element children are header, main, footer; main's are h1, ul.)
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example World — the card list</title>
+    <meta name="generator" content="hand-written" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li class="nav-item"><a href="/">Home</a></li>
+          <li class="nav-item"><a href="/world">World</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h1>World</h1>
+      <ul class="news">
+        <li class="card">
+          <h2 class="title"><a href="/a1">First story</a></h2>
+          <p class="deck">One paragraph about the first story, as the publisher writes it.</p>
+        </li>
+        <li class="card">
+          <h2 class="title"><a href="/a2">Second story</a></h2>
+          <p class="deck">One paragraph about the second story, as the publisher writes it.</p>
+        </li>
+        <li class="card">
+          <h2 class="title"><a href="/a3">Third story</a></h2>
+          <p class="deck">One paragraph about the third story, as the publisher writes it.</p>
+        </li>
+        <li class="card">
+          <h2 class="title"><a href="/a4">Fourth story</a></h2>
+          <p class="deck">One paragraph about the fourth story, as the publisher writes it.</p>
+        </li>
+      </ul>
+    </main>
+    <footer>
+      <ul>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </footer>
+  </body>
+</html>

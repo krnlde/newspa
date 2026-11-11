@@ -100,6 +100,27 @@ export const sniffPayload = (text: string): Sniffed => sniff(text);
 export { charsetFromContentType, decodeBody, mediaTypeOf, xmlDeclaredCharset } from './charset.ts';
 export { withBase } from './item.ts';
 /**
+ * The picker's core (WP6, D-036): a click's fingerprint and the **raw bytes** in, a
+ * selector and a named verdict out. It lives here because the proof is the parser's
+ * own DOM — `collectNodes` and `fieldNode` are the code that will poll the file the
+ * pick writes, so a selector that fails here would fail in the poll. The part that
+ * needs a browser (`pick/launch.ts`, headed Edge) is not in this export list, and
+ * `vitest.coverage.json` is where that is recorded.
+ */
+export { derivePick } from './pick/derivePick.ts';
+export { parseFingerprint } from './pick/fingerprint.ts';
+export {
+  outerHtmlCap,
+  type PathStep,
+  type PickFault,
+  type PickFields,
+  type PickFingerprint,
+  type PickOutcome,
+  type PickSample,
+  pathMax,
+  textCap,
+} from './pick/types.ts';
+/**
  * The result types, exported because the caller **is** the health layer: the
  * server maps a `ParseFailureReason` to a `HealthState`, and doing that needs
  * the union, not a cast.

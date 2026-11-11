@@ -20,6 +20,13 @@ import type { RawFields } from './item.ts';
  */
 export type NodeSet = ReturnType<CheerioAPI>;
 
+/**
+ * One node of such a set, taken from the API the same way: cheerio 1.2 does not
+ * export its node type, so it is read out of the API: `get()` is declared
+ * `(): T[]`, and the element type is what the set is a list **of**.
+ */
+export type NodeOne = NodeSet extends { get(): (infer N)[] } ? N : never;
+
 export type CollectOutcome =
   | { readonly ok: true; readonly nodes: NodeSet; readonly seen: number }
   | { readonly ok: false; readonly reason: 'no-matches' | 'invalid-selector'; readonly detail: string };

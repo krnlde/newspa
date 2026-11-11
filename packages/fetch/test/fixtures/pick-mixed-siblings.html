@@ -1,0 +1,37 @@
+<!doctype html>
+<!--
+  Hand-written fixture. What it pins for the picker (WP6): the **positional**
+  ladder, and the shape that makes it honest. The clicked item's parent has mixed
+  children — three `article.item` and an `h2.headline` that links to the section
+  index — so the captured set is four nodes and no tag, class, or ancestor-anchored
+  selector can describe exactly that set: `article` matches 3, `.item` matches 3,
+  `section > article` matches 3. Only a selector list of `:nth-child` paths matches
+  all four, so the derivation takes it **and says so** — the note carries the word
+  "positional", and `matchCount: 4` is what reports the day the page reorders.
+
+  The click: the first article. path = html:1 > body:1 > section:1 > article:1
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example Section — mixed siblings under one parent</title>
+    <meta name="generator" content="hand-written" />
+  </head>
+  <body>
+    <section class="feed">
+      <article class="item">
+        <a href="/w1">Story one in the section</a>
+        <p>The deck of the first story.</p>
+      </article>
+      <article class="item">
+        <a href="/w2">Story two in the section</a>
+        <p>The deck of the second story.</p>
+      </article>
+      <article class="item">
+        <a href="/w3">Story three in the section</a>
+        <p>The deck of the third story.</p>
+      </article>
+      <h2 class="headline"><a href="/world">World</a></h2>
+    </section>
+  </body>
+</html>
