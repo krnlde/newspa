@@ -10,6 +10,10 @@
  * one `PollSnapshot` with its `outcome`, the ladder state and its counters, the
  * source's `HealthState`, and on the slow path the items and their events.
  *
+ * Every rung that settles the item set runs the disappearance ladder (D-029): the
+ * parse vouches for the set it read, a skipped rung vouches for the set that has
+ * not moved, and only a failure has no opinion (`pollGone.ts`).
+ *
  * The two numbers a reader judges this pipeline by:
  *
  *  - `snapshots.item_count` is `null` when a rung skipped the parse, never `0`:
@@ -34,6 +38,7 @@ import type { SourceSpec } from 'newspa-config';
 import { pageSignals } from 'newspa-core';
 import { fetchSource, parsePayload, refusalOf, selectionHash, type TransportDeps, withBase } from 'newspa-fetch';
 import { baselineOf, isFastPath, outcomeOf, previousStateOf } from './pollBaseline.ts';
+import { countAbsence } from './pollGone.ts';
 import { healthPatchOf, keptHealth } from './pollHealth.ts';
 import { publishItems, rulesOf } from './pollItems.ts';
 import type { PollDeps, PollResult } from './pollTypes.ts';
@@ -99,6 +104,8 @@ const commit = (
       editedItems: verdict.pass.editedItems,
       newKeys: verdict.pass.newKeys,
       editedKeys: verdict.pass.editedKeys,
+      goneItems: verdict.pass.goneItems,
+      goneKeys: verdict.pass.goneKeys,
       health: verdict.health,
       errorKind: verdict.errorKind,
       note: verdict.note,
@@ -141,7 +148,11 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
 
   if (res.state === 'failure') return commit(spec, deps, clock, started, takenAt, failureVerdict(spec, res));
   if (res.state === 'not-modified') {
-    return commit(spec, deps, clock, started, takenAt, notModifiedVerdict(current, res, previous));
+    // D-029: rung 0 proved the source is serving the list it last showed us, so
+    // every key already counted absent is still absent — the ladder's second arm,
+    // and the only write this path makes.
+    const goneKeys = countAbsence({ items: deps.items, itemEvents: deps.itemEvents }, spec, takenAt);
+    return commit(spec, deps, clock, started, takenAt, notModifiedVerdict(current, res, previous, goneKeys));
   }
 
   const signals = pageSignals(res.text, spec.kind);
@@ -164,6 +175,10 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
       takenAt,
       started,
       deps.rules ?? rulesOf(spec),
+      // D-029's precondition, from the parse: a feed cut at `maxItems` listed
+      // the front of the feed, so this poll is not evidence that anything is
+      // missing. HTML item mode and `itemsPath` are never cut (D-026).
+      !parsed.capped,
     );
     return commit(
       spec,
@@ -176,13 +191,16 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
   }
 
   // `outcomeOf` answers `changed` only for the slow path, so the rung that fired
-  // names itself in the note.
+  // names itself in the note. The set is unchanged, and an unchanged set is the
+  // evidence a disappearance needs (D-029): the ladder counts the absence here
+  // too, which is what makes K = 3 polls reachable on a source that goes quiet.
+  const goneKeys = countAbsence({ items: deps.items, itemEvents: deps.itemEvents }, spec, takenAt);
   return commit(
     spec,
     deps,
     clock,
     started,
     takenAt,
-    skippedVerdict(current, res, outcome, signals, selection, previous),
+    skippedVerdict(current, res, outcome, signals, selection, previous, goneKeys),
   );
 };

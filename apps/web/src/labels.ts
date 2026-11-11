@@ -52,6 +52,7 @@ const statsLine = (t: TFunction, locale: LocaleApi, stats: EditionStats): string
 export const paperLabelsOf = (t: TFunction, locale: LocaleApi): PaperLabels => ({
   newKicker: t('paper.kicker.new'),
   editedKicker: t('paper.kicker.edited'),
+  goneKicker: t('paper.kicker.gone'),
   changedLabel: t('paper.kicker.changed'),
   byline: (author: string) => t('paper.byline', { author }),
   opensInNewTab: (sourceLabel: string) => t('paper.opensInNewTab', { source: sourceLabel }),

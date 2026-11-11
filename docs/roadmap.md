@@ -84,11 +84,12 @@ recorded, `lastSuccessAt` untouched), a payload of the wrong kind, a
 good items survive, the baseline does not move), and an unregistered source,
 which **throws** and rolls the poll back.
 
-**Left in it, on purpose.** Two things the roadmap owns elsewhere: the `gone`
-event (decidable only with the source's complete key set — `items.list` is a
-page of 200, and inferring "gone" from "not on this page" is the silent zero) and
-`score_digest` (the digest pass's column; a poll writes `0` because no digest has
-run).
+**Left in it, on purpose.** One thing the roadmap still owns: `score_digest` (the
+digest pass's column; a poll writes `0` because no digest has run). The `gone`
+event, deferred here for exactly that reason — `items.list` is a page of 200, and
+inferring "gone" from "not on this page" is the silent zero — is **closed**
+(2026-11-11, D-029 level 1): `items.storedKeys` reads the whole key set, core counts
+the streak over settled polls, and the paper prints _Archived_ as the third kicker.
 
 ## WP3 — The scheduler
 

@@ -45,7 +45,12 @@ deliberately **not** reimplemented: the pipeline is hard-coded
    the watched node → full parse — and **a cheap signal may skip work, never
    suppress an item**; every poll's `outcome` and the per-source fast-path
    counters are recorded, because an optimization that never fires is invisible
-   (docs/fetching.md). A declared timestamp is recorded, never obeyed.
+   (docs/fetching.md). A declared timestamp is recorded, never obeyed. A
+   disappearance is a **streak over settled polls** (D-029): a parse that was not cut
+   at `maxItems`, **or a rung that proved the set unchanged**, advances a key's count
+   — the polls after a story leaves are byte-identical, so a ladder that read only
+   parses would never speak — while a failure, a parse fault and a cut list advance
+   nothing and **reset nothing**.
 7. **The paper is an index, not a mirror.** Show a teaser (headline + one
    paragraph) and link out (`target="_blank"`). `ItemView` has no `body` field —
    full text is never sent to the browser. Scraped body is capped and used only

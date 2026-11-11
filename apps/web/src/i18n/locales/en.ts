@@ -155,7 +155,7 @@ export const en = {
     failed: 'The paper is not answering.',
     failedHint: 'pnpm start',
     theme: { toLight: 'Light', toDark: 'Dark' },
-    kicker: { new: 'New', edited: 'Edited', changed: 'Changed' },
+    kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed' },
     byline: 'By {{author}}',
     opensInNewTab: 'Open the {{source}} story in a new tab',
     editSummary_one: '{{added}} characters added, {{removed}} removed',

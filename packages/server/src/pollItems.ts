@@ -2,7 +2,7 @@
  * The publish step: picked items → item rows + events, with the score and the
  * section applied on the way (D-001's last two stages, D-017's cap).
  *
- * Three decisions live here, and each is a rule, not a style:
+ * Two decisions live here, and each is a rule, not a style:
  *
  * **Edit detection is a diff of the story's text, against the stored row.**
  * `textOf` is the title plus the body, falling back to the summary: a publisher
@@ -20,10 +20,11 @@
  * `takenAt` there would claim a change that never happened. `first_seen_at` and
  * `read_at` are not in the update set, so they survive on their own.
  *
- * **No `gone` event.** A disappearance is decidable only with the source's whole
- * key set, and `items.list` is a page (200, ceiling 500) — inferring "it is
- * gone" from "it is not on this page" is exactly the silent zero rule 5 forbids.
- * `docs/roadmap.md` leaves `gone` to a follow-up that can read every key.
+ * **`gone` is decided next door.** The third rule of this step is the
+ * disappearance ladder (D-029), and it is `pollGone.ts`: core counts the streak,
+ * that module owns which polls are evidence, and this file supplies the key set
+ * this poll published, after its own rows are written — so a story cannot be
+ * retired by the poll that published it.
  */
 import type { SourceSpec } from 'newspa-config';
 import {
@@ -39,6 +40,7 @@ import {
   sectionOf,
 } from 'newspa-core';
 import { type ItemEventsRepository, type ItemsRepository, itemWriteOf, type NewItemEvent } from 'newspa-db';
+import { disappear } from './pollGone.ts';
 import { type ItemPass, NO_PASS } from './pollTypes.ts';
 
 /** The repositories the item pass writes through. */
@@ -127,7 +129,14 @@ const eventOf = (
  * Write every picked item, and the events the diff produced, in the caller's
  * transaction. One read per item (`itemOf`) is the budget the pipeline is
  * allowed: the read side's "never per item" rule protects a page render, not a
- * producer that has to look at each row it is about to write.
+ * producer that has to look at each row it is about to write. The disappearance
+ * ladder is the one **whole-set** read (`storedKeys`), and it exists because a
+ * page of keys cannot answer a question about absence.
+ *
+ * `closed` is the ladder's precondition on this path: `true` when the parse saw
+ * the source's whole set, i.e. `!ParseSuccess.capped`. A feed cut at `maxItems`
+ * lists the front of the feed, so the poll that cut it has no opinion — the
+ * streaks do not move, and they do not reset (`pollGone.ts`).
  */
 export const publishItems = (
   repos: ItemRepos,
@@ -136,6 +145,7 @@ export const publishItems = (
   takenAt: string,
   now: Date,
   rules: ScoreRules,
+  closed: boolean,
 ): ItemPass => {
   const newKeys: string[] = [];
   const editedKeys: string[] = [];
@@ -154,7 +164,21 @@ export const publishItems = (
       events.push(eventOf(spec, item, 'edited', takenAt, score, report));
     }
   }
+  // The ladder runs after the items are written, so its whole-set read sees this
+  // poll's own rows: an item the poll published is present, and cannot be counted
+  // as absent by its own poll.
+  const gone = disappear(repos, spec, closed ? new Set(picked.map((item) => item.key)) : null, takenAt);
+  if (gone.writes.length > 0) repos.items.markStreaks(spec.id, gone.writes);
+  events.push(...gone.events);
   if (events.length === 0) return { ...NO_PASS, items: picked.length };
   repos.itemEvents.insertMany(events);
-  return { items: picked.length, newItems: newKeys.length, editedItems: editedKeys.length, newKeys, editedKeys };
+  return {
+    items: picked.length,
+    newItems: newKeys.length,
+    editedItems: editedKeys.length,
+    newKeys,
+    editedKeys,
+    goneItems: gone.keys.length,
+    goneKeys: gone.keys,
+  };
 };

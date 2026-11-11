@@ -21,7 +21,16 @@ import type { FormatProps, StoryLabels, StoryProps, StorySlot } from './types.ts
  * `figure → kicker → headline`: it is a card in a column, the lead is the page.
  */
 export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => {
-  const kicker = item.lastEventKind === 'edited' ? labels.editedKicker : labels.newKicker;
+  // The kicker names the **last event**, and all three kinds are sayable: new,
+  // edited, and the source stopping listing the story (D-029). Printing "New"
+  // for a door the source closed is the paper claiming the opposite of what it
+  // knows, so the third arm is not decoration.
+  const kicker =
+    item.lastEventKind === 'edited'
+      ? labels.editedKicker
+      : item.lastEventKind === 'gone'
+        ? labels.goneKicker
+        : labels.newKicker;
   const meta = metaOf(item, labels, format);
   const figure =
     showImage && item.image !== null ? (

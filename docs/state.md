@@ -59,7 +59,11 @@ migrations (`MIGRATIONS`, `migrate`, `CURRENT_VERSION`), a cooperative lock
 (`claimLock`, `extendClaim`, `readLock`, `releaseLock`), and the repositories:
 `sourcesRepository`, `itemsRepository`, `itemEventsRepository`,
 `snapshotsRepository` (`PollSnapshot`, `SnapshotOutcome`),
-`validatorRepository`, plus `timeSpecOf` and the value codecs.
+`validatorRepository`, plus `timeSpecOf` and the value codecs. The disappearance
+ladder's two columns (D-029) live in `itemsStreaks.ts` — `storedKeys` reads the
+source's **whole** key set, `markStreaks` writes the verdicts scoped to the source —
+and `itemsRepository`'s upsert does not name them, so re-seeing a key never resets
+a count.
 
 **fetch**: the HTTP transport (`fetchSource(spec, baseline, deps)`) implementing
 the change-detection ladder of D-020 and D-027 — `304` → body hash → **selection
@@ -73,9 +77,10 @@ and 31 captured fixtures under `test/fixtures/`.
 limits), and `pollOne` with `pollDepsOf` (the composition seam: a `Database` in,
 the repositories, the transaction and the test seams out). `poll.ts` is the
 ladder and the single write path; the rungs' meanings, the ladder state, the
-publish step and the health mapping are each their own module (WP2 in
-`docs/roadmap.md` records the measurements). What is still absent: scheduler,
-routes, SSE, static, toasts, `cli.ts`.
+publish step, the **disappearance ladder** (`pollGone.ts`, D-029: which polls
+settle the item set, and the write) and the health mapping are each their own
+module (WP2 in `docs/roadmap.md` records the measurements). What is still absent:
+scheduler, routes, SSE, static, toasts, `cli.ts`.
 
 **paper**: browser-safe, consumed by the app, ten modules. The barrel's public
 surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

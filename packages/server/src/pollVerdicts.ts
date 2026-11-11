@@ -18,6 +18,10 @@
  *  - `health: current` for a skipped rung: a `304` is not a verdict about the
  *    content, and `unknown` written over `ok` puts a quiet source on the health
  *    strip (rule 5).
+ *
+ * The rungs here are pure, so the disappearance ladder's keys (D-029) are handed
+ * in, not computed: an unchanged set is evidence that an absent key is still
+ * absent, and deciding that needs the stored rows, which is `pollGone.ts`'s job.
  */
 import type { SourceSpec } from 'newspa-config';
 import type { PageSignals } from 'newspa-core';
@@ -107,11 +111,20 @@ export const parseVerdict = (spec: SourceSpec, res: TransportOk, failure: ParseF
   succeeded: false,
 });
 
+/**
+ * The tally of a rung that skipped the item pass: no items counted, no keys
+ * published, and the doors its **unchanged set** closed (D-029). A `304` proves
+ * the source is serving the list it last showed us, which is evidence that an
+ * absent key is still absent — `pollGone.ts` is where that is decided.
+ */
+const skipPass = (goneKeys: readonly string[]): ItemPass => ({ ...NO_PASS, goneItems: goneKeys.length, goneKeys });
+
 /** Layer 0: the validators matched. The body was never read, so the body-derived fields stay. */
 export const notModifiedVerdict = (
   current: HealthState,
   res: TransportNotModified,
   previous: ValidatorState,
+  goneKeys: readonly string[],
 ): Verdict => ({
   outcome: 'not-modified',
   status: res.status,
@@ -121,7 +134,7 @@ export const notModifiedVerdict = (
   health: current,
   note: noteOfNotModified(),
   log: logOf(res, res.notes),
-  pass: NO_PASS,
+  pass: skipPass(goneKeys),
   state: stateFromNotModified(res, previous),
   succeeded: true,
 });
@@ -134,6 +147,7 @@ export const skippedVerdict = (
   signals: PageSignals,
   selection: string | null,
   previous: ValidatorState,
+  goneKeys: readonly string[],
 ): Verdict => ({
   outcome,
   status: res.status,
@@ -143,7 +157,7 @@ export const skippedVerdict = (
   health: current,
   note: noteOfSkipped(outcome),
   log: logOf(res, res.notes),
-  pass: NO_PASS,
+  pass: skipPass(goneKeys),
   // The body was read, so every field of the state is fresh — including the
   // selection hash, which is the thing layer 2 just compared.
   state: stateFromBody(res, signals, previous, selection),

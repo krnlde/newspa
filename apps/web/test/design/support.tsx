@@ -85,6 +85,7 @@ const THE_FORMAT: FormatProps = {
 const LABELS: PaperLabels = {
   newKicker: 'New',
   editedKicker: 'Edited',
+  goneKicker: 'Archived',
   changedLabel: 'Changed',
   byline: (author: string) => `By ${author}`,
   opensInNewTab: (sourceLabel: string) => `Open the ${sourceLabel} story in a new tab`,

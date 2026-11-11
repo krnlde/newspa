@@ -32,6 +32,7 @@ const SRC_FILES: readonly string[] = [
   'poll.ts',
   'pollBaseline.ts',
   'pollDeps.ts',
+  'pollGone.ts',
   'pollHealth.ts',
   'pollItems.ts',
   'pollTypes.ts',

@@ -39,8 +39,17 @@ describe('the kicker', () => {
     expect(kicker.textContent).not.toContain(THE_LABELS.newKicker);
   });
 
-  it('uses the new word for a first sighting, and for one that has come back', () => {
-    for (const kind of ['new', 'gone', null] as const) {
+  it('uses the gone word for a story the source stopped listing (D-029)', () => {
+    // The kicker names the **last event**, so printing "New" for a closed door
+    // would be the paper claiming the opposite of what it knows.
+    const kicker = one(PART.kicker, showStory({ lastEventKind: 'gone' }));
+    expect(kicker.textContent).toContain(THE_LABELS.goneKicker);
+    expect(kicker.textContent).not.toContain(THE_LABELS.newKicker);
+    expect(kicker.textContent).not.toContain(THE_LABELS.editedKicker);
+  });
+
+  it('uses the new word for a first sighting, and for one with no event at all', () => {
+    for (const kind of ['new', null] as const) {
       const kicker = one(PART.kicker, showStory({ lastEventKind: kind }));
       expect(kicker.textContent, String(kind)).toContain(THE_LABELS.newKicker);
       expect(kicker.textContent, String(kind)).not.toContain(THE_LABELS.editedKicker);

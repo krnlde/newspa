@@ -126,6 +126,7 @@ export const THE_HEALTH_LABELS: HealthLabels = {
 export const THE_LABELS: PaperLabels = {
   newKicker: 'NEW',
   editedKicker: 'EDITED',
+  goneKicker: 'ARCHIVED',
   changedLabel: 'Changed',
   byline: (author: string) => `By ${author}`,
   opensInNewTab: (sourceLabel: string) => `Open the ${sourceLabel} story in a new tab`,

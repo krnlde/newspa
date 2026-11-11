@@ -24,6 +24,13 @@ export interface StoryLabels {
   readonly newKicker: string;
   /** The kicker of a story whose text changed: `"Edited"`. */
   readonly editedKicker: string;
+  /**
+   * The kicker of a story the source **stopped listing** (D-029's `gone` event):
+   * `"Archived"`. It is not an obituary and not a deletion — the paper keeps
+   * polling the source, the row stays, and the link still opens. A door the
+   * source closed, named as one.
+   */
+  readonly goneKicker: string;
   /** The meta line's word for a later change: `"changed 3 hours ago"`. */
   readonly changedLabel: string;
   /** `"By Ann Example"` — the app composes it with its own word order. */

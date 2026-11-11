@@ -149,6 +149,7 @@ describe('the counted strings', () => {
     const labels = paperLabelsOf(tOf(spy), localeFor('en'));
     expect(labels.newKicker).toBe('paper.kicker.new');
     expect(labels.editedKicker).toBe('paper.kicker.edited');
+    expect(labels.goneKicker).toBe('paper.kicker.gone');
     expect(labels.editedHeadline).toBe('paper.edited.headline');
     expect(labels.health.headline).toBe('paper.health.headline');
     expect(labels.health.neverFetched).toBe('paper.health.neverFetched');
@@ -219,6 +220,7 @@ describe('the strings the reader sees', () => {
     expect(de.editSummary(3, 1)).toBe('3 Zeichen ergänzt, 1 entfernt');
     expect(de.newKicker).toBe('Neu');
     expect(de.editedKicker).toBe('Geändert');
+    expect(de.goneKicker).toBe('Archiviert');
     expect(de.editedHeadline).toBe('Geändert');
     expect(de.byline('Ann Example')).toBe('Von Ann Example');
     expect(de.opensInNewTab('BBC')).toBe('Die BBC-Meldung in einem neuen Tab öffnen');
@@ -226,6 +228,8 @@ describe('the strings the reader sees', () => {
     const en = await labelsIn('en');
     expect(en.health.headline).toBe('Sources');
     expect(en.newKicker).toBe('New');
+    expect(en.editedKicker).toBe('Edited');
+    expect(en.goneKicker).toBe('Archived');
     expect(en.byline('Ann Example')).toBe('By Ann Example');
   });
 
@@ -250,7 +254,7 @@ describe('the strings the reader sees', () => {
     };
     for (const language of ['en', 'de']) {
       const words = stringsIn(await labelsIn(language));
-      // 18 finished strings: 3 kickers/headline + 9 health + 6 onboarding.
+      // 19 finished strings: 4 kickers/headline + 9 health + 6 onboarding.
       expect(words.length).toBeGreaterThanOrEqual(HEALTH_STATES.length + 11);
       for (const word of words) expect(word.trim().length).toBeGreaterThan(0);
     }

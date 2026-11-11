@@ -78,18 +78,27 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    link, resolved against the URL that **answered** (D-030: `withBase(spec,
     res.url)` — after a permanent redirect the text and the link are from one
    place, and following it does not rewrite the reader's file).
-6. `diff` against the stored baseline → `new | edited | gone`; `edited` requires
-   `meaningful` from the word diff (typo filter).
+6. `diff` against the stored baseline, `new | edited`; **`gone` is a streak and not
+   a diff (D-029)**: core's `goneVerdicts` counts the polls whose item set was
+   **settled** — a parse not cut at `maxItems`, or a rung that proved the set
+   unchanged — and at K = 3 the poll writes one `gone` event, built from the
+   **stored** title and link; a key that comes back is reopened, not resurrected.
+   `edited` requires `meaningful` from the word diff (typo filter).
 7. Burst breaker: >40% new keys, or matches ≪ `matchCount` → `restructured`,
    suppress publishing, keep the baseline. The stored `generator` and `vary` make
    that diagnosis a sentence, not a guess. The opposite direction is a **parse
     fault**: an HTML `list` matching **more** nodes than the source recorded is
    `multi-match` (D-026: one node per source) → `errorKind: 'parse'` → `error`,
-   with both counts in the note.
+   with both counts in the note. **Unbuilt:** `detectBurst` is in core and no poll
+   path calls it, so the disappearance ladder has no burst interlock (D-029).
 8. `score` deterministically (watchwords, source weight, recency, headline substance).
 9. Write: `items` upsert, `item_events` insert, `snapshots` insert (one row per
    poll, including the 304s), `sources.health` + validator state, `system_log` for
-   anomalies. A `Retry-After` on a 429 replaces the exponential backoff for that
+   anomalies. The ladder's two columns (`missing_streak`, `gone_at`) are written
+   only by `items.markStreaks`, scoped to the source, from `items.storedKeys` — the
+   whole key set, never `items.list`, because a page cannot answer a question about
+   absence. The upsert does not name those columns, so re-seeing a key never resets
+   its count. A `Retry-After` on a 429 replaces the exponential backoff for that
    poll, capped by `backoffMaxMs`.
 10. Publish: SSE `item:new` / `item:edited` / `source:health` / `cycle:complete`;
     toast for high-score new items. **Nothing is written to disk as a report**: the

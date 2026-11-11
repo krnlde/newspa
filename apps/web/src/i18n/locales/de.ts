@@ -153,7 +153,7 @@ export const de = {
     failed: 'Die Zeitung antwortet nicht.',
     failedHint: 'pnpm start',
     theme: { toLight: 'Hell', toDark: 'Dunkel' },
-    kicker: { new: 'Neu', edited: 'Geändert', changed: 'Geändert' },
+    kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert' },
     byline: 'Von {{author}}',
     opensInNewTab: 'Die {{source}}-Meldung in einem neuen Tab öffnen',
     editSummary_one: '{{added}} Zeichen ergänzt, {{removed}} entfernt',

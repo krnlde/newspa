@@ -54,7 +54,17 @@ Concretely: a `304` and a matching body hash skip parse, diff and score, because
 no new bytes exist. The selection hash skips the **item pass** after the parse,
 because the bytes say the page moved and the node says the story did not. Every
 one of them names itself in `snapshots.outcome`, and none of them can mark a
-story read, retire one, or answer for a source the poll could not read.
+story read, publish one, or answer for a source the poll could not read.
+
+**One thing a rung does, and it is decided rather than implied (D-029):** a poll
+that **settles the item set** advances a key's missing-streak, and a settled set is
+either the set a parse published (not cut at `maxItems`) or a set a rung proved
+**unchanged**. That is not suppression: no rung publishes anything, and no failure
+retires anything. A `5xx`, a parse fault and a feed cut at its own ceiling have no
+settled set, and they leave a streak exactly where it was — not advanced, not
+reset. The reason the rungs count is measured, and it is the common case, not the
+corner: the polls after a story leaves the list are byte-identical, so a ladder that
+read only parses would freeze at one and never speak.
 
 The boundary of layer 2 is stated where it can be seen: it hashes the watched
 node's **text**, so a poll that skips the item pass cannot see a change inside

@@ -76,6 +76,9 @@ export interface PollResult {
   /** The keys behind those counts, for the SSE push. */
   readonly newKeys: readonly string[];
   readonly editedKeys: readonly string[];
+  /** D-029: keys this poll announced **closed**, and the keys behind that count. */
+  readonly goneItems: number;
+  readonly goneKeys: readonly string[];
   /** The state written to `sources.health` — the paper's, not a log's. */
   readonly health: HealthState;
   readonly errorKind: ErrorKind | null;
@@ -83,14 +86,30 @@ export interface PollResult {
   readonly note: string;
 }
 
-/** One item pass's tally. */
+/**
+ * One item pass's tally. The `gone` pair is D-029's disappearance ladder: keys
+ * this poll **announced** closed, after K complete, successful polls without
+ * them. A pass that did not run — a rung that skipped the item pass, any failure
+ * — reports `NO_PASS`, and a `0` there is honest: a poll with no evidence cannot
+ * have retired anything.
+ */
 export interface ItemPass {
   readonly items: number;
   readonly newItems: number;
   readonly editedItems: number;
   readonly newKeys: readonly string[];
   readonly editedKeys: readonly string[];
+  readonly goneItems: number;
+  readonly goneKeys: readonly string[];
 }
 
 /** A poll that wrote no items: the ladder's skipped layers and every failure. */
-export const NO_PASS: ItemPass = { items: 0, newItems: 0, editedItems: 0, newKeys: [], editedKeys: [] };
+export const NO_PASS: ItemPass = {
+  items: 0,
+  newItems: 0,
+  editedItems: 0,
+  newKeys: [],
+  editedKeys: [],
+  goneItems: 0,
+  goneKeys: [],
+};
