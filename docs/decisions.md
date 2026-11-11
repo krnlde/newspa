@@ -7,10 +7,13 @@ Pipeline, data, identity and behaviour: the pipeline shape, item identity,
 the diff, render at pick time, JSON sources, scoring, notifications, source
 files in git, exports, and change detection.
 
-Tooling, dependency, testing and paper-shape decisions live in
-`decisions-tooling.md`. Detection, selector language, `gone`, identity for pages
-and the measured cost of the browser live in `decisions-detection.md` (shared
-numbering; D-026 … D-033 there revise parts of D-005, D-006, D-007 and D-020).
+The surface - the page as the product (D-002), the reading list (D-025), the
+address as the wall (D-034) and the one overlay (D-035) - is in
+`decisions-surface.md`. Tooling, dependency, testing and paper-shape decisions
+live in `decisions-tooling.md`. Detection, selector language, `gone`, identity
+for pages and the measured cost of the browser live in `decisions-detection.md`
+(shared numbering; D-026 … D-033 there revise parts of D-005, D-006, D-007
+and D-020).
 
 ## D-001 — One hard-coded pipeline, not an agent graph
 
@@ -22,40 +25,6 @@ record between them. Huginn vocabulary is kept where it is cheap: WebsiteAgent �
 toasts, EventFormatter → the record schema, Scenario export → `sources/*.json`.
 **Reverse if:** a source needs a transformation that cannot be expressed by the
 three parsers plus `fields`/`strip`/`itemsPath`. Then add a stage, not a graph.
-
-## D-002 — The page is the product; no static edition, no SSR (**reversed from the first cut**)
-
-The paper is one ever-changing page at `http://127.0.0.1:8787`: SSE pushes what
-changed, the DOM re-renders, read markers and search work on the same state. There
-is **no edition file, no `editions/` directory, no `react-dom/server`, no cycle-time
-artifact, no static route**. The DB is the record; the page is the paper.
-
-The first cut of this decision said the opposite: at the end of every cycle, render
-`editions/<id>/index.html` with `renderToStaticMarkup` (inlined CSS, zero JS). It
-was reversed on the evidence of the product's own shape — **there is no single
-cycle and no single edition.** The page changes continuously, so a file named after
-a day does not describe it, and the "print the edition" story was a print-era habit
-imported into a tool that prints nothing. Cost of the reversal: no mailable single
-file, and the record is a database query rather than a document.
-
-What survives from the reasoning, because it was never about the file:
-
-- **No request-time SSR.** At `127.0.0.1` the render cost is identical and merely
-  relocated into the process that runs the poller and the Edge pool; measured
-  latency to real sites is 121–648 ms, localhost 1–5 ms, so first paint was never
-  the bottleneck. SSR would add hydration mismatch, CSS ordering, a dual-environment
-  data layer and a crash surface to the one process that must survive 3am.
-- **A record must exist**, because stealth-edit detection is meaningless without
-  what the page said at the time. It does: `items`, `item_events` with the word
-  diff, and `snapshots` (one row per poll, 304s included). `pnpm search` reaches it.
-- **`@media print` stays** in the paper CSS (3 columns, masthead preserved, hairlines
-  kept): browser Print → Save as PDF on the live page is 80% of the print value for
-  free, and it is honest about which state it prints — the one you are looking at.
-
-**Reverse if:** a dated document becomes the point (a weekly digest by email, a
-printout for a fridge). Then it is an _export_ on demand — `pnpm export --paper
-2026-11-08` writing one self-contained file from the same `packages/paper`
-components — not a cycle-time side effect with a retention policy.
 
 ## D-005 — Item identity: canonical link, else title+day (revised 2026-11-09)
 
@@ -212,62 +181,3 @@ for diagnosis), the document-tag list, and the DB state it requires - is
 
 **Reverse if:** the counters show a rung earns nothing on the sources you watch,
 then delete that rung. The order is the contract, the rungs are not.
-
-## D-025 — The reading list stays local; the repo ships examples
-
-The repository is public. A source definition is not a config detail, it is a
-statement about a person: the URL set, `watchwords`/`blockwords`, the `section`
-labels in the reader's own words, the free-text `notes`, and the fact that a
-source needs `profile: true` at all. Publish that and the tool has published its
-reader. So:
-
-|                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`sources/`**         | gitignored, local, **not version-controlled**. The loader takes a directory (`config/src/load.ts`), so D-011 is untouched — only which tree is public changed.                                                                                                                                                                                                                                                                                                                                                                             |
-| **`sources.example/`** | tracked, placeholder definitions, so a fresh clone boots and the editor's `$schema` association resolves. `.vscode/settings.json` matches both directories.                                                                                                                                                                                                                                                                                                                                                                                |
-| **Backup**             | `pnpm export --bundle` already carries `sources/` (D-014), and `export --watchlist` / `--opml` are the portable forms.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **First run**          | Creation is a **named boot step**, `ensureSourcesDir(dir)`: idempotent, creates parents, touches no file. `loadSources` deliberately does not create — a reader with a side effect hides it, and the empty paper has to be _reported_ (`missing-dir`, `no-sources`), so the mkdir and the report stay separate. `writeSource` already made the directory for itself, so the picker, `POST /api/sources` and `sources:migrate` never need `pnpm sources:init`; that command's only job is copying **example files**, which no mkdir can do. |
-| **Enforcement**        | `scripts/check-secrets.mjs` fails the build when a path under `sources/` is tracked — the same posture as rule 17: the floor enforces it, so a helpful future agent cannot re-add a reading list.                                                                                                                                                                                                                                                                                                                                          |
-| **History**            | none, deliberately. Selector history in `git log` was D-011's stated benefit; it is given up here on purpose. The answer to "did the source change shape, or did I edit the selector?" is the `matchCount` a poll compares against (`no-matches` names the recorded count) and the `snapshots` row per poll, not a diff.                                                                                                                                                                                                                   |
-
-**Capture fixtures logged out.** `packages/fetch/test/fixtures/**` is exempt from
-the secret scan for rule 1's reason, and the exemption is symmetric: a payload
-captured from a signed-in page carries the reader's own data into a public file.
-
-## D-034 - The paper is on the LAN, and the address is the wall  _(implemented 2026-11-11)_
-
-The reader wants the page on a phone in the next room. That collides with two facts
-the repo already commits to: the server **authenticates nothing** (rule 17), and
-`/api/state` **is** the reading list (rule 18: every source URL, label, `section`,
-`note`, the `profile: true` fact). With no auth, the bind address is the access
-control, so it is decided in one module (`packages/server/src/net.ts`) and printed
-at boot.
-
-|                         |                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Default**             | `server.host` stays `127.0.0.1`. LAN is a line in `config.json` - nothing changes for a clone that never asks.                                                                                                                                                                                                                                                                                                              |
-| **Reads**               | any peer on the network: the page, the paper, the stream. That is the requirement, and it is said out loud at boot.                                                                                                                                                                                                                                                                                                         |
-| **Writes**              | **loopback only**, refused on the address before routing: 403 with a reason that cites this decision. A page on the LAN that could write a `sources/*.json` file is a hole with no lock on it, and the guard's teeth are pinned by a test (`http-app.test.ts`).                                                                                                                                                             |
-| **The line**            | binding past loopback prints the typeable URLs (from `os.networkInterfaces()`: LAN addresses, and `127.0.0.1` - `0.0.0.0` is not a URL), the sentence that the source list is now visible to the household, and the exact `netsh advfirewall` command. Windows drops inbound `8787`; a bind that succeeds while every packet is dropped is indistinguishable from a dead server, and rule 5 is that a silent zero is a bug. |
-| **The stream**          | `no-store`, `no-transform`, `x-accel-buffering: no`, `retry:`, and a keep-alive comment on the hub's one timer. Each of those is a middlebox that otherwise turns a push into a stall, a cache, or a paper that quietly stops updating.                                                                                                                                                                                     |
-| **The single instance** | unchanged, and it covers this: the database claim (`db_lock`, taken at open) is what refuses a second process, so two binds on two ports cannot both poll. A claim on the **port** is not built and is not needed for that.                                                                                                                                                                                                 |
-
-**IPv4 URLs only, on purpose.** A link-local IPv6 (`fe80::1`) is not typeable in a
-browser's address bar (it needs a scope id), and a printed URL that does not work is
-worse than one that is merely old-fashioned.
-
-**In practice the reader meets Windows' own prompt.** The firewall asks "allow access"
-the first time the process listens, so the `netsh` command above is the **fallback**:
-for a prompt dismissed without reading, a public profile, or a domain network that
-never shows one. The printed line stays, because a bind that succeeds while every
-packet is dropped is indistinguishable from a dead server. Measured with
-`server.host: "0.0.0.0"`: the boot prints
-`listening on http://192.168.0.223:8787, http://127.0.0.1:8787 — anyone on this network
-can read the paper, and /api/state shows your source list to them; writes stay
-loopback-only`, and `GET http://192.168.0.223:8787/api/state` answers 200 with the
-masthead and the source count.
-
-`isLoopback` is the whole policy, so it is tested on the forms a socket actually
-presents (`::ffff:127.0.0.1`, `::1`, `localhost`, `127.0.0.53`) and on the
-addresses a phone has (`192.168.x`, `10.x`, `fe80::`, `2001:db8::`).
-"Reachable over LAN" and "loopback-only writes" are the same function read twice.

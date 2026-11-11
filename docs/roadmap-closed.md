@@ -110,3 +110,70 @@ an invented `matchCount` — and the TLS path is `classifyThrown` in
 **Do not** "fix" either one. What is genuinely open around health is WP2 (the
 pipeline must perform that composition) and the one unexplained `404` in
 `docs/state.md`.
+
+## WP14 - closed: the sources panel (2026-11-11)
+
+**Was.** Sources are files, and the page showed them read-only: `apps/web` had no form,
+`POST /api/sources` was named in the body of a 404, and the only writer was
+`packages/config`'s `writeSource`/`removeSource` — built, tested, unreachable.
+
+**Is.** Three verbs and a panel. `GET /api/sources` answers the directory — every
+`*.json`, **its own text**, the loader's issues for that file, the row's health and
+`enabled`, and `writable` for the peer who asked. `POST` takes core's existing
+`addSourceRequestSchema` — **raw file text** — validates with `parseSourceJson` (the
+loader's own function, so the editor can never disagree with the poll), writes
+`sources/<id>.json`, refreshes the row (so the paper shows the source and `dueSources`
+polls it first), and answers the path it wrote. `DELETE ?id=` removes the file and
+**disables the row**: the poll stops, the items and history stay, and the source is
+listed as disabled rather than vanished. A posted `filename` is **checked, not obeyed** —
+`<id>.json` is D-011's rule, so a body naming `evil.json` with `id: "bbc"` is refused
+rather than given a second name.
+
+**Measured, and it changed the code.**
+
+- `req.destroy()` on a body over the 64 KiB cap kills the connection: the client saw
+  `TypeError: fetch failed`, not the 413. So the answer is written **first**, the request
+  is paused, and the 413 says `connection: close` — the body was never consumed, so that
+  socket is not reusable.
+- `stream.destroy('a string')` hands the listener `undefined`, not the string, so the body
+  reader prints `String(cause)`: "the request body did not arrive: undefined" names
+  nothing (rule 5).
+- A refusal that _returns_ is data — and a panel that reacts only to a **throw** closes
+  the box on it, so the reader's typed JSON vanished on every refused write. `api.ts`
+  keeps the answer as data (a 404 is the route's sentence, not a broken wire),
+  `SourcesSection` rejects the mutation with `RefusalError`, and the editor keeps the
+  bytes beside the loader's reason. Pinned in `sources-write.test.tsx`.
+
+**The boundary is the whole security story, and the route moved it.** `net.ts`'s guard
+runs **before routing**, so a write from a non-loopback peer is a 403 that never reaches
+this code (pinned: a spy on the routes bag records that `remove` was not called). The new
+route forced the second half of D-034: `GET /api/sources` answers each file's **verbatim
+text** — the URL set, the `watchwords`/`blockwords`, the `section` labels in the reader's
+words, the `notes`, the `profile: true` fact — which is exactly the field rule 18 keeps
+unversioned. So the route is loopback-only for **every verb** (`readingListAllowed`), and
+the boot line says "source **names**", not "source list". The phone gets the paper and
+prints the server's refusal sentence; the editor is a machine-local tool. No token, no
+cookie (rule 20).
+
+**The panel** is `SourcesPanel`/`SourceRow`/`SourceEditor`/`sourceStyle` in
+`packages/paper`: `data-part` hooks (`sources`, `source-row` with `data-file/-state/
+-enabled/-issues`, `source-text`, `issues`, `confirm`, `sources-status`), no strings of
+its own (labels arrive as a prop object, D-019), no fetch, no `node:*`. The loader's lines
+sit under `pattern-crossings` — the mark that names an absence, which is what a file that
+does not parse is. A delete asks once, in the page. `writable: false` renders the sentence
+and **no** affordance. The whole block is `display: none` in print: a form is not news,
+and it prints the absolute path of the watchlist directory. Pinned as text in
+`design-contract.test.tsx`, because `@media print` is not reachable from a screen viewport.
+
+**Accept.** 104 tests. `sources-api.test.ts` (16) drives the handlers on a temp tree and a
+real db: the list, a file that does not parse listed with its issues, the
+filename-is-the-id refusal, the empty and the missing directory; write → file + row +
+due-at-once; invalid JSON, the schema issues, the filename check, the `render: true`
+note; delete → file gone + row disabled + items kept, 404 naming the directory, traversal
+ids refused by shape. `sources-routes.test.ts` (12) the same over a socket — verbs, 405,
+413 mid-body, non-JSON 400 in the write shape, LAN refusals that never reach the route.
+`request-body.test.ts` (6) on the stream arms. `start.test.ts` boots a temp tree, POSTs a
+source, and sees it in `/api/state`. `paper/test/sources-*.test.tsx` (31) on the panel's
+speech and its affordances. `web/test/unit/sources-*.test.tsx` (39) on the wire, the
+stated states, the phone case, the two mutations and the language. Coverage: paper
+100/100/100/100, web 98.7/96.4/97.9/98.9, server 99.0/95.3/97.2/99.2.

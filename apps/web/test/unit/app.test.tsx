@@ -1,13 +1,15 @@
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { en } from '../../src/i18n/locales/en.ts';
 import { articleOf, FLASH, flashing, one, renderApp, renderPaper } from './support/render.tsx';
+import { answer, LIST } from './support/sourcesWire.tsx';
 import {
   aPaper,
   aPendingFetch,
   aRejectedFetch,
   aStatusFetch,
   cycleDone,
+  type FetchMock,
   itemEdited,
   itemNew,
   LINKS,
@@ -34,6 +36,13 @@ import {
  * The mount helpers live in `support/render.tsx`, shared with `app-paper.test.tsx`,
  * which is the same app printed by a wire that never moves.
  */
+
+/**
+ * The calls to the **state endpoint**, not every fetch: the page reads a second
+ * route now (`/api/sources`, WP14), so a count of the whole wire is a count of
+ * how many endpoints the app has, and says nothing about the paper refetching.
+ */
+const stateCalls = (mock: FetchMock): number => mock.mock.calls.filter((call) => call[0] === '/api/state').length;
 
 describe('while /api/state is in flight', () => {
   it('prints the loading line, not a blank page', () => {
@@ -120,7 +129,7 @@ describe('the live stream', () => {
         publish(event);
       });
     }
-    expect(fetch.mock.calls).toHaveLength(4);
+    expect(stateCalls(fetch)).toBe(4);
     expect(flashing()).toEqual([]);
   });
 
@@ -160,5 +169,80 @@ describe('the live stream', () => {
     expect(theSource().close).not.toHaveBeenCalled();
     view.unmount();
     expect(theSource().close).toHaveBeenCalledOnce();
+  });
+});
+
+/**
+ * The sources editor (WP14), as the app mounts it.
+ *
+ *  - the paper prints **no form**: the sheet's dateline strip carries one control,
+ *    and the dialog is not in the page until it is pressed. The sheet is the
+ *    page's one panel of newsprint, and three lines per source, a textarea and the
+ *    absolute path of the watchlist directory do not belong on it;
+ *  - the reading list is fetched **only when the control is pressed** — its answer
+ *    is the reader's files, and rule 18 keeps them to a loopback peer, so a page
+ *    load asks for them only when a reader asked to see them;
+ *  - closing takes the form off the page, so the next open asks the server again
+ *    rather than showing bytes from a list the files may have outgrown.
+ */
+const OPEN = "[data-part='sources-open']";
+const CLOSE = "[data-part='sources-close']";
+const ROW = "[data-part='source-row']";
+
+/** The two routes the app reads, answered apart, so a test can count them apart. */
+const stubBothRoutes = (): FetchMock => {
+  const mock = vi.fn(
+    async (input: string): Promise<Response> =>
+      input.startsWith('/api/sources') ? answer(LIST) : responseOf(aPaper()),
+  );
+  vi.stubGlobal('fetch', mock);
+  return mock;
+};
+
+const sourcesCalls = (mock: FetchMock): number => mock.mock.calls.filter((call) => call[0] === '/api/sources').length;
+
+describe('the sources editor', () => {
+  it('prints no form on the page: one control in the dateline strip, and no dialog at all', async () => {
+    stubBothRoutes();
+    renderApp();
+    await screen.findByText(MASTHEAD.name);
+    expect(one<HTMLButtonElement>(OPEN).textContent).toBe(en.sources.open);
+    // Not "a closed dialog": the editor is not in the page until it is asked for,
+    // so there is no hidden form to tab through, and `partsOf(sheet)` stays the
+    // paper's list.
+    expect(document.querySelectorAll("[data-part='sources-modal']")).toHaveLength(0);
+    expect(document.querySelectorAll(ROW)).toHaveLength(0);
+  });
+
+  it('asks for the reading list only when the control is pressed, and prints it in the modal', async () => {
+    const fetch = stubBothRoutes();
+    renderApp();
+    await screen.findByText(MASTHEAD.name);
+    expect(sourcesCalls(fetch)).toBe(0);
+    fireEvent.click(one<HTMLButtonElement>(OPEN));
+    await screen.findByText('BBC World');
+    expect(sourcesCalls(fetch)).toBe(1);
+    expect(one<HTMLElement>("[data-part='sources-modal'] [data-part='sources-dir']").textContent).toBe(
+      `Files in ${LIST.dir}`,
+    );
+    expect(document.querySelectorAll(ROW)).toHaveLength(2);
+  });
+
+  it('takes the form off the page when it closes, returns focus, and the next open asks again', async () => {
+    const fetch = stubBothRoutes();
+    renderApp();
+    await screen.findByText(MASTHEAD.name);
+    fireEvent.click(one<HTMLButtonElement>(OPEN));
+    await screen.findByText('BBC World');
+    fireEvent.click(one<HTMLButtonElement>(CLOSE));
+    await screen.findByText(MASTHEAD.name);
+    // The modal unmounts, so the browser has nothing to restore focus to: the app
+    // focuses the control that opened it, and the reader is back where they started.
+    expect(document.querySelectorAll(ROW)).toHaveLength(0);
+    expect(document.querySelectorAll("[data-part='sources-modal']")).toHaveLength(0);
+    expect(globalThis.document.activeElement).toBe(one<HTMLButtonElement>(OPEN));
+    fireEvent.click(one<HTMLButtonElement>(OPEN));
+    await screen.findByText('BBC World');
+    expect(sourcesCalls(fetch)).toBe(2);
   });
 });

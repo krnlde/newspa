@@ -33,7 +33,11 @@ const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
  * `EditedStrip.tsx`, `FrontPage.tsx` and `blockHead.ts` are the split of the
  * page's composition, and all three are markup: no string is formatted, no
  * clock is read, so the boundary holds for the new files exactly as it did for
- * the old ones.
+ * the old ones. `SourcesPanel.tsx`, `SourceRow.tsx`, `SourceEditor.tsx`,
+ * `SourcesModal.tsx` and `sourceStyle.ts` are the same rule in markup — the panel's
+ * every word arrives in `labels`, the modal's head and close control arrive in
+ * `labels`, it keeps only local editing state, and the style module is class
+ * strings, so the sources editor is inside the boundary, not an exception.
  */
 const SRC_FILES: readonly string[] = [
   'EditedStrip.tsx',
@@ -42,9 +46,14 @@ const SRC_FILES: readonly string[] = [
   'Masthead.tsx',
   'Paper.tsx',
   'Section.tsx',
+  'SourceEditor.tsx',
+  'SourceRow.tsx',
+  'SourcesModal.tsx',
+  'SourcesPanel.tsx',
   'Story.tsx',
   'blockHead.ts',
   'index.ts',
+  'sourceStyle.ts',
   'types.ts',
 ];
 
@@ -111,6 +120,8 @@ describe('the source of the paper', () => {
       'labels: StoryLabels',
       'labels: HealthLabels',
       'labels: PaperLabels',
+      'labels: SourcesLabels',
+      'labels: SourcesModalLabels',
       'format: FormatProps',
       'dateline: string',
       'summary: string',

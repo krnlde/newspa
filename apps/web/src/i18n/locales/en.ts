@@ -107,24 +107,38 @@ export const en = {
   },
   sources: {
     title: 'Sources',
-    add: 'Add a source',
-    kind: 'Kind',
-    cadence: 'Every',
-    weight: 'Weight',
-    enabled: 'Enabled',
+    // The dateline strip's control and the modal's own head. One word each: the
+    // control is named for the thing it opens, and the head is the dialog's
+    // accessible name.
+    open: 'Sources',
+    close: 'Close',
     disabled: 'Disabled',
-    items_one: '{{count}} item',
-    items_other: '{{count}} items',
-    render: 'Renders JavaScript',
-    profile: 'Uses a login profile',
-    notes: 'Notes',
-    empty: 'No sources. `pnpm pick -- <url>` writes the first file.',
-    pickHint: 'The picker opens a browser, you click the items, and newspa writes `sources/<id>.json`.',
+    empty:
+      'No source files. `pnpm sources:init` copies the examples into `sources/`; “New source” writes one from a skeleton.',
     save: 'Save',
     cancel: 'Cancel',
     remove: 'Remove',
     confirmRemove: 'Remove {{label}}? The source file is deleted; the history stays.',
-    issues: 'Source files with problems',
+    // The panel WP14 prints below the paper: the reading list, as files. Every
+    // line here is chrome (D-019); the loader's own issue lines are not translated.
+    dir: 'Files in {{dir}}',
+    loading: 'Reading the source files…',
+    failed: 'The source list did not load.',
+    noState: 'not polled yet',
+    issuesCount_one: '{{value}} problem in this file',
+    issuesCount_other: '{{value}} problems in this file',
+    noId: 'no id — the loader could not read this file, so it cannot be removed by id',
+    textOf: 'Source file text, {{file}}',
+    edit: 'Edit',
+    saving: 'Saving…',
+    deleting: 'Removing…',
+    newSource: 'New source',
+    readOnly:
+      'Reading only from this address: this server has no authentication, so the reading list — every URL, watchword and note in your source files — is served and written only to a peer on this machine (rule 18, D-034). The paper itself is readable from anywhere it is bound.',
+    kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
+    templates: { rss: 'An RSS feed', json: 'A JSON endpoint', html: 'An HTML page' },
+    htmlNote:
+      'The picker writes these selectors by clicking them: `pnpm pick -- https://example.test`, not built (roadmap WP6). A source with `"render": true` is refused by the transport until the browser tier exists.',
   },
   watchlist: {
     title: 'Watchlist',

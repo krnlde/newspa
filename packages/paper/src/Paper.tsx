@@ -4,7 +4,7 @@ import { FrontPage } from './FrontPage.tsx';
 import { type HealthLabels, HealthStrip } from './HealthStrip.tsx';
 import { Masthead } from './Masthead.tsx';
 import { Section } from './Section.tsx';
-import type { FormatProps, StoryLabels } from './types.ts';
+import type { FormatProps, SourcesControl, StoryLabels } from './types.ts';
 
 /**
  * The page: masthead, front page, sections, the edited strip, source health.
@@ -55,9 +55,32 @@ export interface PaperProps {
   readonly theme: 'light' | 'dark';
   readonly onToggleTheme: () => void;
   readonly themeLabel: string;
+  /**
+   * The editor's entry, printed in the dateline strip (WP14). Omitted, and the
+   * page is the paper alone. Named `editor`, not `sources`: `sources` is the
+   * health strip's array, and one prop that is a list and a control is a lie.
+   *
+   * The editor itself is **not** a child of the sheet. The sheet is the one panel
+   * of paper on the page (`docs/design.md`: its own `bg-paper`, guideline ring
+   * and crop marks), and a form inside it would print on the newsprint — three
+   * lines per source, a textarea, and the absolute path of the watchlist
+   * directory. So the sheet prints news and the editor opens **above** it, in a
+   * modal (`SourcesModal.tsx`).
+   */
+  readonly editor?: SourcesControl;
 }
 
-export const Paper = ({ masthead, edition, sources, labels, format, theme, onToggleTheme, themeLabel }: PaperProps) => (
+export const Paper = ({
+  masthead,
+  edition,
+  sources,
+  labels,
+  format,
+  theme,
+  onToggleTheme,
+  themeLabel,
+  editor,
+}: PaperProps) => (
   <div data-part="sheet" className={sheetClass}>
     <Masthead
       name={masthead.name}
@@ -67,6 +90,7 @@ export const Paper = ({ masthead, edition, sources, labels, format, theme, onTog
       theme={theme}
       onToggleTheme={onToggleTheme}
       themeLabel={themeLabel}
+      {...(editor === undefined ? {} : { sources: editor })}
     />
     {sources.length === 0 ? (
       <Onboarding copy={labels.onboarding} />

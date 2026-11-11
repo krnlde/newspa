@@ -238,6 +238,19 @@ export const PART = {
   line: "[data-part='line']",
   diff: "[data-part='diff']",
   count: "[data-part='count']",
+  sources: "[data-part='sources']",
+  sourcesModal: "[data-part='sources-modal']",
+  sourcesOpen: "[data-part='sources-open']",
+  sourcesClose: "[data-part='sources-close']",
+  sourcesList: "[data-part='sources-list']",
+  sourceRow: "[data-part='source-row']",
+  sourceLabel: "[data-part='source-label']",
+  sourceKind: "[data-part='source-kind']",
+  sourceState: "[data-part='source-state']",
+  sourceText: "[data-part='source-text']",
+  issues: "[data-part='issues']",
+  confirm: "[data-part='confirm']",
+  sourcesStatus: "[data-part='sources-status']",
 } as const;
 
 /** A rail on one side: the hook is `data-side`, the old `front__rail--left`. */

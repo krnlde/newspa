@@ -77,16 +77,22 @@ the poll and the read side as one package, `cli.ts`/`commands.ts`/`start.ts`,
 routes, SSE, the address policy (D-034), the four verbs, and the loop that prints
 the page.
 
-**paper**: browser-safe, consumed by the app, ten modules. The barrel's public
-surface is seven components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,
-`HealthStrip`, `Onboarding`), the label/props types, and one string —
+**paper**: browser-safe, consumed by the app, fourteen modules. The barrel's public
+surface is eight components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,
+`HealthStrip`, `Onboarding`, `SourcesPanel`), the label/props types — including
+`SourcesLabels`/`SourcesProps`, because the panel prints no string of its own (D-019) —
+and one string —
 `sheetClass`, the shell's class string, public because the app's loading and
 failure states are shells of the same page. `packages/paper/test/index.test.tsx`
 pins that list, so a rename is a build failure and an undeclared export is a
 failing test.
 
 **web**: the SPA — `App.tsx`, `api.ts` (`/api/state`, `EventSource
-'/api/events'`), i18n chrome, the dev API plugin and the seed.
+'/api/events'`, and the three source verbs, each answer parsed by a core schema before
+the app sees it), `SourcesSection.tsx` (the panel's wire: the list query, the two
+mutations, and the rule that a refusal **rejects** so the editor keeps the reader's
+text), `sourcesTemplates.ts` (the three skeletons), i18n chrome, the dev API plugin and
+the seed.
 
 ## Styling: Tailwind v4, migration complete
 
@@ -110,17 +116,28 @@ markup** (CNN's own `card--lite`): a fixture edited to satisfy a scanner stops
 proving the parser handles the real site (the same exemption as rule 1).
 
 The components carry their own class strings and every element a `data-part`
-hook. `packages/paper/src/` is now eight modules: the composition (`Paper.tsx`),
-the front page's grid (`FrontPage.tsx`), the diff panel (`EditedStrip.tsx`), the
-shared block label (`blockHead.ts`), plus `Story`, `Section`, `Masthead`,
-`HealthStrip`, `types`, `index`. The split is rule 1 (300 lines), and the shared
+hook. `packages/paper/src/` is now fourteen modules: the composition
+(`Paper.tsx`, which takes `children` so a section prints **inside the one sheet** —
+a sibling would sit on the cross-hatched stock with no paper under it), the front
+page's grid (`FrontPage.tsx`), the diff panel (`EditedStrip.tsx`), the health strip,
+the sources panel (`SourcesPanel`/`SourceRow`/`SourceEditor` + `sourceStyle.ts`,
+WP14: the reading list as files, edited in a `<textarea>` of the file's own bytes),
+the shared block label (`blockHead.ts`), plus `Story`, `Section`, `Masthead`,
+`types`, `index`. The split is rule 1 (300 lines), and the shared
 label exists because `Section.tsx` had a **copy** of the sticky label's class
 string — two copies is how the rails and the sections stop being the same label.
+The editor's JSON box has **no monospace face**: the law is one family, and
+`font-paper text-[0.8rem] whitespace-pre` is the onboarding command block's existing
+precedent for code-shaped text.
 
 `packages/paper/test/design-contract.test.tsx` is a text contract over the CSS
 **and** the components: never `justify`, no absolute leading, one typeface with
 no `@font-face` and no CDN URL, no radius, no shadow outside the guideline ring
-and the scroll edge, no gradient inside a component, `data-part` and never BEM.
+and the scroll edge, no gradient inside a component, `data-part` and never BEM —
+and, in the `@media print` block, that the pattern is stripped and that the theme
+switch, the health strip **and the sources panel** are `display: none`: a printed
+page has no clicks, and a form that prints the absolute path of the watchlist
+directory is not news.
 
 `pnpm test:design` is **green** — 2 files, 13 computed assertions in real Edge
 (`apps/web/test/design/`): the compile guard, no `justify` at 1440/1024/390, 3

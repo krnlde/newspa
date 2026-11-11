@@ -168,6 +168,20 @@ describe('the paper contract, in CSS and in the components', () => {
     expect(print, 'base.css: no print block to scan').toContain('background-image: none');
     expect(print, 'base.css: the sheet prints its crop marks').toContain("[data-part='sheet']::before");
     expect(print, 'base.css: the lead figure prints its crop marks').toContain("[data-part='figure']::after");
+    /*
+     * What a printed page does **not** carry: the theme switch (a printed page has
+     * no clicks), the health strip (the machine's report, not the edition) and the
+     * sources panel (WP14) — a form, with a textarea, buttons and the absolute path
+     * of the watchlist directory, which is the reading list (rule 18) and so has no
+     * business on a page that leaves the machine.
+     */
+    const printRules = print.replace(/\/\*[\s\S]*?\*\//gu, '');
+    const hiddenInPrint = [...printRules.matchAll(/([^{}]+)\{\s*display:\s*none\s*;?\s*\}/gu)].flatMap(
+      (rule) => (rule[1] ?? '').match(/\[data-part='[a-z-]+'\]/gu) ?? [],
+    );
+    for (const part of ['theme-switch', 'health', 'sources', 'sources-open', 'sources-close', 'sources-modal']) {
+      expect(hiddenInPrint, `base.css print: [data-part='${part}'] prints`).toContain(`[data-part='${part}']`);
+    }
   });
 
   /*

@@ -13,7 +13,7 @@ import type { FormatProps, StoryLabels, StoryProps, StorySlot } from './types.ts
  * No image, no box: an empty `<div>` is not a photograph.
  *
  * **The lead's figure prints after the deck, not before the kicker.** A lead
- * photo taller than the screen pushes the headline off the page — docs/design.md
+ * photo taller than the screen pushes the headline off the page — docs/design-page.md
  * says the lead's headline leads, and the component did the opposite: at
  * 1440×900 the lead headline started below the fold, and at 390×844 the photo
  * filled the first screen. The cap is `min(15rem, 30vh)` (was `min(24rem,

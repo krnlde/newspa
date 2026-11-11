@@ -1,3 +1,4 @@
+import { CONTROL } from './blockHead.ts';
 import type { MastheadProps } from './types.ts';
 
 /**
@@ -13,8 +14,22 @@ import type { MastheadProps } from './types.ts';
  * Preflight already sets `font: inherit` on a form control
  * (`tailwindcss@4.3.5/preflight.css`), and the design contract fails a component
  * that reaches outside the scale.
+ *
+ * The dateline strip is the page's one **control row**, so the editor's entry
+ * (`sources`, WP14) prints beside the switcher, in the same `CONTROL` vocabulary:
+ * two controls, one look. The masthead owns no data for it — the list is fetched
+ * when the modal opens, and this only asks for the opening.
  */
-export const Masthead = ({ name, tagline, dateline, summary, theme, onToggleTheme, themeLabel }: MastheadProps) => (
+export const Masthead = ({
+  name,
+  tagline,
+  dateline,
+  summary,
+  theme,
+  onToggleTheme,
+  themeLabel,
+  sources,
+}: MastheadProps) => (
   <header data-part="masthead" className="pt-3 pb-2 border-t-2 border-t-ink text-center">
     <div
       data-part="dateline-strip"
@@ -23,15 +38,29 @@ export const Masthead = ({ name, tagline, dateline, summary, theme, onToggleThem
       <p data-part="dateline" className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted">
         {dateline}
       </p>
-      <button
-        type="button"
-        data-part="theme-switch"
-        className="text-kicker font-bold tracking-kicker uppercase text-ink-2 bg-transparent border border-[length:var(--hair)] border-rule-strong px-3 py-1.5 cursor-pointer hover:border-ink hover:text-ink"
-        onClick={onToggleTheme}
-        aria-pressed={theme === 'dark'}
-      >
-        {themeLabel}
-      </button>
+      <div className="flex items-baseline gap-2">
+        {sources === undefined ? null : (
+          <button
+            type="button"
+            data-part="sources-open"
+            className={CONTROL}
+            onClick={(event) => {
+              sources.onOpen(event.currentTarget);
+            }}
+          >
+            {sources.label}
+          </button>
+        )}
+        <button
+          type="button"
+          data-part="theme-switch"
+          className={CONTROL}
+          onClick={onToggleTheme}
+          aria-pressed={theme === 'dark'}
+        >
+          {themeLabel}
+        </button>
+      </div>
     </div>
     {/* `leading-display`, not the sheet's 1.03: three leading values exist
         (`--leading-display|read|meta`) and a fourth in a class string is the

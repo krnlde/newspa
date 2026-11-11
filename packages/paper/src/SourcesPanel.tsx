@@ -1,0 +1,281 @@
+import type { HealthState, SourcesResponse } from 'newspa-core';
+import { useState } from 'react';
+import { CONTROL } from './blockHead.ts';
+import { SourceRow } from './SourceRow.tsx';
+import { QUIET, reasonOf, TEXT_BOX, WORD } from './sourceStyle.ts';
+
+/**
+ * The sources panel (WP14): the reading list, as files — the content of the modal
+ * (`SourcesModal.tsx`) that opens above the paper.
+ *
+ * It has **no headline**: the modal's head names the block and carries the close
+ * control, and a second label inside the same box is the duplicate the design law
+ * exists to stop. It has no `panel` class either: the modal is the box, and a
+ * ringed, dotted panel inside a bordered dialog is two boxes.
+ *
+ * Presentational only — no fetch, no i18next, no clock, no `node:*` (rule 4, and
+ * `packages/paper/test/locale-boundary.test.tsx` reads this file as text to prove
+ * it). Every word arrives in `labels`; the app composes them from i18next's
+ * current `language` (`apps/web/src/labels.ts`, D-019).
+ *
+ * What the panel is for is the two things the rest of the paper cannot do:
+ *
+ *  - **a broken source is stated where the reader reads the paper** (rule 5). The
+ *    loader's `issues` print in the row, with the crossings, and an empty
+ *    directory prints the stated-empty line, never a blank box;
+ *  - **the file is the truth** (D-011, D-025), so the editor edits the file's own
+ *    text and the server validates it. The panel posts bytes and prints the
+ *    answer's `messages` — a write that wrote nothing says so, in the loader's
+ *    words, in `data-part='sources-status'`.
+ *
+ * When `writable` is false the panel has **no affordances at all**: the server
+ * refuses a write from a non-loopback peer before routing (D-034), and the reading
+ * list is refused for **every verb** (rule 18), so a Save button on a phone is a
+ * guaranteed failure and the honest page says the sentence instead.
+ */
+
+/** The three kinds a source file can declare, as the skeleton menu knows them. */
+export type SourceKindName = 'rss' | 'json' | 'html';
+
+/** The words on the skeleton menu: one per kind. */
+export interface SourcesTemplateLabels {
+  readonly rss: string;
+  readonly json: string;
+  readonly html: string;
+}
+
+/** Finished words for the panel. The app owns the language; this owns the layout. */
+export interface SourcesLabels {
+  /** The stated-empty line: an empty directory is a state, not a blank box. */
+  readonly empty: string;
+  /** `"files in /home/reader/newspa/sources"` — the directory the list came from. */
+  readonly directory: (dir: string) => string;
+  readonly kind: Record<SourceKindName, string>;
+  /** The health word for a state the last poll reported. */
+  readonly state: Record<HealthState, string>;
+  /** The word for a source that has never been polled, so it has no state to name. */
+  readonly noState: string;
+  readonly disabled: string;
+  /** `"2 problems in this file"` — the count above the loader's own lines. */
+  readonly issues: (count: number) => string;
+  /** The line for a file whose id the loader could not read: nothing can delete it. */
+  readonly noId: string;
+  /** The `<label>` of a file's textarea: `"Source file text, bbc-world.json"`. */
+  readonly textOf: (file: string) => string;
+  readonly edit: string;
+  readonly save: string;
+  readonly saving: string;
+  readonly delete: string;
+  readonly deleting: string;
+  readonly cancel: string;
+  /** The skeleton menu's own label. */
+  readonly newSource: string;
+  /** The sentence that stands in for every affordance when the peer may not write. */
+  readonly readOnly: string;
+  readonly templates: SourcesTemplateLabels;
+  /** The sentence a delete asks with, naming the file it is about to remove. */
+  readonly confirmDelete: (label: string) => string;
+  /** The sentence beside the `html` skeleton: selectors come from the picker (WP6). */
+  readonly htmlNote: string;
+  /** The answer line, from the server's own `messages`. */
+  readonly messages: (lines: readonly string[]) => string;
+}
+
+export interface SourcesProps {
+  readonly sources: SourcesResponse['files'];
+  readonly dir: string;
+  readonly writable: boolean;
+  readonly labels: SourcesLabels;
+  /** The three skeletons, keyed by kind: the app owns the JSON, the panel inserts it. */
+  readonly templates: Record<SourceKindName, string>;
+  /** The last write's answer lines. The region prints empty when there is none. */
+  readonly messages?: readonly string[] | undefined;
+  readonly onSave?: ((text: string, filename?: string) => Promise<void>) | undefined;
+  readonly onDelete?: ((id: string) => Promise<void>) | undefined;
+}
+
+const MENU_ID = 'sources-template-menu';
+const NEW_ID = 'sources-new-text';
+/** The id the skeletons declare, so the label names the file the write will make. */
+const NEW_FILE = 'new-source.json';
+const KINDS: readonly SourceKindName[] = ['rss', 'json', 'html'];
+
+/** Narrowed, not cast: a `<select>` hands back a string, and only three of them mean anything. */
+const kindOf = (name: string): SourceKindName | null =>
+  name === 'rss' || name === 'json' || name === 'html' ? name : null;
+
+interface NewSourceProps {
+  readonly labels: SourcesLabels;
+  readonly templates: Record<SourceKindName, string>;
+  readonly onSave: (text: string, filename?: string) => Promise<void>;
+}
+
+/**
+ * The "new source" affordance: choose a kind, and its skeleton lands in a
+ * textarea as **text to edit**, because no form can validate an `html` source's
+ * selectors better than the config schema does — and the reader is the author
+ * (D-011: the file is the truth, and the file is what this posts).
+ *
+ * The write carries **no filename**: the server names the file `<id>.json` from
+ * the posted text, and a filename that disagrees with the id is a refusal, not a
+ * rename.
+ */
+const NewSource = ({ labels, templates, onSave }: NewSourceProps) => {
+  const [chosen, setChosen] = useState('');
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState('');
+
+  const choose = (name: string): void => {
+    const kind = kindOf(name);
+    setChosen(kind ?? '');
+    setDraft(kind === null ? '' : templates[kind]);
+    setFailed('');
+  };
+
+  const write = async (): Promise<void> => {
+    setBusy(true);
+    setFailed('');
+    try {
+      await onSave(draft);
+    } catch (cause) {
+      setFailed(reasonOf(cause));
+      return;
+    } finally {
+      setBusy(false);
+    }
+    // A skeleton that wrote is closed; the list refetches and shows the file.
+    setChosen('');
+    setDraft('');
+  };
+
+  return (
+    <div data-part="sources-new" className="mt-3 flex flex-col gap-2">
+      <label htmlFor={MENU_ID} className={`block ${WORD}`}>
+        {labels.newSource}
+      </label>
+      <select
+        id={MENU_ID}
+        data-part="template-menu"
+        className={CONTROL}
+        value={chosen}
+        onChange={(event) => {
+          choose(event.target.value);
+        }}
+      >
+        <option value="" />
+        {KINDS.map((kind) => (
+          <option key={kind} value={kind}>
+            {labels.templates[kind]}
+          </option>
+        ))}
+      </select>
+      {chosen === '' ? null : (
+        <>
+          <label htmlFor={NEW_ID} className={`block ${WORD}`}>
+            {labels.textOf(NEW_FILE)}
+          </label>
+          <textarea
+            id={NEW_ID}
+            data-part="source-text"
+            rows={10}
+            spellCheck={false}
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+            }}
+            className={TEXT_BOX}
+          />
+          {chosen === 'html' ? (
+            <p data-part="template-note" className={`m-0 ${QUIET}`}>
+              {labels.htmlNote}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-part="new-save"
+              className={CONTROL}
+              disabled={busy}
+              onClick={() => {
+                void write();
+              }}
+            >
+              {busy ? labels.saving : labels.save}
+            </button>
+            <button
+              type="button"
+              data-part="new-cancel"
+              className={CONTROL}
+              onClick={() => {
+                setChosen('');
+                setDraft('');
+                setFailed('');
+              }}
+            >
+              {labels.cancel}
+            </button>
+          </div>
+          {failed === '' ? null : (
+            <p data-part="new-error" className={`m-0 ${QUIET}`}>
+              {failed}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export const SourcesPanel = ({
+  sources,
+  dir,
+  writable,
+  labels,
+  templates,
+  messages,
+  onSave,
+  onDelete,
+}: SourcesProps) => {
+  const lines = messages ?? [];
+
+  return (
+    <section data-part="sources" className="text-small">
+      <p data-part="sources-dir" className={`m-0 ${QUIET}`}>
+        {labels.directory(dir)}
+      </p>
+      {!writable ? (
+        <p data-part="sources-readonly" className="m-0 text-ink-2">
+          {labels.readOnly}
+        </p>
+      ) : null}
+
+      {sources.length === 0 ? (
+        <p data-part="sources-empty" className="m-0 mt-2 text-ink-2">
+          {labels.empty}
+        </p>
+      ) : (
+        <ul data-part="sources-list" className="m-0 p-0 list-none">
+          {sources.map((file) => (
+            <SourceRow
+              key={file.file}
+              file={file}
+              labels={labels}
+              writable={writable}
+              onSave={onSave}
+              onDelete={onDelete}
+            />
+          ))}
+        </ul>
+      )}
+
+      {writable && onSave !== undefined ? <NewSource labels={labels} templates={templates} onSave={onSave} /> : null}
+
+      {/* The answer region always prints, so a write's line cannot shift the layout it
+          lands in; an empty line is the slot keeping its own height. */}
+      <p data-part="sources-status" className="m-0 mt-3 text-ink-2" aria-live="polite">
+        {labels.messages(lines)}
+      </p>
+    </section>
+  );
+};

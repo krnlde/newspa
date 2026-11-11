@@ -1,0 +1,149 @@
+# Decisions - the surface
+
+The decisions about **where the paper lives, and who sees what**: the page as the
+product (D-002), the reading list staying local (D-025), the address as the access
+control (D-034) and the page’s one overlay (D-035).
+
+Numbering is shared across the decision files: pipeline, identity, diff, scoring
+and detection in `decisions.md`; tooling, dependencies and testing in
+`decisions-tooling.md`; selectors, the ladder, `gone` and the measured cost of the
+browser in `decisions-detection.md`.
+
+## D-002 — The page is the product; no static edition, no SSR (**reversed from the first cut**)
+
+The paper is one ever-changing page at `http://127.0.0.1:8787`: SSE pushes what
+changed, the DOM re-renders, read markers and search work on the same state. There
+is **no edition file, no `editions/` directory, no `react-dom/server`, no cycle-time
+artifact, no static route**. The DB is the record; the page is the paper.
+
+The first cut of this decision said the opposite: at the end of every cycle, render
+`editions/<id>/index.html` with `renderToStaticMarkup` (inlined CSS, zero JS). It
+was reversed on the evidence of the product's own shape — **there is no single
+cycle and no single edition.** The page changes continuously, so a file named after
+a day does not describe it, and the "print the edition" story was a print-era habit
+imported into a tool that prints nothing. Cost of the reversal: no mailable single
+file, and the record is a database query rather than a document.
+
+What survives from the reasoning, because it was never about the file:
+
+- **No request-time SSR.** At `127.0.0.1` the render cost is identical and merely
+  relocated into the process that runs the poller and the Edge pool; measured
+  latency to real sites is 121–648 ms, localhost 1–5 ms, so first paint was never
+  the bottleneck. SSR would add hydration mismatch, CSS ordering, a dual-environment
+  data layer and a crash surface to the one process that must survive 3am.
+- **A record must exist**, because stealth-edit detection is meaningless without
+  what the page said at the time. It does: `items`, `item_events` with the word
+  diff, and `snapshots` (one row per poll, 304s included). `pnpm search` reaches it.
+- **`@media print` stays** in the paper CSS (3 columns, masthead preserved, hairlines
+  kept): browser Print → Save as PDF on the live page is 80% of the print value for
+  free, and it is honest about which state it prints — the one you are looking at.
+
+**Reverse if:** a dated document becomes the point (a weekly digest by email, a
+printout for a fridge). Then it is an _export_ on demand — `pnpm export --paper
+2026-11-08` writing one self-contained file from the same `packages/paper`
+components — not a cycle-time side effect with a retention policy.
+
+## D-025 — The reading list stays local; the repo ships examples
+
+The repository is public. A source definition is not a config detail, it is a
+statement about a person: the URL set, `watchwords`/`blockwords`, the `section`
+labels in the reader's own words, the free-text `notes`, and the fact that a
+source needs `profile: true` at all. Publish that and the tool has published its
+reader. So:
+
+|                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`sources/`**         | gitignored, local, **not version-controlled**. The loader takes a directory (`config/src/load.ts`), so D-011 is untouched — only which tree is public changed.                                                                                                                                                                                                                                                                                                                                                                             |
+| **`sources.example/`** | tracked, placeholder definitions, so a fresh clone boots and the editor's `$schema` association resolves. `.vscode/settings.json` matches both directories.                                                                                                                                                                                                                                                                                                                                                                                |
+| **Backup**             | `pnpm export --bundle` already carries `sources/` (D-014), and `export --watchlist` / `--opml` are the portable forms.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **First run**          | Creation is a **named boot step**, `ensureSourcesDir(dir)`: idempotent, creates parents, touches no file. `loadSources` deliberately does not create — a reader with a side effect hides it, and the empty paper has to be _reported_ (`missing-dir`, `no-sources`), so the mkdir and the report stay separate. `writeSource` already made the directory for itself, so the picker, `POST /api/sources` and `sources:migrate` never need `pnpm sources:init`; that command's only job is copying **example files**, which no mkdir can do. |
+| **Enforcement**        | `scripts/check-secrets.mjs` fails the build when a path under `sources/` is tracked — the same posture as rule 17: the floor enforces it, so a helpful future agent cannot re-add a reading list.                                                                                                                                                                                                                                                                                                                                          |
+| **History**            | none, deliberately. Selector history in `git log` was D-011's stated benefit; it is given up here on purpose. The answer to "did the source change shape, or did I edit the selector?" is the `matchCount` a poll compares against (`no-matches` names the recorded count) and the `snapshots` row per poll, not a diff.                                                                                                                                                                                                                   |
+
+**Capture fixtures logged out.** `packages/fetch/test/fixtures/**` is exempt from
+the secret scan for rule 1's reason, and the exemption is symmetric: a payload
+captured from a signed-in page carries the reader's own data into a public file.
+
+## D-034 - The paper is on the LAN, and the address is the wall  _(implemented 2026-11-11)_
+
+The reader wants the page on a phone in the next room. That collides with two facts
+the repo already commits to: the server **authenticates nothing** (rule 17), and
+`/api/state` **is** the reading list (rule 18: every source URL, label, `section`,
+`note`, the `profile: true` fact). With no auth, the bind address is the access
+control, so it is decided in one module (`packages/server/src/net.ts`) and printed
+at boot.
+
+|                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Default**             | `server.host` stays `127.0.0.1`. LAN is a line in `config.json` - nothing changes for a clone that never asks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **Reads**               | any peer on the network: the page, the paper, the stream. That is the requirement, and it is said out loud at boot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Writes**              | **loopback only**, refused on the address before routing: 403 with a reason that cites this decision. A page on the LAN that could write a `sources/*.json` file is a hole with no lock on it, and the guard's teeth are pinned by a test (`http-app.test.ts`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **The reading list**    | `/api/sources` is **loopback-only for every verb**, reads included (`readingListAllowed` in `net.ts`). Its answer is each source file's **verbatim text** — the URL set, the `watchwords`/`blockwords`, the `section` labels in the reader's words, the `notes`, the `profile: true` fact — and rule 18 keeps exactly that set local and unversioned, on the grounds that publishing it publishes its reader. Serving it to the household, in clear text, from a server that authenticates nothing, is the leak that rule exists to prevent. So the editor is a machine-local tool and **the phone gets the paper**. No token, cookie or "shared secret" is introduced to make a LAN read "safe": that is rule 20, and the wall is the same bind, read once more. |
+| **The line**            | binding past loopback prints the typeable URLs (from `os.networkInterfaces()`: LAN addresses, and `127.0.0.1` - `0.0.0.0` is not a URL), the sentence that the source **names** are now visible to the household while the files and every write stay loopback-only, and the exact `netsh advfirewall` command. Windows drops inbound `8787`; a bind that succeeds while every packet is dropped is indistinguishable from a dead server, and rule 5 is that a silent zero is a bug.                                                                                                                                                                                                                                                                              |
+| **The stream**          | `no-store`, `no-transform`, `x-accel-buffering: no`, `retry:`, and a keep-alive comment on the hub's one timer. Each of those is a middlebox that otherwise turns a push into a stall, a cache, or a paper that quietly stops updating.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **The single instance** | unchanged, and it covers this: the database claim (`db_lock`, taken at open) is what refuses a second process, so two binds on two ports cannot both poll. A claim on the **port** is not built and is not needed for that.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+
+**IPv4 URLs only, on purpose.** A link-local IPv6 (`fe80::1`) is not typeable in a
+browser's address bar (it needs a scope id), and a printed URL that does not work is
+worse than one that is merely old-fashioned.
+
+**In practice the reader meets Windows' own prompt.** The firewall asks "allow access"
+the first time the process listens, so the `netsh` command above is the **fallback**:
+for a prompt dismissed without reading, a public profile, or a domain network that
+never shows one. The printed line stays, because a bind that succeeds while every
+packet is dropped is indistinguishable from a dead server. Measured with
+`server.host: "0.0.0.0"`: the boot prints
+`listening on http://192.168.0.223:8787, http://127.0.0.1:8787 — anyone on this network
+can read the paper, and /api/state shows your source names to them; the source files
+themselves (watchwords, notes, sections) and every write stay loopback-only`,
+`GET http://192.168.0.223:8787/api/state` answers 200 with the masthead and the source
+count, and `GET http://192.168.0.223:8787/api/sources` answers 403 with the sentence
+`readingListAllowed` writes — which is what the page prints, in the panel's own status
+region, on the phone.
+
+`isLoopback` is the whole policy, so it is tested on the forms a socket actually
+presents (`::ffff:127.0.0.1`, `::1`, `localhost`, `127.0.0.53`) and on the
+addresses a phone has (`192.168.x`, `10.x`, `fe80::`, `2001:db8::`).
+"Reachable over LAN", "loopback-only writes" and "loopback-only reading list" are the
+same function read three times.
+
+- 2026-11-11: **the reading list is loopback-only for every verb**
+  (`readingListAllowed` in `net.ts`). WP14 added `GET /api/sources`, and its answer is
+  each source file's **verbatim text** — the URL set, the `watchwords`/`blockwords`, the
+  `section` labels in the reader's words, the `notes`, the `profile: true` fact. That is
+  precisely the field rule 18 keeps local and unversioned, on the grounds that publishing
+  it publishes its reader, so "reads for the LAN" was widened by the new route and had to
+  be narrowed by it. No token was invented (rule 20): the bind is still the wall. The boot
+  line's wording follows the fact — "source **names**", not "source list" — and the page
+  a phone gets prints the server's own refusal sentence, in the panel's status region,
+  because a blank panel would read as "no sources" (rule 5).
+
+## D-035 - The sources editor is a modal above the sheet  _(implemented 2026-11-11)_
+
+The reading list needed an editor on the page (WP14). The question was not whether
+to build one - D-011 says the UI writes **files**, and D-025 keeps them local - but
+**where a form is allowed to print**, in a page whose whole design law is newsprint.
+
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The box**           | a native `<dialog>` opened with `showModal()`: the top layer, Esc and the tab loop are the browser’s. A `div` with a state flag re-implements each of them badly - `z-index` is a ladder somebody loses, a fake modal traps nothing, Esc is a key handler somebody forgets. Nothing was added to get it (rule 8).                                                                                                                                                                |
+| **Above, not inside** | the sheet is the page’s one panel of newsprint - its own `bg-paper`, its guideline ring, its crop marks. A form inside it (a row per source, a textarea of JSON, the **absolute path** of the watchlist directory) spends ink on affordances, and that path **is** the reading list (rule 18). So the sheet prints news and the tool opens above it.                                                                                                                             |
+| **One control**       | the entry sits in the dateline strip - the page’s one control row - beside the theme switch, in the same `CONTROL` string (`blockHead.ts`), the third copy of that string being how a page grows three button looks.                                                                                                                                                                                                                                                             |
+| **No second box**     | the modal owns the head, the rule to the edge, the close control and the border; the panel inside prints no headline and carries no `panel` class. Measured in Edge: a ringed, dot-gridded panel inside the dialog’s hairline reads as a frame within a frame.                                                                                                                                                                                                                   |
+| **Scrim, not shadow** | `::backdrop` is a flat wash of `--ink-2` at 62 %. This page casts exactly one shadow - the scroll edge - and a modal floating on a drop shadow is a card, which the law forbids. Radius 0; `p-box` padding inside `p-0`, because rule 11 pads every box that has a rule.                                                                                                                                                                                                         |
+| **Two ways out**      | Esc, and the close control - both arrive as the dialog’s native `close` event, which does not bubble (hence React’s `onClose` on the element). **No scrim click**: Biome’s `useKeyWithClickEvents` is an `error`, and it is right - a mouse-only target on a non-interactive element has no keyboard route, so a way out only a mouse finds is not an affordance.                                                                                                                |
+| **It unmounts**       | closing takes the dialog out of the page: no hidden form to tab through, the sheet’s `data-part` list stays the paper’s (the design suite queries it), and the list refetches on the next open, because the files are the truth (D-011) and a cached list is a list the reader did not write. The price is that the browser’s focus return has no node to return to, so the trigger hands the app **its own element** (`SourcesControl.onOpen(control)`) and the app focuses it. |
+| **The lazy wire**     | `/api/sources` is asked for when the control is pressed, not on page load: its answer is the reader’s source files, and rule 18 keeps them to a loopback peer, so a page load asks for them only when a reader asked to see them.                                                                                                                                                                                                                                                |
+| **The peer**          | a non-loopback peer gets the same control, and the modal prints the server’s refusal sentence (`/api/sources` is loopback-only for every verb, rule 18 + D-034). No new endpoint to hide the button on a phone: a blank panel would read as “no sources” (rule 5), and a route answering “who are you” is new surface bought for a cosmetic win.                                                                                                                                 |
+| **Print**             | the trigger, the modal, its close control and the panel inside are `display: none` in print - a form prints buttons and an absolute path. `@media print` is not reachable from a screen viewport, so the claim is pinned **as text** in `packages/paper/test/design-contract.test.tsx`, which extracts the block’s `display: none` selectors and demands all six names.                                                                                                          |
+
+**Measured at acceptance** (real Edge, `server.host: "0.0.0.0"`, 1 440 px): the
+control row is `["SOURCES", "DARK"]`; the open dialog computes `background rgb(244,
+236, 216)`, `border 0.4px solid`, `border-radius 0px`, `box-shadow none`, backdrop
+`oklab(0.3645 … / 0.62)`; 8 source rows print in the box, the sheet carries no
+`form` and no `textarea`; the phone’s peer reads the refusal sentence, in the
+panel’s own status region, with the paper behind it.
+
+**Reverse if:** a second overlay arrives (the picker, WP6, is the likely one). Then
+the modal is a **pattern to extract** - the rules above are the pattern’s, not the
+sources editor’s - and the page still gets exactly one kind of overlay, styled once.

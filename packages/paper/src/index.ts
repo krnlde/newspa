@@ -9,11 +9,20 @@ export {
   sheetClass,
 } from './Paper.tsx';
 export { Section } from './Section.tsx';
+export { SourcesModal, type SourcesModalLabels, type SourcesModalProps } from './SourcesModal.tsx';
+export {
+  type SourceKindName,
+  type SourcesLabels,
+  SourcesPanel,
+  type SourcesProps,
+  type SourcesTemplateLabels,
+} from './SourcesPanel.tsx';
 export { EditDiff, Story } from './Story.tsx';
 export type {
   FormatProps,
   MastheadProps,
   SectionProps,
+  SourcesControl,
   StoryLabels,
   StoryProps,
   StorySlot,

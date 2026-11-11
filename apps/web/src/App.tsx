@@ -1,18 +1,20 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import 'newspa-paper/styles/paper.css';
-import { Onboarding, Paper, sheetClass } from 'newspa-paper';
+import { Onboarding, Paper, SourcesModal, sheetClass } from 'newspa-paper';
 import { fetchState, openEvents } from './api.ts';
 import { formatFor } from './format.ts';
-import { paperLabelsOf } from './labels.ts';
+import { paperLabelsOf, sourcesModalLabelsOf } from './labels.ts';
 import { useLocale } from './lib/useLocale.ts';
+import { SourcesSection } from './SourcesSection.tsx';
 import { useTheme } from './theme.ts';
 
 /**
- * The app: state from `/api/state`, live invalidation from `/api/events`, and
- * nothing else. Layout is `newspa-paper`'s; strings and dates come from the
- * locale seam (D-019); the theme is `data-theme` on `<html>`.
+ * The app: state from `/api/state`, live invalidation from `/api/events`, and the
+ * sources editor in a modal above the sheet (WP14). Layout is `newspa-paper`'s;
+ * strings and dates come from the locale seam (D-019); the theme is `data-theme`
+ * on `<html>`.
  *
  * The flash on a pushed item is a DOM attribute, not React state: the paper
  * re-renders from the query refetch a moment later, and a flash that survives a
@@ -45,6 +47,8 @@ export const App = () => {
   const locale = useLocale();
   const { theme, toggle } = useTheme();
   const client = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [returnTo, setReturnTo] = useState<Element | null>(null);
   const state = useQuery({
     queryKey: ['state'],
     queryFn: ({ signal }) => fetchState(signal),
@@ -69,6 +73,7 @@ export const App = () => {
   );
 
   const labels = paperLabelsOf(t, locale);
+  const modalLabels = sourcesModalLabelsOf(t);
   const format = formatFor(locale);
   const themeLabel = theme === 'dark' ? t('paper.theme.toLight') : t('paper.theme.toDark');
 
@@ -102,15 +107,44 @@ export const App = () => {
 
   const { masthead, edition, sources } = state.data;
   return (
-    <Paper
-      masthead={masthead}
-      edition={edition}
-      sources={sources}
-      labels={labels}
-      format={format}
-      theme={theme}
-      onToggleTheme={toggle}
-      themeLabel={themeLabel}
-    />
+    <>
+      <Paper
+        masthead={masthead}
+        edition={edition}
+        sources={sources}
+        labels={labels}
+        format={format}
+        theme={theme}
+        onToggleTheme={toggle}
+        themeLabel={themeLabel}
+        editor={{
+          label: t('sources.open'),
+          onOpen: (control: HTMLElement) => {
+            // The modal unmounts when it closes, so the browser's own focus return
+            // has nothing to return to: remember the pressed control and focus it.
+            setReturnTo(control);
+            setEditing(true);
+          },
+        }}
+      />
+      {/* The editor opens **above** the sheet, not inside it: the sheet is the one
+          panel of newsprint, and a form is not news (WP14). It mounts only while it
+          is open — so the page carries no hidden form, and the reading list is
+          fetched when the reader asks for it (the answer is the reader's files, and
+          rule 18 keeps them to a loopback peer, who reads the server's refusal
+          sentence here). `<dialog>` gives Esc, the focus trap and the top layer. */}
+      {editing ? (
+        <SourcesModal
+          open
+          labels={modalLabels}
+          onClose={() => {
+            setEditing(false);
+            if (returnTo instanceof HTMLElement && returnTo.isConnected) returnTo.focus();
+          }}
+        >
+          <SourcesSection />
+        </SourcesModal>
+      ) : null}
+    </>
   );
 };

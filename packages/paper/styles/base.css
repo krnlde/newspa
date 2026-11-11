@@ -80,6 +80,25 @@
     outline-offset: 2px;
   }
 
+  /*
+   * The sources editor is a native `<dialog>` (WP14), so the top layer, Esc, the
+   * tab loop and the return of focus are the browser's and this file styles only
+   * what it must: the box, and the **scrim** behind it. The scrim is a flat wash
+   * of ink, not a drop shadow — the paper casts exactly one shadow, the scroll
+   * edge (`docs/design.md`), and a modal that floats on a shadow is a card.
+   * The element carries `p-0`: the box's padding is the modal's own `p-box`,
+   * because rule 11 pads every box that has a rule.
+   */
+  dialog[data-part='sources-modal'] {
+    background: var(--paper);
+    color: var(--ink);
+    border: var(--hair) solid var(--rule-strong);
+  }
+
+  dialog[data-part='sources-modal']::backdrop {
+    background: color-mix(in oklab, var(--ink-2) 62%, transparent);
+  }
+
   ol {
     list-style: decimal;
     padding-inline-start: 1.25rem;
@@ -150,9 +169,18 @@
       content: none;
     }
 
-    /* A printed page has no clicks and no theme switch. */
+    /* A printed page has no clicks, no theme switch, and no form: the sources
+       editor is a modal for files (WP14) — its entry in the dateline strip, its
+       close control, the box, and the panel inside it. A form spends ink on
+       affordances a page cannot use, and prints the absolute path of the
+       watchlist directory. The health strip goes for the same reason — both are
+       the machine's report, not the edition. */
     [data-part='theme-switch'],
-    [data-part='health'] {
+    [data-part='health'],
+    [data-part='sources-open'],
+    [data-part='sources-close'],
+    [data-part='sources-modal'],
+    [data-part='sources'] {
       display: none;
     }
 

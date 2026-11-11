@@ -105,24 +105,37 @@ export const de = {
   },
   sources: {
     title: 'Quellen',
-    add: 'Quelle hinzufügen',
-    kind: 'Art',
-    cadence: 'Alle',
-    weight: 'Gewicht',
-    enabled: 'Aktiv',
+    // Das Feld in der Datumszeile und der Kopf des Dialogs: je ein Wort, weil das
+    // Feld nach dem benannt ist, was es öffnet, und der Kopf der Name des Dialogs ist.
+    open: 'Quellen',
+    close: 'Schließen',
     disabled: 'Pausiert',
-    items_one: '{{count}} Beitrag',
-    items_other: '{{count}} Beiträge',
-    render: 'Führt JavaScript aus',
-    profile: 'Nutzt ein Anmeldeprofil',
-    notes: 'Notizen',
-    empty: 'Keine Quellen. `pnpm pick -- <url>` schreibt die erste Datei.',
-    pickHint: 'Der_picker öffnet einen Browser, du klickst die Beiträge an, und newspa schreibt `sources/<id>.json`.',
+    empty:
+      'Keine Quelldateien. `pnpm sources:init` kopiert die Beispiele nach `sources/`; „Neue Quelle“ schreibt eine aus einem Gerüst.',
     save: 'Speichern',
     cancel: 'Abbrechen',
     remove: 'Entfernen',
     confirmRemove: '{{label}} entfernen? Die Quelldatei wird gelöscht; die Geschichte bleibt.',
-    issues: 'Quelldateien mit Problemen',
+    // Das Feld, das WP14 unter die Zeitung setzt: die Leseliste, als Dateien. Jeder
+    // Satz hier ist chrome (D-019); die Zeilen des Loaders werden nicht übersetzt.
+    dir: 'Dateien in {{dir}}',
+    loading: 'Die Quelldateien werden gelesen …',
+    failed: 'Die Quellliste hat nicht geladen.',
+    noState: 'noch nicht abgerufen',
+    issuesCount_one: '{{value}} Problem in dieser Datei',
+    issuesCount_other: '{{value}} Probleme in dieser Datei',
+    noId: 'keine Id — der Loader konnte diese Datei nicht lesen, also kann sie auch nicht nach Id entfernt werden',
+    textOf: 'Quelldatei-Text, {{file}}',
+    edit: 'Bearbeiten',
+    saving: 'Speichert …',
+    deleting: 'Entfernt …',
+    newSource: 'Neue Quelle',
+    readOnly:
+      'Nur Lesen von dieser Adresse: Dieser Server hat keine Anmeldung, deshalb liefert und schreibt er die Leseliste — jede URL, jedes Überwachungswort und jede Notiz in deinen Quelldateien — nur an einen Peer auf diesem Rechner (Regel 18, D-034). Die Zeitung selbst ist von überall lesbar, wohin sie gebunden ist.',
+    kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
+    templates: { rss: 'Ein RSS-Feed', json: 'Ein JSON-Endpunkt', html: 'Eine HTML-Seite' },
+    htmlNote:
+      'Diese Selektoren schreibt der Picker per Klick: `pnpm pick -- https://example.test`, nicht gebaut (Roadmap WP6). Eine Quelle mit `"render": true` lehnt der Transport ab, bis die Browser-Stufe existiert.',
   },
   watchlist: {
     title: 'Beobachtungsliste',

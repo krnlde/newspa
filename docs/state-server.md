@@ -54,23 +54,41 @@ silently dropped a source is a backup that lies. What is still absent: the items
 search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
 (WP10), the picker and the renderer (WP6).
 
-**The sources routes are built** (WP14, the half before the form). `sourcesApi.ts`
-answers `GET /api/sources` with the directory as it is — every `*.json`, **its own
+**The sources routes and the panel are built** (WP14). `sourcesApi.ts`
+answers `GET /api/sources` with the directory as it is - every `*.json`, **its own
 text**, the loader's issues for that file, the row's health and `enabled`, and the
-peer's `writable` fact — `POST` with a write of **raw file text** through the loader's
+peer's `writable` fact - `POST` with a write of **raw file text** through the loader's
 own `parseSourceJson` (so the editor can never disagree with the poll, and the browser
 carries no second copy of the source schema), and `DELETE ?id=` with a removal of the
 file **and the disabling of the row**: the poll stops, the items and history stay, and
 the source is listed as disabled instead of vanishing (rule 5 applied to a deletion).
-A posted `filename` is checked, not obeyed — the file written is `<id>.json`, because
+A posted `filename` is checked, not obeyed - the file written is `<id>.json`, because
 D-011's one-file-per-id rule is what makes a directory listing readable as a source
 list. `requestBody.ts` reads a body with a 64 KiB ceiling and answers 413 **mid-body**;
 measured, `req.destroy()` on overflow kills the connection and the client sees
 `TypeError: fetch failed` instead of the 413, so the answer goes first, the request is
 paused, and the 413 says `connection: close` (the body was never consumed, so the
-socket is not reusable). Nothing in these routes authenticates anything: `net.ts`
-refused the LAN write **before routing** (a test's spy proves the route was not
-reached), and rule 20 forbids inventing a token to make a LAN write safe.
+socket is not reusable). Nothing in these routes authenticates anything, and none of
+them needs it: `readingListAllowed` refuses **every verb** of `/api/sources` from a
+non-loopback peer, because the answer **is the files** and the files are the reading
+list (rule 18) - the phone gets the paper, the editor stays machine-local, a test's spy
+proves the guard runs **before routing**, and rule 20 forbids inventing a token to make
+a LAN write safe.
+
+The panel is the paper's half (`SourcesPanel`, `SourceRow`, `SourceEditor`,
+`sourceStyle.ts`): a row per file with `data-part="source-row"` +
+`data-file/-state/-enabled/-issues`, the file's bytes in a `data-part="source-text"`
+box, the loader's lines under `pattern-crossings` (a mark that names an absence, which
+is what a file that does not parse is), a two-step delete that asks in the page, and
+**no affordance at all** for a peer that is not loopback - the sentence, not a Save
+button that must fail. It prints no strings of its own (labels come in as a prop
+object, D-019) and it is `display: none` in print: a form with a textarea is not news,
+and the panel prints the absolute path of the watchlist directory.
+`apps/web/src/SourcesSection.tsx` owns the wire - `useQuery(['sources'])`, two
+mutations, both queries settled after any answer (a write upserts the row, so the
+paper's news moves with it) - and a refusal **rejects the mutation** (`RefusalError`),
+which is the only way the editor learns to keep the reader's typed JSON beside the
+loader's reason instead of closing the box on it.
 
 **The four run verbs** are pinned by tests, not by prose: `pnpm start` = `pnpm build`
 then the process (the product: poll + routes + the built page, bind is config);

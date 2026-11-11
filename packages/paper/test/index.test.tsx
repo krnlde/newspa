@@ -9,6 +9,13 @@ import type {
   PaperLabels,
   PaperProps,
   SectionProps,
+  SourceKindName,
+  SourcesControl,
+  SourcesLabels,
+  SourcesModalLabels,
+  SourcesModalProps,
+  SourcesProps,
+  SourcesTemplateLabels,
   StoryLabels,
   StoryProps,
   StorySlot,
@@ -17,6 +24,8 @@ import * as paper from '../src/index.ts';
 import { Masthead } from '../src/Masthead.tsx';
 import { Onboarding, Paper, sheetClass } from '../src/Paper.tsx';
 import { Section } from '../src/Section.tsx';
+import { SourcesModal } from '../src/SourcesModal.tsx';
+import { SourcesPanel } from '../src/SourcesPanel.tsx';
 import { EditDiff, Story } from '../src/Story.tsx';
 
 /**
@@ -38,6 +47,8 @@ const COMPONENTS: readonly string[] = [
   'Onboarding',
   'Paper',
   'Section',
+  'SourcesModal',
+  'SourcesPanel',
   'Story',
 ];
 
@@ -62,6 +73,13 @@ export type PublicTypeSurface = [
   OnboardingCopy,
   PaperLabels,
   PaperProps,
+  SourceKindName,
+  SourcesControl,
+  SourcesLabels,
+  SourcesModalLabels,
+  SourcesModalProps,
+  SourcesProps,
+  SourcesTemplateLabels,
 ];
 
 /**
@@ -110,6 +128,8 @@ describe('the paper barrel', () => {
     expect(paper.Onboarding).toBe(Onboarding);
     expect(paper.Paper).toBe(Paper);
     expect(paper.Section).toBe(Section);
+    expect(paper.SourcesModal).toBe(SourcesModal);
+    expect(paper.SourcesPanel).toBe(SourcesPanel);
     expect(paper.Story).toBe(Story);
     expect(paper.sheetClass).toBe(sheetClass);
   });

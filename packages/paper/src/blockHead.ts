@@ -23,3 +23,12 @@ export const HEAD_RULE = 'flex-1 h-px bg-ink';
 
 /** A panel that opens with a label: the ring, the dots, and the padding. */
 export const PANEL_HEAD = 'flex items-center gap-[0.6rem] mb-3 text-section font-bold tracking-kicker uppercase';
+
+/**
+ * The paper's control: small caps, a hairline box, ink on hover, no radius and no
+ * fill. The theme switch, the editor's entry and every button in the sources panel
+ * are this one string — a fourth copy is how a page grows three button looks, and
+ * `docs/design.md` allows the paper exactly one.
+ */
+export const CONTROL =
+  'text-kicker font-bold tracking-kicker uppercase text-ink-2 bg-transparent border border-[length:var(--hair)] border-rule-strong px-3 py-1.5 cursor-pointer hover:border-ink hover:text-ink';

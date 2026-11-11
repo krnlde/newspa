@@ -67,6 +67,28 @@ export interface SectionProps {
   readonly format: FormatProps;
 }
 
+/**
+ * The editor's entry: the one control in the dateline strip that opens the sources
+ * modal (WP14).
+ *
+ * A label and an act, and no data. That is deliberate twice over: the paper prints
+ * news, so the reading list is edited in a modal **above** the sheet, not inside it;
+ * and the list is fetched only when the modal is opened — its answer is the reader's
+ * source files, which rule 18 keeps to a loopback peer, so a page load asks for it
+ * only when a reader asked to see it.
+ */
+export interface SourcesControl {
+  readonly label: string;
+  /**
+   * The act, handed the control that asked for it: the modal unmounts when it
+   * closes, so the app has to remember **where the reader was** to put them back
+   * there. `document.activeElement` would work in a browser and is `<body>` in a
+   * test that fires a click without focusing, so the event's own target is the
+   * honest source.
+   */
+  readonly onOpen: (control: HTMLElement) => void;
+}
+
 export interface MastheadProps {
   readonly name: string;
   readonly tagline: string;
@@ -77,4 +99,6 @@ export interface MastheadProps {
   readonly onToggleTheme: () => void;
   /** The switcher's own words, and its accessible name. */
   readonly themeLabel: string;
+  /** The editor's entry, omitted when the app has no editor to open. */
+  readonly sources?: SourcesControl;
 }

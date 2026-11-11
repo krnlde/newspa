@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { EditionStats } from 'newspa-core';
-import type { HealthLabels, PaperLabels } from 'newspa-paper';
+import type { HealthLabels, PaperLabels, SourcesLabels, SourcesModalLabels } from 'newspa-paper';
 import type { LocaleApi } from './lib/useLocale.ts';
 
 /**
@@ -71,4 +71,60 @@ export const paperLabelsOf = (t: TFunction, locale: LocaleApi): PaperLabels => (
     steps: [t('paper.onboarding.step1'), t('paper.onboarding.step2'), t('paper.onboarding.step3')],
     command: t('paper.onboarding.command'),
   },
+});
+
+/**
+ * The sources panel's chrome (WP14), in the same shape `newspa-paper` expects:
+ * finished words and formatter functions, never keys.
+ *
+ * The health words are the health strip's own (`healthLabelsOf(t, locale).state`):
+ * a file's state is the same fact in both places, and two translations of one
+ * state word is how a page starts saying `blocked` in one strip and `blocked`
+ * with a different case in the next.
+ *
+ * The answer line is the server's own text, joined — `parseSourceJson`'s lines
+ * and the address guard's sentence (D-034) are the words that explain a write,
+ * and translating them would paraphrase the loader about its own verdict.
+ */
+export const sourcesLabelsOf = (t: TFunction, locale: LocaleApi): SourcesLabels => ({
+  empty: t('sources.empty'),
+  directory: (dir: string) => t('sources.dir', { dir }),
+  kind: {
+    rss: t('sources.kindNames.rss'),
+    json: t('sources.kindNames.json'),
+    html: t('sources.kindNames.html'),
+  },
+  state: healthLabelsOf(t, locale).state,
+  noState: t('sources.noState'),
+  disabled: t('sources.disabled'),
+  issues: (count: number) => counted(t, locale, 'sources.issuesCount', count),
+  noId: t('sources.noId'),
+  textOf: (file: string) => t('sources.textOf', { file }),
+  edit: t('sources.edit'),
+  save: t('sources.save'),
+  saving: t('sources.saving'),
+  delete: t('sources.remove'),
+  deleting: t('sources.deleting'),
+  cancel: t('sources.cancel'),
+  newSource: t('sources.newSource'),
+  readOnly: t('sources.readOnly'),
+  templates: {
+    rss: t('sources.templates.rss'),
+    json: t('sources.templates.json'),
+    html: t('sources.templates.html'),
+  },
+  confirmDelete: (label: string) => t('sources.confirmRemove', { label }),
+  htmlNote: t('sources.htmlNote'),
+  messages: (lines: readonly string[]) => join(lines),
+});
+
+/**
+ * The modal's two words (WP14): the head names the box, and the head **is** the
+ * dialog's accessible name (`aria-labelledby`), so an extra invisible label would
+ * be a second name for one box. The trigger's own word is `sources.open`: the same
+ * word as the head, because a control is named for the thing it opens.
+ */
+export const sourcesModalLabelsOf = (t: TFunction): SourcesModalLabels => ({
+  headline: t('sources.title'),
+  close: t('sources.close'),
 });

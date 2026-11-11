@@ -11,12 +11,16 @@ calls, the SSE stream, the page, and the entry point that runs them - so `pnpm s
 (build, then one process) is a paper that fills itself, on a port, on the LAN if the
 config says so (D-034), with `pnpm server` and `pnpm ui` as the development pair
 (`docs/state-server.md`). `export --bundle` is built too (WP11, half), which closes
-the one gap that was data loss. What is left is quality of life, not architecture:
-**the sources UI (WP14, decided next)**, the renderer and the picker (WP6), search
-(WP7), toasts (WP10), the watchlist knobs (WP9), the rest of the export/import formats
-(WP11), the README (WP13). Closed and retired
-packages - WP1, WP2, WP3, WP12 - are recorded in `docs/roadmap-closed.md` with what
-each measured; read WP12 before reopening the same two files.
+the one gap that was data loss, and the reading list now has an editor on the page
+(WP14: the three verbs, the modal, and the reading-list rule that came out of it). What
+is left is quality of life, not architecture, and **the next package is WP6** — the
+picker, scoped below and answered by the reader's own words: _go to the URL, click the
+item I want to observe, and make the selector from that click_. The rest of the queue is
+search (WP7), toasts (WP10), the watchlist knobs (WP9), the rest of the export/import
+formats (WP11), the README (WP13).
+Closed, retired and built packages — WP1, WP2, WP3, WP12, WP14 — are recorded in
+`docs/roadmap-closed.md` with what each measured; read WP12 before reopening the same
+two files.
 
 ## WP3 — The scheduler  _(built 2026-11-11, MVP shape)_
 
@@ -111,24 +115,63 @@ the plan is in the row, and the tally's count equals the wire's.
 (complete-or-refuse, byte-stable, gitignored itself) are WP11's, below. `import` is
 still open, and refuses by name, pointing at the schema to restore by hand.
 
-## WP6 — `render` and the headed picker
+## WP6 — The picker: the reader's click becomes the selector  _(scoped 2026-11-11)_
 
-**Gap.** `AGENTS.md`'s layout names `packages/fetch`'s `render` and `pick`;
-neither exists. `vitest.coverage.json` already excludes `src/render/launch.ts`
-and `src/pick/launch.ts`, so the gate expects them.
+**Gap.** `AGENTS.md`'s layout names `packages/fetch`'s `render` and `pick`; neither
+exists, so an `html` source's `list` and `fields` selectors are authored by hand — the
+reader reads the publisher's markup to write them, and the failure mode is the one
+D-026 measured: a selector that matches `0` nodes, or `999` of them, pollutes the paper
+quietly. The requirement is the reader's own: _go to the URL, click the item I want to
+observe, and create the selector from that click._
 
-**Build.** `render.ts`: launch `playwright-core` with `channel: 'msedge'`
-(D-003, never `playwright`), fetch a page, return the rendered DOM for the HTML
-parser, with a hard timeout and a `HealthState` on failure. `pick.ts`: the
-headed session where the reader points at the nodes, producing a source
-definition (`render: true` is a pick-time decision, D-007) — the output is a
-`sources/<id>.json` the reader pastes into the local, gitignored source dir
-(D-025) — the picker never writes to git.
+**Build.** Four pieces, each in the package that owns it:
 
-**Accept.** A render test runs the real Edge against a local fixture page
-(browser project, so not in the pre-commit floor); a blocked page yields
-`blocked`, not `[]`. The picker is exercised by a scripted page: a chosen
-selector round-trips into a validated `html` source spec.
+- **`packages/fetch/src/pick/launch.ts`** — headed Edge through `playwright-core`,
+  `channel: 'msedge'` (D-003, never `playwright`), on **the machine that runs the
+  server**. `profiles/<id>` (gitignored) when `profile: true`, because the browser
+  profile is the only credential (rule 17). A hard timeout, and a refused launch is a
+  **reported** failure, never an empty answer (rule 5).
+- **The injected picker script** — hover highlights one candidate; a click captures it.
+  Derivation is anchored on **the link** (D-005: the link _is_ the item's identity):
+  take the nearest `a[href]` at or above the clicked node, walk up to the nearest
+  ancestor whose siblings share that shape, emit CSS for the sibling set, then
+  **generalise** — drop path segments while the match count stays the same.
+- **The measured proof, before anything is written.** The derived `list` is run against
+  the **plain-fetch** bytes through the real parser. Same count ⇒ `render: false`, and
+  D-007 stays honest: the source is authored against bytes the poller can fetch. Zero,
+  or far more ⇒ the picker says so, records the counts, and sets `render: true`, which
+  the transport refuses **by name** today — so the paper reports `render-required`
+  (rule 5) rather than a silent zero. **A selector that matched nothing is never
+  written.**
+- **The write.** `list`, `fields.title`, `fields.link` and `matchCount` (the rot
+  baseline, D-026) merged into `sources/<id>.json` through the **same validated write
+  path as the modal** (`parseSourceJson`, WP14), the reader's other fields untouched
+  (D-011: files are truth; D-025: they stay local, unversioned).
+
+**The verb and the route.** `pnpm pick -- <url>` for the CLI, and `POST /api/pick` +
+`GET /api/pick?id=` for a PICK button on an `html` row in the sources modal — both
+**loopback-only** (rule 20: launching a browser on a machine is a write, and rule 18 is
+why the reading list is loopback's), both answered by the same refusal sentence a peer
+already reads for the panel. The modal is the page's **one overlay** (D-035): the pick
+state prints _inside_ it, as a status line, not as a second dialog.
+
+**MVP spends, and names what it does not.** Picking is for `kind: 'html'` only — an RSS
+or JSON source has no nodes to click. The click happens in the **real Edge window on the
+server machine**, so a phone peer cannot pick: their click cannot reach a browser this
+process launches. No **bookmarklet** — a page on a public site fetching
+`http://127.0.0.1:8787` is blocked by Private Network Access and mixed content in an
+unflagged browser, and a surface that works behind flags is not a surface. No
+`pick.maxHops` pagination, no scroll-to-load, no cookie-banner auto-dismiss (the reader
+clicks the banner in the headed window, which is free), and **no `render` tier for
+polling** — that is WP6b, and D-007's named refusal stays until it is built.
+
+**Accept.** In real Edge against a scripted page (browser project, so outside the
+pre-commit floor): a click on the third item of a list yields a `list` selector whose
+live match count equals the `matchCount` written to the file; the real parser finds a
+title and a link for every item; the file validates and is what the modal shows next. A
+click on a node with no `a[href]` in its subtree **refuses, naming why**; a `list` that
+matches the whole page **refuses, naming the count**. A launch that cannot open Edge
+reports `blocked`, not `[]`.
 
 ## WP7 — Search
 
@@ -177,48 +220,6 @@ it back.
 slots in `editionOf`; the export → import round trip is byte-stable for the
 same input; an imported file that violates the schema fails with the zod issue
 and writes nothing (D-014).
-
-## WP14 — Managing sources from the page  _(routes built 2026-11-11; the form is next)_
-
-**Built: the routes.** `GET /api/sources` answers the directory — every `*.json`,
-**its own text**, the loader's issues for it, the row's health and `enabled`, and
-`writable` for the peer who asked. `POST` takes core's existing
-`addSourceRequestSchema` — **raw file text** — validates with `parseSourceJson` (the
-loader's own function, so the editor can never disagree with the poll), writes
-`sources/<id>.json`, refreshes the row (so the paper shows it and `dueSources` polls
-it first), and answers the path it wrote. `DELETE ?id=` removes the file and
-**disables the row**: the poll stops, the items and history stay, and the source is
-listed as disabled rather than vanished. A posted `filename` is **checked, not
-obeyed** — writing `<id>.json` is D-011's rule, so a body naming `evil.json` with
-`id: "bbc"` is refused rather than given a second name.
-
-**The body is read with a ceiling** (`MAX_SOURCE_BODY_BYTES`, 64 KiB) and 413 is
-answered **while the body is still arriving** — measured: `req.destroy()` on overflow
-kills the connection and the client sees `TypeError: fetch failed` instead of the 413,
-so the answer is written first and the request is paused, with `connection: close`
-because the body was never consumed.
-
-**Boundary, and it is the whole security story**: `net.ts`'s guard runs **before
-routing**, so every write from a non-loopback peer is a 403 that never reaches this
-code (pinned: the routes bag's spy records that `remove` was not called). Rule 20
-forbids bolting a token on to make a LAN write safe; `writable:false` in the list
-answer is that same fact, told so a form on a phone can say "editing is from this
-machine only" instead of offering a button that must fail.
-
-**Open: the form.** `packages/paper/src/SourcesPanel.tsx` (a `panel` with
-`data-part` hooks, per rule 11), the app's fetch/save/delete wiring, the chrome
-strings in both locales, and `kind: 'html'` saying the picker is WP6 rather than
-offering a selector box nothing can validate.
-
-**Accept, for the half built.** 34 tests: `sources-api.test.ts` drives the handlers on
-a temp tree and a real db (list, a file that does not parse listed with its issues,
-the filename-is-the-id refusal, the writable flag, the empty and missing directories;
-write → file + row + due-at-once, invalid JSON, schema issues, the filename check,
-the `render: true` note; delete → file gone + row disabled + items kept, 404 naming
-the directory, traversal ids refused by shape); `sources-routes.test.ts` the same over
-a socket (verbs, 405, 413 mid-body, non-JSON 400 in the write shape, LAN 403 that
-never reaches the route); `start.test.ts` boots a temp tree and adds a source through
-the route, then sees it in `/api/state`.
 
 ## WP10 — Notifications
 
