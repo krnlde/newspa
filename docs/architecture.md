@@ -74,7 +74,10 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    (`<?xml`/`<rss`/`<feed`), because `old.reddit.com/….rss` measured as
    `200 text/html`. A source parsed as a kind it is not is a **health error**,
    never a zero-item success.
-5. Parser (rss / html / json) → `PickedItem[]`; identity from the canonical link.
+5. Parser (rss / html / json) → `PickedItem[]`; identity from the canonical
+   link, resolved against the URL that **answered** (D-030: `withBase(spec,
+    res.url)` — after a permanent redirect the text and the link are from one
+   place, and following it does not rewrite the reader's file).
 6. `diff` against the stored baseline → `new | edited | gone`; `edited` requires
    `meaningful` from the word diff (typo filter).
 7. Burst breaker: >40% new keys, or matches ≪ `matchCount` → `restructured`,

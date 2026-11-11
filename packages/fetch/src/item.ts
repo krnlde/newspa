@@ -60,6 +60,27 @@ export const absoluteLink = (href: string, baseUrl: string): string => {
   return resolveLink(text, baseUrl);
 };
 
+/**
+ * The spec, with its **link base** pointed at the URL that answered (D-030).
+ *
+ * A payload is read where it was served from. Resolving its root-relative links
+ * against the URL in the source file is the bug that `absoluteLink` cannot fix:
+ * after a permanent redirect, the item's text is from the new place and its link
+ * is from the old one, and the link dies with the old host. `TransportOk.url` is
+ * the URL after the redirects (it falls back to `spec.url` when the runtime
+ * reports none), so this is the whole fix — self-healing, one hop per poll, and
+ * silent. Making the move **permanent** is the reader's decision, not the
+ * poller's: `pnpm sources:migrate` writes it through `writeSource` (D-011).
+ *
+ * The cost is named, because it is real: identity is the canonical link (D-005),
+ * so the poll that starts resolving on the new host keys its items differently —
+ * **once**. Apply the migration and the keys stop moving.
+ */
+export const withBase = <S extends SourceSpec>(spec: S, url: string): S => {
+  const served: S = { ...spec, url };
+  return served;
+};
+
 export const toIsoDate = (value: string | null): string | null => parseHttpDate(value ?? undefined);
 
 /**

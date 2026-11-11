@@ -2,7 +2,7 @@ import type { PickedItem } from 'newspa-core';
 import { describe, expect, it } from 'vitest';
 import { parseHtmlPayload } from '../src/html.ts';
 import { fieldsOfItem, loadDocument } from '../src/htmlSelectors.ts';
-import { absoluteLink } from '../src/item.ts';
+import { absoluteLink, withBase } from '../src/item.ts';
 import type { ParseFailure } from '../src/results.ts';
 import { parseRssPayload } from '../src/rss.ts';
 import { imageOf } from '../src/rssFields.ts';
@@ -147,15 +147,33 @@ describe('the link base is the URL that answered (D-030)', () => {
     expect(absoluteLink('/world/x', 'https://cdn.example.com/news/index')).toBe('https://cdn.example.com/world/x');
   });
 
-  it('is `spec.url` today, so a payload served from a cdn gets the recorded host', () => {
+  it('is the base it is handed, so with no answer recorded it is `spec.url` — the host dies, the link dies', () => {
     // What D-030 calls the bug, stated as a fact: the item's text is from the
-    // payload, its link is from the old place. A permanent redirect therefore
-    // costs every poll a hop and prints a link that 404s once the host dies.
+    // payload, its link is from the old place. The parser cannot know the
+    // answer; the **caller** has it, so the base is a parameter (D-030: rung 1
+    // is the pipeline handing the parser `FetchResponse.url`).
     const payload =
       '<html><body><ul><li class="card"><h2 class="title">Served by the cdn</h2><a href="/world/x">Read</a></li></ul></body></html>';
     const spec = htmlSource('li.card', { title: '.title' }, { url: 'https://old.example.com/news' });
     expect(itemAt(okItems(parseHtmlPayload(payload, spec, sniff(payload))), 0).link).toBe(
       'https://old.example.com/world/x',
     );
+  });
+
+  it('resolves on the URL that answered once the caller passes it, which is the fix (D-030)', () => {
+    // The same payload, the same source file, the answered URL in hand: the
+    // text and the link are now from the same place. `withBase` is the whole
+    // fix — no new parameter on the parse entry points, because the base
+    // travels in the spec.
+    const payload =
+      '<html><body><ul><li class="card"><h2 class="title">Served by the cdn</h2><a href="/world/x">Read</a></li></ul></body></html>';
+    const spec = htmlSource('li.card', { title: '.title' }, { url: 'https://old.example.com/news' });
+    const served = withBase(spec, 'https://cdn.example.com/news/index');
+    expect(itemAt(okItems(parseHtmlPayload(payload, served, sniff(payload))), 0).link).toBe(
+      'https://cdn.example.com/world/x',
+    );
+    // The recorded URL is untouched: the source file is the reader's, and a
+    // poll that follows a redirect does not rewrite it (D-011).
+    expect(spec.url).toBe('https://old.example.com/news');
   });
 });

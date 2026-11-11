@@ -98,6 +98,7 @@ export const parsePayload = (text: string, spec: SourceSpec): ParseResult => {
 export const sniffPayload = (text: string): Sniffed => sniff(text);
 
 export { charsetFromContentType, decodeBody, mediaTypeOf, xmlDeclaredCharset } from './charset.ts';
+export { withBase } from './item.ts';
 /**
  * The result types, exported because the caller **is** the health layer: the
  * server maps a `ParseFailureReason` to a `HealthState`, and doing that needs

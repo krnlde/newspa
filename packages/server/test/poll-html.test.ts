@@ -102,6 +102,37 @@ describe('an html page is a source like any other', () => {
     expect(h.db.snapshots.last('bbc')?.snapshot.outcome).toBe('selection-unchanged');
   });
 
+  it('the link base is the URL that answered, not the URL in the source file (D-030)', async () => {
+    // A permanent redirect: the payload is served from the cdn, the source file
+    // still names the old host. The item's text is from the payload, so its
+    // link has to be from the same place — a link to the old host dies with the
+    // old host. `poll.ts` hands the parser `TransportOk.url` (D-030, rung 1).
+    const page = `<html><body><table><tbody>
+      <tr><td>Krakow bridge reopens</td><td>The trams run again.</td><td><a href="/bridge">Read</a></td></tr>
+      <tr><td>Ferry timetable slips</td><td>Winter hours begin.</td><td><a href="/ferry">Read</a></td></tr>
+    </tbody></table></body></html>`;
+    const h = pollHarness(table, () => {
+      const res = okResponse(page, '"cap-1"', HTML_TYPE);
+      // The runtime's `Response#url` is the URL after the redirects; a fake is
+      // built without one, so the answered address is stated on the instance.
+      return Object.defineProperty(res, 'url', { value: 'https://cdn.example.com/news/index' });
+    });
+    const first = await h.poll();
+    expect(first.outcome).toBe('changed');
+
+    const rows = h.db.items.list({ sourceId: 'bbc' });
+    // Root-relative, resolved on the answering host — not `cards.example`, the
+    // URL the source file records.
+    expect(rows.map((item) => item.link).sort()).toEqual([
+      'https://cdn.example.com/bridge',
+      'https://cdn.example.com/ferry',
+    ]);
+    // And the source row keeps the recorded URL: following a redirect is not
+    // rewriting the reader's file (D-011). Making the move permanent is
+    // `pnpm sources:migrate`, an authored change.
+    expect(h.db.sources.get('bbc')?.spec.url).toBe('https://cards.example/');
+  });
+
   it('a scraped body is capped, and the strip rule keeps the noise out of it', async () => {
     const h = pollHarness(table, () => okResponse(fixture(PAGE), '"cap-1"', HTML_TYPE));
     await h.poll();

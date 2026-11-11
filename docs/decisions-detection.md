@@ -10,8 +10,9 @@ in `decisions-tooling.md`, detection in this file. Numbering is shared, so
 D-025 (reading list local) lives in `decisions.md` and is referenced here.
 
 **Status rule.** D-026 … D-033 are **agreed**; D-027 (the selection rung),
-D-028 (page-mode identity) and D-026's **parser half** (the `multi-match` fault)
-are **implemented**, the rest are not built — each entry says what.
+D-028 (page-mode identity), D-026's **parser half** (the `multi-match` fault)
+and D-030's **rung 1** (the link base) are **implemented**, the rest are not
+built — each entry says what.
 `docs/fetching.md` and `docs/state.md` describe what the code does
 _today_, and are amended by the commit that lands each rung, not by
 this document. Every number below is measured in this session (Node 26.2.0,
@@ -123,26 +124,34 @@ silence:
   the real title, so a tombstone is free and honest _only_ for APIs that answer
   this way; 0-matches HTML has no title to store.
 
-## D-030 — The link base is the URL that answered
+## D-030 — The link base is the URL that answered  _(rung 1 implemented 2026-11-11)_
 
-Today link resolution uses `spec.url` (`absoluteLink(href, spec.url)`), and
-`fetch` already records the final URL (`FetchResponse.url`, `redirected`), while
-`poll.ts` throws that information away. Measured: a payload served from
-`cdn.example.com` resolved against the recorded `old.example.com` yielded
-`https://old.example.com/world/2026-11-10/thing-1` — the item's text is from the
-payload, its link is from the _old_ place. `resolveUrl` is correct; the base is
-the bug.
+The bug was: link resolution used `spec.url` (`absoluteLink(href, spec.url)`)
+while `fetch` already recorded the final URL (`FetchResponse.url`,
+`redirected`) and `poll.ts` threw that information away. Measured: a payload
+served from `cdn.example.com` resolved against the recorded `old.example.com`
+yielded `https://old.example.com/world/2026-11-10/thing-1` — the item's text is
+from the payload, its link is from the _old_ place. `resolveUrl` is correct; the
+base was the bug.
 
-- **Rung 1, now:** resolve against the response's `url`. It is correct today, and
-  it makes a permanent redirect self-healing: every subsequent poll follows it,
-  costs one hop, and is silent.
-- **Rung 2, cheap:** count redirects on the source row; a source that answers 301
-  on most polls gets a health note.
-- **Rung 3, the only state:** a **migration proposal**. On `redirected`, the poll
-  offers `final_url`; nothing is written. `pnpm sources:migrate` (or the web UI)
-  applies it through `writeSource` — an authored change, per D-011 — and the
-  source carries a `url_migrate` counter so the cost of not applying it stays
-  visible.
+- **Rung 1, implemented:** resolve against the response's `url`. It is correct
+  today, and it makes a permanent redirect self-healing: every subsequent poll
+  follows it, costs one hop, and is silent. It is `withBase(spec, res.url)` in
+  the fetch package — the base travels **in** the spec, so no parse entry point
+  grew a parameter, and the page-mode item's own link follows the move too
+  (D-028 keyed the page at an address, so only the link moves, not the identity).
+  The cost is named: identity is the canonical link (D-005), so the first poll
+  that resolves on the new host keys its items **differently once**. A health
+  note and a `redirected:` line in the poll's log make the move visible today;
+  rung 3 is what makes it stop.
+- **Rung 2, cheap, not built:** count redirects on the source row; a source that
+  answers 301 on most polls gets a health note.
+- **Rung 3, the only state, not built:** a **migration proposal**. On
+  `redirected`, the poll offers `final_url`; nothing is written.
+  `pnpm sources:migrate` (or the web UI) applies it through `writeSource` — an
+  authored change, per D-011 — and the source carries a `url_migrate` counter so
+  the cost of not applying it stays visible. **Blocked on `cli.ts`** (WP5):
+  there is no command to host it on.
 - **Why not "store the chain"**: a chain is state, and the state is the redirect.
   Following it is the right behaviour; making it permanent is a decision the
   reader makes.

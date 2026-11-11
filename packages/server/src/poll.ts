@@ -32,7 +32,7 @@
  */
 import type { SourceSpec } from 'newspa-config';
 import { pageSignals } from 'newspa-core';
-import { fetchSource, parsePayload, refusalOf, selectionHash, type TransportDeps } from 'newspa-fetch';
+import { fetchSource, parsePayload, refusalOf, selectionHash, type TransportDeps, withBase } from 'newspa-fetch';
 import { baselineOf, isFastPath, outcomeOf, previousStateOf } from './pollBaseline.ts';
 import { healthPatchOf, keptHealth } from './pollHealth.ts';
 import { publishItems, rulesOf } from './pollItems.ts';
@@ -145,12 +145,17 @@ export const pollOne = async (spec: SourceSpec, deps: PollDeps): Promise<PollRes
   }
 
   const signals = pageSignals(res.text, spec.kind);
+  // D-030: relative links resolve against the URL that **answered**. After a
+  // permanent redirect the payload is from the new place; resolving it against
+  // the recorded URL yields a link that dies with the old host. Making the move
+  // permanent is the reader's (`pnpm sources:migrate`), not the poller's.
+  const source = withBase(spec, res.url);
   // The rung's cheap signal: `null` for a page/feed source and for a selector
   // that matched nothing, and a `null` never matches (pollBaseline).
-  const selection = selectionHash(res.text, spec);
+  const selection = selectionHash(res.text, source);
   const outcome = outcomeOf(res, selection, previous);
   if (outcome === 'changed') {
-    const parsed = parsePayload(res.text, spec);
+    const parsed = parsePayload(res.text, source);
     if (parsed.ok === false) return commit(spec, deps, clock, started, takenAt, parseVerdict(spec, res, parsed));
     const pass = publishItems(
       { items: deps.items, itemEvents: deps.itemEvents },
