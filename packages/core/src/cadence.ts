@@ -58,11 +58,18 @@ export interface RelaxInput {
  * multiplies its interval by 4 per consecutive failure, capped, and returns to
  * the configured cadence on the first success. This is the "be polite, stay
  * unblocked" rule, enforced in code rather than in a comment.
+ *
+ * The **author's interval is the floor**, and the cap bounds the multiplier, not
+ * the schedule. The difference is only visible when the cap is below the cadence,
+ * and with the default `backoffMaxMs` of one hour it always is for the 3 h, 6 h,
+ * 12 h, daily and weekly presets: capping the *result* there turned a backoff
+ * into an acceleration — one transient failure on a daily feed would plan the
+ * next read an hour later, every hour, for as long as it kept failing.
  */
 export const effectiveCadenceMinutes = (input: RelaxInput): number => {
   if (input.state === 'ok' || input.attempts === 0) return input.cadenceMinutes;
-  const factor = 4 ** Math.min(4, input.attempts);
-  return Math.min(input.capMinutes, Math.max(input.cadenceMinutes, input.cadenceMinutes * factor));
+  const relaxed = input.cadenceMinutes * 4 ** Math.min(4, input.attempts);
+  return Math.max(input.cadenceMinutes, Math.min(input.capMinutes, relaxed));
 };
 
 /** Local-hour quiet window: "poll this source only between 06:00 and 23:00". */

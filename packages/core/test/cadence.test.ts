@@ -82,6 +82,22 @@ describe('effectiveCadenceMinutes', () => {
     );
     expect(effectiveCadenceMinutes({ cadenceMinutes: 60, attempts: 1, state: 'error', capMinutes: 90 })).toBe(90);
   });
+
+  it('never shortens the authored cadence: the cap bounds the multiplier, not the schedule', () => {
+    // The default `backoffMaxMs` is 60 minutes, so a cap under the cadence is the
+    // normal shape for the 3 h, 6 h, 12 h, daily and weekly presets. Capping the
+    // result rather than the multiplier turned "back off" into "poll me hourly,
+    // forever" for exactly those sources: one transient 5xx on a daily feed.
+    const daily = (attempts: number, state: RelaxInput['state']): number =>
+      effectiveCadenceMinutes({ cadenceMinutes: 1_440, attempts, state, capMinutes: 60 });
+    expect(daily(1, 'error')).toBe(1_440);
+    expect(daily(9, 'blocked')).toBe(1_440);
+    expect(effectiveCadenceMinutes({ cadenceMinutes: 180, attempts: 1, state: 'blocked', capMinutes: 60 })).toBe(180);
+    // …and a cap above the cadence still caps the multiplication.
+    expect(effectiveCadenceMinutes({ cadenceMinutes: 180, attempts: 1, state: 'blocked', capMinutes: 1_000 })).toBe(
+      720,
+    );
+  });
 });
 
 describe('inQuietHours', () => {
