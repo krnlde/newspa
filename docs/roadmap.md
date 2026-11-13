@@ -19,12 +19,13 @@ the reader's act. The display axes are built too (D-038: `data-contrast` compose
 
 What is left is quality of life, not architecture, and the queue is the reader's own
 next sentence: _install it, and put it on a screen that is not a laptop._ So the next
-packages are **WP16 (the installable paper)**, **WP17 (TLS, which WP16 needs)** and
-**WP15 (the board)**, the recipe that ties them to D-037's topology. After them:
+packages are **WP16 (the installable paper)** and **WP15 (the board)**, the recipe that
+ties them to D-037's topology. WP16's prerequisite is gone: **WP17 (TLS) is built** and
+in the closed records. After them:
 search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
 README (WP13). Closed packages are in `docs/roadmap-closed.md` (the pipeline) and
-`docs/roadmap-closed-surface.md` (the picker, the styling, the panel) with what each
-measured - WP1, WP2, WP3, WP6, WP12, WP14; read WP12 before reopening those files.
+`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS) with what each
+measured - WP1, WP2, WP3, WP6, WP12, WP14, WP17; read WP12 before reopening those files.
 (WP4 and WP5 are built and recorded below, where their open halves are named.)
 
 ## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_
@@ -226,8 +227,9 @@ one control row, in the `CONTROL` vocabulary: never a second overlay (D-035); it
 appears when `beforeinstallprompt` fires, and where the browser offers nothing (iOS)
 the line **names the recipe** instead of vanishing. `staticFiles.ts` widens by two
 names: `.webmanifest` → `application/manifest+json`, and `sw.js` is **never**
-`immutable`, with the SPA fallback never shadowing it. Needs WP17 for any address a
-phone has: a plain-HTTP LAN page is not a secure context and cannot register a worker.
+`immutable`, with the SPA fallback never shadowing it. WP17's TLS is what makes it
+reachable on a phone's address: a plain-HTTP LAN page is not a secure context and
+cannot register a worker.
 
 **Accept.** The manifest parses and names the icons the build wrote (a test reads the
 generated files, so an icon that is not there fails the build); the worker caches the
@@ -236,31 +238,3 @@ asserted with a real registration in the browser project, not by reading the fil
 text; killing the server leaves a **labelled** edition; the install control renders
 when the prompt event is dispatched, prints the named recipe when it is not, and is
 `display: none` in print; `pnpm check` stays green with no new dependency.
-
-## WP17 — TLS, because the install needs a secure context
-
-**Gap.** A service worker registers only in a **secure context**. `http://127.0.0.1:8787`
-is one; `http://192.168.0.223:8787` — the address the LAN reader has, and the one D-034
-made the wall — is not. So WP16 is unreachable from the devices that want it, and a
-plain-HTTP LAN page puts the reading list's text in the clear.
-
-**Build.** `server.tls: { cert, key }` in the config (paths; absent means plain HTTP,
-which is today's behaviour and stays the default). The process answers `https://` and
-the boot reach-lines print the scheme, the typeable URLs and the firewall command, as
-they do now. Keys live in `data/` (gitignored) and `scripts/check-secrets.mjs` fails a
-committed `-----BEGIN … KEY-----` — rule 17 as a scan, not a hope. The docs carry the
-`mkcert` recipe and the `openssl` one. Nothing authenticates a reader to the server:
-TLS proves **the server to the browser**, the address stays the wall (D-034), and no
-token, cookie or shared secret appears (rule 20). The **test** certificate is ruled in
-**D-040**: `@peculiar/x509` as a devDependency, a fresh self-signed pair minted per run
-into the OS temp dir, so the repository holds no PEM at all - the public-repo reason a
-committed pair is refused, and the measured cost of the hand-assembled DER that parsed,
-printed the right SAN and failed `verify()`. The dependency arrives **with** this
-package's tests, not before.
-
-**Accept.** A boot with a self-signed pair answers `https://127.0.0.1:8787/api/state`,
-answers `http://` with a refusal that names the scheme, and logs the same reach lines;
-the switch is tested at the socket, not by reading `start.ts`; a key in the repo fails
-`pnpm check:secrets`; `config.example.json` carries the shape and
-`config/test/examples.test.ts` validates it; a panel that trusts no private CA is
-documented as the kiosk case (D-039), not fixed by lowering the wall.

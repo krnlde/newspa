@@ -179,7 +179,11 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     least per work package, earlier at a clean checkpoint.
 20. **The address is the access control** (D-034). The server authenticates nothing
     (rule 17), so the bind is the wall: `server.host` defaults to loopback, and LAN is
-    the reader's line in `config.json`. Any route that **writes** (a source file, a
+    the reader's line in `config.json`. `server.tls: { cert, key }` is **two paths**
+    (D-039: a key in `config.json` rides into every `export --bundle`), and a pair that
+    cannot be read **stops the boot** — no silent fallback to plain HTTP, because on the
+    LAN address that is a page that cannot install (WP16) and a reader who re-runs
+    `mkcert -install` for nothing. Any route that **writes** (a source file, a
     settings file) is refused from a non-loopback peer by the guard in
     `packages/server/src/net.ts`, which runs **before** routing — no route may add a
     mutation without it, and no credential, token, cookie or "shared secret" may be
@@ -209,7 +213,9 @@ packages/fetch    http, rss, html, json, fixtures. `pick` is built (WP6, D-036):
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
                   routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE and
                   `/api/pick` POST/GET — all loopback-only, rules 18 and 20), the built
-                  page, the SSE hub, the address policy (D-034), the pick job
+                  page, the SSE hub, the address policy (D-034), the TLS pair
+                  (`tls.ts`: paths, parsed at boot, no silent HTTP fallback, D-039),
+                  the db open (`bootDb.ts`, D-041), the pick job
                   (`pickApi`/`pickHttp`/`pickCli`/`pickTransport`), `export --bundle`
                   (rule 18's backup). `sourcesApi.ts` is the **only** writer of
                   `sources/*.json` (pinned in `boundary.test.ts`) — a pick fills, never
@@ -222,7 +228,10 @@ sources.example/  Example source definitions (public). `sources/` is your readin
 config.example.json The shipped app config, validated by `config/test/examples.test.ts`.
                   `config.json` is yours and is gitignored (rule 18: its
                   `scoring.watchwords` are the reading list too) — and it is the file
-                  that turns the LAN on (`server.host`, D-034).
+                  that turns the LAN on (`server.host`, D-034) and TLS
+                  (`server.tls`: two **paths**, never PEM bytes, D-039 — and the
+                  example ships no `tls` block: a first clone whose config names files
+                  it does not have is a first run that cannot boot).
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
 docs/             architecture.md, state.md + state-server.md (the surface, the run
                   verbs, the dev loop), roadmap.md (what is not built) +

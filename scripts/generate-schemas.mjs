@@ -53,7 +53,8 @@ const generate = async () => {
   const { schemaUrlFor } = await importModule(path.join(CONFIG_SRC, 'schemaUrls.ts'));
   const { watchlistSchema } = await importModule(path.join(CONFIG_SRC, 'watchlist.ts'));
   const { bundleSchema } = await importModule(path.join(CONFIG_SRC, 'bundle.ts'));
-  const { appConfigSchema, sourceSchema } = await importModule(path.join(CONFIG_SRC, 'schema.ts'));
+  const { sourceSchema } = await importModule(path.join(CONFIG_SRC, 'schema.ts'));
+  const { appConfigSchema } = await importModule(path.join(CONFIG_SRC, 'appSchema.ts'));
   const { serverEventSchema } = await importModule(path.join(ROOT, 'packages', 'core', 'src', 'api.ts'));
 
   const files = [

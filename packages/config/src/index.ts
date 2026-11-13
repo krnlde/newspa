@@ -1,4 +1,10 @@
 export {
+  type AppConfig,
+  appConfigSchema,
+  defaultAppConfig,
+  type MastheadConfig,
+} from './appSchema.ts';
+export {
   BUNDLE_FILENAME,
   BUNDLE_SCHEMA_VERSION,
   type Bundle,
@@ -34,11 +40,8 @@ export {
   type PickPatchFields,
 } from './pick.ts';
 export {
-  type AppConfig,
-  appConfigSchema,
   type CssPath,
   cssPathSchema,
-  defaultAppConfig,
   type HtmlFields,
   type HtmlItemSource,
   type HtmlSource,
@@ -48,7 +51,6 @@ export {
   type JsonSource,
   jsonFieldsSchema,
   jsonSourceSchema,
-  type MastheadConfig,
   type RssSource,
   rssSourceSchema,
   type SourceKindOf,

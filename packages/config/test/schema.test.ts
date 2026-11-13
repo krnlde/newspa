@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  appConfigSchema,
-  defaultAppConfig,
-  htmlSourceSchema,
-  jsonSourceSchema,
-  rssSourceSchema,
-  sourceSchema,
-} from '../src/schema.ts';
+import { appConfigSchema, defaultAppConfig } from '../src/appSchema.ts';
+import { htmlSourceSchema, jsonSourceSchema, rssSourceSchema, sourceSchema } from '../src/schema.ts';
 
 const minimalHtml = {
   id: 'bbc-news',
@@ -174,6 +168,28 @@ describe('appConfigSchema', () => {
     expect(config.server.host).toBe('127.0.0.1');
     expect(config.notify.toasts).toBe(false);
     expect(config.notify.maxToastsPerCycle).toBe(3);
+  });
+
+  it('keeps TLS off by default, and takes a pair as two paths (D-039)', () => {
+    // The default is the behaviour that shipped for the first 40 packages: plain
+    // HTTP on loopback. `null` is a value, not an absence, so `schemeOf` has one
+    // answer and the boot never has to guess what a missing key meant.
+    expect(appConfigSchema.parse({}).server.tls).toBeNull();
+    expect(appConfigSchema.parse({ server: { host: '0.0.0.0' } }).server.tls).toBeNull();
+    // Both halves, as paths. The object is the shape that tempts a reader into a
+    // string (`tls: "tls/a.pem"`), into one file (`cert` without `key`), and into
+    // the PEM's text — the last is refused by the server (`tls.ts`), and the schema
+    // refuses the empty string, because `cert: ""` is a file named by nothing.
+    const withPair = appConfigSchema.parse({ server: { tls: { cert: 'tls/a.pem', key: 'tls/a-key.pem' } } });
+    expect(withPair.server.tls).toEqual({ cert: 'tls/a.pem', key: 'tls/a-key.pem' });
+    for (const bad of [
+      { server: { tls: { cert: 'tls/a.pem' } } },
+      { server: { tls: { cert: '', key: 'tls/a-key.pem' } } },
+      { server: { tls: 'tls/a.pem' } },
+      { server: { tls: {} } },
+    ]) {
+      expect(appConfigSchema.safeParse(bad).success).toBe(false);
+    }
   });
 
   it('prefault is not default: a missing section comes back populated, not {}', () => {

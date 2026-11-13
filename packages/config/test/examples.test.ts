@@ -13,7 +13,8 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { appConfigSchema, defaultAppConfig, sourceSchema } from '../src/schema.ts';
+import { appConfigSchema, defaultAppConfig } from '../src/appSchema.ts';
+import { sourceSchema } from '../src/schema.ts';
 import { schemaUrlFor } from '../src/schemaUrls.ts';
 
 /** The repo root, from this file's location — the examples are shipped there. */

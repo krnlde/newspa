@@ -68,6 +68,31 @@
             "openBrowser": {
               "default": true,
               "type": "boolean"
+            },
+            "tls": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "cert": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "key": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "cert",
+                    "key"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },

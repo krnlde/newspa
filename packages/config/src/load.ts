@@ -1,7 +1,8 @@
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { z } from 'zod';
-import { type AppConfig, appConfigSchema, type SourceSpec, sourceSchema } from './schema.ts';
+import { type AppConfig, appConfigSchema } from './appSchema.ts';
+import { type SourceSpec, sourceSchema } from './schema.ts';
 
 export interface SourceIssue {
   file: string;

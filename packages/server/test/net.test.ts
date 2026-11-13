@@ -69,10 +69,54 @@ describe('the boot line', () => {
     const line = reachLine('0.0.0.0', 8787);
     expect(line).toContain('source names');
     expect(line).toContain('loopback-only');
-    expect(line).toContain(firewallHint(8787));
-    expect(firewallHint(8787)).toBe(
+    // The platform is the machine's own here, and the test reads it back from the
+    // same function: the printed command is the one for the machine that printed it.
+    expect(line).toContain(firewallHint(8787, process.platform));
+  });
+});
+
+/**
+ * The scheme and the firewall command (WP17). Both are the boot's promise about the
+ * socket, and the second is the one a reader runs: `0.0.0.0` binds, the bind
+ * succeeds, and a firewall that drops every inbound packet is indistinguishable
+ * from a dead server. An invented command is worse than none, so the arms other
+ * than this machine's are asserted as strings, not executed.
+ */
+describe('the scheme, and the firewall by platform', () => {
+  it('prints https URLs when the server speaks TLS, and http when it does not', () => {
+    expect(urlsOf('127.0.0.1', 8787, 'https')).toEqual(['https://127.0.0.1:8787']);
+    expect(urlsOf('192.168.0.223', 8787, 'https')).toEqual(['https://192.168.0.223:8787']);
+    // The unspecified bind keeps its "last entry is typeable loopback" shape, so the
+    // only thing the scheme changes is the prefix.
+    const urls = urlsOf('0.0.0.0', 8787, 'https');
+    expect(urls.at(-1)).toBe('https://127.0.0.1:8787');
+    expect(urls.every((url) => url.startsWith('https://'))).toBe(true);
+    expect(urlsOf('127.0.0.1', 8787)).toEqual(['http://127.0.0.1:8787']);
+  });
+
+  it('says, over HTTPS, that the certificate is only as trusted as the devices that know its CA', () => {
+    const overTls = reachLine('127.0.0.1', 8787, 'https');
+    expect(overTls).toContain('mkcert -install');
+    // A plain-HTTP boot must not start talking about certificates: the kiosk note is
+    // a fact about TLS, and unasked advice reads as a warning about the config.
+    expect(reachLine('127.0.0.1', 8787)).not.toContain('mkcert');
+  });
+
+  it('gives Windows the exact rule, Linux the command it ships, macOS the pane, and nothing a fiction', () => {
+    expect(firewallHint(8787, 'win32')).toBe(
       'netsh advfirewall firewall add rule name="newspa" dir=in action=allow protocol=TCP localport=8787',
     );
+    const linux = firewallHint(8787, 'linux');
+    expect(linux).toContain('sudo ufw allow 8787/tcp');
+    expect(linux).toContain('firewall-cmd');
+    expect(firewallHint(8787, 'darwin')).toContain('Firewall');
+    expect(firewallHint(8787, 'darwin')).toContain('8787');
+    // The stated silence: naming a command for a platform this file has not measured
+    // is how a reader ends up running something that changes nothing.
+    const other = firewallHint(8787, 'freebsd');
+    expect(other).toContain('freebsd');
+    expect(other).toContain('8787');
+    expect(other).toContain('no known firewall command');
   });
 });
 

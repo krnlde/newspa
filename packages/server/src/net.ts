@@ -46,10 +46,16 @@ const isLoopbackHost = (host: string): boolean => host === 'localhost' || isLoop
  *
  * A specific bind address yields itself; an unspecified bind (`0.0.0.0`) yields the
  * real interfaces, which is the answer the requirement is after — a phone needs an
- * address that exists on the network, and `http://0.0.0.0:8787` is not one.
+ * address that exists on the network, and `0.0.0.0:8787` is not one.
+ *
+ * The scheme is an input, not a constant: `server.tls` decides it (WP17), and a
+ * printed `http://` in front of a TLS socket is a URL that fails with an `EPROTO`
+ * the reader cannot explain. One function owns both spellings, so the reach lines,
+ * the boot log and the tests cannot drift from what the socket speaks.
  */
-export const urlsOf = (host: string, port: number): string[] => {
-  if (!isUnspecified(host)) return [`http://${host}:${String(port)}`];
+export const urlsOf = (host: string, port: number, scheme: 'http' | 'https' = 'http'): string[] => {
+  const url = (address: string): string => `${scheme}://${address}:${String(port)}`;
+  if (!isUnspecified(host)) return [url(host)];
   const lan: string[] = [];
   for (const entries of Object.values(networkInterfaces())) {
     for (const entry of entries ?? []) {
@@ -58,35 +64,59 @@ export const urlsOf = (host: string, port: number): string[] => {
       // browser's address bar (it needs a scope id), and a printed URL that does not
       // work is worse than one that is merely old-fashioned.
       if (entry.family !== 'IPv4') continue;
-      if (!isLoopback(entry.address)) lan.push(`http://${entry.address}:${String(port)}`);
+      if (!isLoopback(entry.address)) lan.push(url(entry.address));
     }
   }
   // The loopback URL is appended, not read from the interfaces: Windows reports the
   // loopback interface as `internal`, and a reader on this machine still needs a
-  // typeable address — `http://0.0.0.0:8787` is not one.
-  return [...lan, `http://127.0.0.1:${String(port)}`];
+  // typeable address — `0.0.0.0:8787` is not one.
+  return [...lan, url('127.0.0.1')];
 };
 
 /**
- * The Windows rule that lets the LAN in. Printing the exact command is the point:
- * a bind that succeeds while the firewall drops every packet is indistinguishable
- * from a dead server, and the reader has no way to know which it is.
+ * The command that lets the LAN in, by platform, because a bind that succeeds while
+ * the firewall drops every packet is indistinguishable from a dead server and the
+ * reader has no way to know which it is.
+ *
+ * Windows is the machine this project grew on, so its rule is exact. Linux names
+ * `ufw`, the common case on the board's host, with the `firewall-cmd` form
+ * parenthetically because distros differ. Everything else — macOS, a BSD, a
+ * container with no firewall — is **stated silence**: an invented command is worse
+ * than none, because the reader runs it and it changes nothing.
  */
-export const firewallHint = (port: number): string =>
-  `netsh advfirewall firewall add rule name="newspa" dir=in action=allow protocol=TCP localport=${String(port)}`;
+export const firewallHint = (port: number, platform: NodeJS.Platform = process.platform): string => {
+  const portText = String(port);
+  if (platform === 'win32') {
+    return `netsh advfirewall firewall add rule name="newspa" dir=in action=allow protocol=TCP localport=${portText}`;
+  }
+  if (platform === 'linux') {
+    return `sudo ufw allow ${portText}/tcp (or: sudo firewall-cmd --permanent --add-port=${portText}/tcp && sudo firewall-cmd --reload)`;
+  }
+  if (platform === 'darwin') {
+    return `System Settings → Network → Firewall: allow incoming TCP on ${portText} (or: sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/local/bin/node)`;
+  }
+  return `no known firewall command for "${platform}": open incoming TCP on ${portText} wherever this machine keeps its rules`;
+};
 
 /** The one-line report about who can reach this server, printed at boot. */
-export const reachLine = (host: string, port: number): string => {
-  const urls = urlsOf(host, port);
+export const reachLine = (host: string, port: number, scheme: 'http' | 'https' = 'http'): string => {
+  const urls = urlsOf(host, port, scheme);
+  // The certificate's half of the promise (D-039): a kiosk panel or a phone that
+  // trusts no private CA will connect to nothing, and "it does not load" is what a
+  // reader reports, not "the certificate is untrusted". So the line says what to do.
+  const tlsNote =
+    scheme === 'https'
+      ? ' The certificate is only as trusted as the devices that know its CA: `mkcert -install` on each one, or one CA of your own.'
+      : '';
   if (isLoopbackHost(host)) {
-    return `listening on ${urls.join(', ')} — this machine only (server.host for LAN)`;
+    return `listening on ${urls.join(', ')} — this machine only (server.host for LAN).${tlsNote}`;
   }
   const urlsText = urls.join(', ');
   return (
     `listening on ${urlsText} — anyone on this network can read the paper, ` +
     `and /api/state shows your source names to them; the source files themselves ` +
     `(watchwords, notes, sections) and every write stay loopback-only. ` +
-    `If nothing connects, allow the port: ${firewallHint(port)}`
+    `If nothing connects, allow the port: ${firewallHint(port)}.${tlsNote}`
   );
 };
 

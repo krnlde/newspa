@@ -43,7 +43,10 @@ the router (`GET /api/state`, `GET /api/events`, the sources routes, the page fr
 `staticFiles.ts` the cache rules (`index.html` never cached, a hashed asset forever, a
 missing build answered with `pnpm build`), `net.ts` the address policy (D-034: reads
 for the LAN, writes loopback-only, the reach line with the typeable URLs and the
-firewall command). The
+firewall command), `tls.ts` the pair `server.tls` names (WP17, D-039: paths, parsed
+before the first socket, no fallback to plain HTTP) and `bootDb.ts` the db open in the
+boot's words (the `data/` directory, the refusal of a second server, the takeover of a
+dead process's claim, D-041). The
 paper fills itself from a poll of the local `sources/`, and `start.test.ts` proves it
 over a socket with a fixture feed, offline. `bundleExport.ts` answers
 `export --bundle` (WP11): `config/src/bundle.ts` is the shape (`newspa.bundle.v1`, the
@@ -178,7 +181,9 @@ process is not running, so this is a force-killed server's claim, not a second s
 
 A foreign `<host>` is not answered at all (a pid means a process only where it was
 written) and stays governed by the age rule; a live owner is never reclaimed, and the
-refusal names the owner it waits for. D-041 in `docs/decisions-surface.md`.
+refusal names the owner it waits for. D-041 in `docs/decisions-surface.md`. The words
+are printed by `bootDb.ts`, which is also where `data/` is created before SQLite is
+asked to open a file inside it.
 
 ## `start` takes no arguments
 
@@ -188,3 +193,61 @@ access control (D-034). One argument is refused by name, exit **2**, with the se
 that says the settings are `config.json` (`server.host`, `server.port`,
 `scheduler.*`, `scoring.*`). `export --bundle` and `pick --id/--write` keep their
 flags: every argv is parsed, and what is not parsed is refused. D-042.
+
+## TLS: the scheme the socket speaks, and the certificate behind it
+
+WP17. One config block, **paths**, relative to the project root:
+
+```json
+{ "server": { "host": "0.0.0.0", "tls": { "cert": "tls/newspa-cert.pem", "key": "tls/newspa-key.pem" } } }
+```
+
+Absent means plain HTTP, which is what shipped for the first 40 packages and stays the
+default; `config.example.json` carries **no** `tls` block on purpose (D-039: a fresh
+clone whose example names files that do not exist is a first run that cannot boot), so
+the snippet above is the documentation, and `config/test/schema.test.ts` is the test.
+
+**Mint a certificate the devices trust** (the only part that is not obvious):
+
+```
+mkcert -install
+mkcert -key-file tls/newspa-key.pem -cert-file tls/newspa-cert.pem localhost 127.0.0.1 192.168.0.223 newspa.local
+```
+
+List **every name a panel dials**, including the IP: the check is against the address
+the client used, and a certificate without it is refused there while working here.
+`mkcert -install` trusts a local root CA **on the machine that runs it** — so it runs
+on the server, and on every device that will read the paper. That is the kiosk case
+D-039 names: a panel with no private CA, or no way to add one, connects to nothing, and
+the answer is the `?theme=…&contrast=…` kiosk URL, never lowering the wall.
+Where `mkcert` is not available, `openssl` does the same job — the v3 `req`
+self-signs with the SAN in one command (`-addext "subjectAltName=DNS:newspa.local,IP:192.168.0.223"`),
+and the result is a **self-signed leaf**: browsers accept it only after it is trusted
+directly, which is why the recipe above is the CA form.
+
+What the code promises, each arm tested (`tls.test.ts`, `startTls.test.ts`):
+
+- **The pair is read before the database is claimed.** A typo in a path stops the boot
+  having created no `data/`, run no migration and taken no `db_lock`.
+- **No fallback to plain HTTP, ever.** On a LAN address, plain HTTP is not a secure
+  context, so the install (WP16) quietly dies — and the rule-5 answer is the file, the
+  reason and the words "not starting", printed.
+- **The pair is parsed, not just read** (`X509Certificate`, `createPrivateKey`): a
+  `fullchain` with no leaf first, a public key where the private one belongs, a root CA
+  served as a leaf — each fails in the handshake as `EPROTO` with no path in it, so the
+  boot names the file instead.
+- **A PEM pasted into the config is refused by name**, and the key's text never reaches
+  a log line (rules 17, 18: `config.json` is what `export --bundle` copies).
+- **The reach line prints the scheme the socket speaks**, from the one function that
+  chose it, and over TLS adds the CA fact. The firewall hint is the machine's own:
+  `netsh advfirewall …` on Windows, `sudo ufw allow <port>/tcp` / `firewall-cmd` on
+  Linux, the pane on macOS, and a stated silence elsewhere — an invented command is
+  worse than none, because a bind that succeeds behind a firewall that drops inbound
+  packets looks exactly like a dead server.
+- **Nothing authenticates a reader.** TLS proves the server to the browser; the address
+  stays the wall (D-034), and no token, cookie or shared secret appears (rule 20).
+
+The test certificate is **minted per run into the OS temp dir** (D-040):
+`packages/server/test/tlsFixture.ts` with `node-forge` — pure JS, zero dependencies, no
+install script — so this public repository holds no PEM and `pnpm check:secrets` is
+green by construction, not by exemption.

@@ -33,6 +33,7 @@ const MANIFEST = fileURLToPath(new NodeUrl('../package.json', import.meta.url));
  * cut lists, which is what keeps `package.json` from naming a command with no answer.
  */
 const SRC_FILES: readonly string[] = [
+  'bootDb.ts',
   'bundleExport.ts',
   'cli.ts',
   'commands.ts',
@@ -62,6 +63,7 @@ const SRC_FILES: readonly string[] = [
   'start.ts',
   'state.ts',
   'staticFiles.ts',
+  'tls.ts',
 ];
 
 /** The pure assembler: rows in, wire out. No language, no clock, no translation library. */

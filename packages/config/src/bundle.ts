@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { appConfigSchema, type SourceSpec, sourceSchema } from './schema.ts';
+import { appConfigSchema } from './appSchema.ts';
+import { type SourceSpec, sourceSchema } from './schema.ts';
 import { BUNDLE_SCHEMA_URL } from './schemaUrls.ts';
 
 /**

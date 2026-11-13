@@ -8,8 +8,9 @@
  * half-broken are the three things that make a restore possible.
  */
 import { describe, expect, it } from 'vitest';
+import { defaultAppConfig } from '../src/appSchema.ts';
 import { BUNDLE_FILENAME, BUNDLE_SCHEMA_VERSION, bundleSchema, parseBundle, serializeBundle } from '../src/bundle.ts';
-import { defaultAppConfig, type SourceSpec, sourceSchema } from '../src/schema.ts';
+import { type SourceSpec, sourceSchema } from '../src/schema.ts';
 import { BUNDLE_SCHEMA_URL } from '../src/schemaUrls.ts';
 
 const anRss = (id: string): SourceSpec =>

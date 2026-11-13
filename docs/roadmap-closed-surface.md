@@ -1,6 +1,6 @@
 # Closed work packages - the surface
 
-The picker, the styling migration, the sources panel: split out of
+The picker, the styling migration, the sources panel, TLS: split out of
 `roadmap-closed.md` at the 300-line cap (rule 1). The pipeline records -
 WP1, WP2, WP3 - stay in `roadmap-closed.md`. Same numbering, same rule: each
 package carries what it measured.
@@ -166,3 +166,67 @@ id keying, the poll stopping on `picked`/`failed`/error/unmount, and **no
 `POST /api/sources`** when a pick lands. The stub window reports a real fingerprint
 against a real page, so the pre-commit floor (rule 16) runs all of this on a machine
 with no browser.
+
+## WP17 - closed: TLS, two paths in the config (2026-11-13)
+
+**Was.** `server.host` was the wall (D-034) and the socket spoke plain HTTP. On
+`http://192.168.0.223:8787` a phone cannot register a service worker - not a secure
+context - so WP16 was unreachable from the devices that want it, and the reading list's
+text crossed the LAN in the clear.
+
+**Is.** `server.tls: { cert, key }`, **paths** relative to the project root, `null` by
+default (plain HTTP, unchanged). `packages/server/src/tls.ts` reads the pair - the
+certificate through `X509Certificate`, the key through `createPrivateKey` - and
+`start.ts` does that **before the database is opened**, so a pair with a typo in a path
+stops the boot having created no `data/`, run no migration and taken no claim.
+`schemeOf` is the only owner of the scheme, and `net.ts`'s reach line, the firewall
+hint and the tests all read it from there: what the boot printed is what the socket
+speaks. A key stays out of the config (rule 17 + rule 18: `config.json` is what
+`export --bundle` copies), and the test certificate is minted per run into the OS temp
+dir (D-040), so the repository holds **no PEM** and `check:secrets` is green by
+construction.
+
+**Measured, and it changed the code.**
+
+- `@peculiar/x509@3.1.0` - D-040's first choice - does not load: it pulls `tsyringe`,
+  which throws `tsyringe requires a reflect polyfill. Please add 'import
+  "reflect-metadata"'` at its entry point. `selfsigned@5.5.0` is the same
+  `@peculiar`/`pkijs` tree. **`node-forge@1.4.3`** (zero dependencies, pure JS, no
+  install script) is what mints, and the mint is the only place it appears: `pnpm start`
+  needs `node:crypto` alone.
+- forge spells the certificate extension's field **`altNames`**; `alt` is the
+  certification-**request** form. A certificate built with `alt` reaches the encoder at
+  `x509.js:2273` and dies as `TypeError: Cannot read properties of undefined (reading
+  'length')` - a message with the library's variable in it and no word about my call.
+- The hand-assembled DER is not retried. It parsed, printed the right `subjectAltName`
+  and then failed `X509Certificate#verify()`; the four traps are D-040's record. The
+  forge mint passes that same check, which is why it is the fixture's assertion.
+- **`node:https` has no `createHttps`.** `node:https`'s function is `createServer`, so
+  the import is `createServer as createHttpsServer` - and `import { createHttps } from
+  'node:https'` is a `TypeError: createHttps is not a function` at boot, not a type
+  error, because the module namespace is `any`-shaped at the JS boundary.
+- A self-signed leaf is accepted by a client that passes **the leaf itself as `ca`**
+  (the test's client), and by no one else - which is the kiosk case D-039 names: a
+  panel needs `mkcert -install`'s root, because the device must trust the issuer.
+- **A plaintext request to the TLS port is refused in the handshake**, by OpenSSL, not
+  by the router: no route runs, no API body leaks. `startTls.test.ts` asserts that at
+  the socket.
+- The probe caught a rule-17 leak of my own making: a PEM pasted into the config
+  produced a log line containing the resolved **path built from the key's text** - a
+  thousand characters, key material first. `absolute()` now refuses any value with
+  `-----BEGIN` in it, by name, and quotes at most 24 characters.
+- A test that names `root/tls` names a directory it has not made: `writeTo` **mkdirs**.
+
+**One deviation from the written accept, deliberate.** WP17 asked
+`config.example.json` to carry the shape; it ships **no `tls` block**, because the
+example is a fresh clone's first config and an example naming files that do not exist
+is a first run that cannot boot. The snippet and both recipes live in
+`docs/state-server.md`; `config/test/schema.test.ts` covers the arms the example would
+have carried (a pair of paths parses, `{cert}` alone / `{}` / a bare string / an empty
+path all refuse).
+
+**Accept.** server 346 tests (`tls.test.ts` 8: the parse refusals, the swapped files,
+the pasted PEM; `startTls.test.ts` 5: HTTPS at the socket, the reach line's scheme, the
+plaintext refusal, the typo'd path that leaves no `data/`; `net.test.ts` +5: the scheme
+and the four platform arms); config 118 (+1, the `server.tls` arms); `pnpm check` green
+at 427 files ≤ 300, lint 0/9, typecheck clean. WP16 is now reachable on the LAN.

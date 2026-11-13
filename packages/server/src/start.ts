@@ -34,17 +34,19 @@
  * supplies a temp root, a stub poll and port 0. That is what lets the roadmap's
  * acceptance ("`start` serves a paper from a real poll") run offline, in seconds.
  */
-import { mkdir, readFile } from 'node:fs/promises';
-import { createServer, type IncomingMessage, type Server } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { createServer as createHttpServer, type IncomingMessage, type Server } from 'node:http';
+import { createServer as createHttpsServer } from 'node:https';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SourceIssue, SourceSpec } from 'newspa-config';
 import { ensureSourcesDir, loadAppConfig, loadSources, sourceFilePath } from 'newspa-config';
-import { type Database, DatabaseLockedError, openDatabase, releaseLock } from 'newspa-db';
+import { type Database, releaseLock } from 'newspa-db';
 import type { FetchLike } from 'newspa-fetch';
 import { openPickSession } from 'newspa-fetch';
+import { openBootDb } from './bootDb.ts';
 import { handleRequest } from './httpApp.ts';
-import { ownerIsAlive, ownerToken } from './lockOwner.ts';
+import { ownerToken } from './lockOwner.ts';
 import { reachLine } from './net.ts';
 import { pickRoutes, readSourceForPick } from './pickApi.ts';
 import { pickTextFetcher } from './pickTransport.ts';
@@ -55,6 +57,7 @@ import { type Scheduler, type SchedulerTally, startScheduler } from './scheduler
 import { sourcesRoutesOf } from './sourcesApi.ts';
 import { createHub, type Hub } from './sse.ts';
 import { stateOf } from './state.ts';
+import { schemeOf, type TlsMaterial, type TlsPaths, tlsFailureLine, tlsMaterialOf } from './tls.ts';
 
 /** The repo root, from this file's location: `pnpm start` works from any directory. */
 export const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
@@ -145,6 +148,33 @@ const listen = (server: Server, host: string, port: number): Promise<number> =>
     server.listen(port, host);
   });
 
+/**
+ * TLS, decided **before the database is claimed** (D-039): a pair with a typo in a
+ * path stops the boot, and a boot that stops should not have opened a file,
+ * migrated a schema and taken a claim on the way to saying so. The scheme comes from
+ * the same call that read the pair, so the reach line at the bottom of `boot`
+ * prints what the socket speaks (D-034).
+ */
+const tlsBootOf = async (
+  root: string,
+  configFile: string,
+  tls: TlsPaths | null,
+  log: (line: string) => void,
+): Promise<{ scheme: 'http' | 'https'; material: TlsMaterial | null }> => {
+  if (tls === null) return { scheme: schemeOf(null), material: null };
+  let material: TlsMaterial;
+  try {
+    material = await tlsMaterialOf(root, tls);
+  } catch (cause) {
+    log(tlsFailureLine(cause));
+    throw cause;
+  }
+  log(
+    `tls: ${tls.cert} + ${tls.key} — paths, never PEM bytes in ${configFile} (D-039: a key in config.json rides into every export --bundle)`,
+  );
+  return { scheme: schemeOf(tls), material };
+};
+
 /** The boot. Every input is a parameter, so a test runs it against a temp tree. */
 export const boot = async (deps: BootDeps): Promise<Running> => {
   const log = deps.log;
@@ -152,6 +182,8 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
   const { config, file, messages } = await loadAppConfig(join(deps.root, 'config.json'));
   log(`config: ${file}`);
   for (const message of messages) log(message);
+
+  const { scheme, material } = await tlsBootOf(deps.root, file, config.server.tls, log);
 
   const dir = join(deps.root, 'sources');
   if ((await ensureSourcesDir(dir)).created) {
@@ -162,33 +194,7 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
   const port = deps.port ?? config.server.port;
   const token = deps.token ?? ownerToken();
 
-  let db: Database;
-  try {
-    // The directory, first: SQLite will not create one, and a first run whose `data/`
-    // is absent is a fresh clone, which is exactly the case boot is responsible for.
-    await mkdir(join(deps.root, 'data'), { recursive: true });
-    db = openDatabase(join(deps.root, 'data', 'newspa.db'), {
-      token,
-      now,
-      lockStaleAfterMs: 10 * 60_000,
-      ownerIsAlive,
-    });
-  } catch (cause) {
-    if (cause instanceof DatabaseLockedError) {
-      // The claim is the boundary, and it is spoken: one process polls one paper.
-      log(`not starting: ${cause.message}`);
-      throw cause;
-    }
-    throw cause;
-  }
-  log(`db: ${db.file}, version ${String(db.version)} (${db.journalMode}), claim ${token.slice(0, 8)}`);
-  if (db.tookOver !== null) {
-    // Spoken, not swallowed: a claim is a promise about a process, and this one
-    // found the process gone. Silent, it reads as "my old server is still running".
-    log(
-      `db: took the claim from "${db.tookOver.owner}" (taken at ${db.tookOver.takenAt}) — that process is not running, so this is a force-killed server's claim, not a second server`,
-    );
-  }
+  const db = await openBootDb(deps.root, token, now, log);
 
   const load = await loadSources(dir);
   reportWatchlist(log, dir, load.issues, load.sources.length);
@@ -216,42 +222,44 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
           },
         });
 
-  const server = createServer(
-    handleRequest({
-      state: () =>
-        stateOf({
-          sources: db.sources,
-          items: db.items,
-          itemEvents: db.itemEvents,
-          snapshots: db.snapshots,
-          masthead: config.masthead,
-          now,
-        }),
-      hub,
-      sources: sourcesRoutesOf({ dir, db, now, log }),
-      pick: pickRoutes({
-        specOf: (id) => readSourceForPick(dir, id, (path) => readFile(path, 'utf8'), sourceFilePath),
-        fetchText: pickTextFetcher(transportDepsOf(pollDeps, now)),
-        launch: openPickSession,
-        // A reader's pick is a window (D-036). Headless would be a pick that picks
-        // nothing: the click is the reader's, and it needs a screen to happen on.
-        headless: false,
-        // `profiles/<id>` is the only credential in this project (rule 17), and
-        // `profile: true` is what makes a logged-in list visible to the pick.
-        profilesDir: join(deps.root, 'profiles'),
-        log,
+  const handler = handleRequest({
+    state: () =>
+      stateOf({
+        sources: db.sources,
+        items: db.items,
+        itemEvents: db.itemEvents,
+        snapshots: db.snapshots,
+        masthead: config.masthead,
         now,
       }),
-      dist: join(deps.root, 'apps', 'web', 'dist'),
+    hub,
+    sources: sourcesRoutesOf({ dir, db, now, log }),
+    pick: pickRoutes({
+      specOf: (id) => readSourceForPick(dir, id, (path) => readFile(path, 'utf8'), sourceFilePath),
+      fetchText: pickTextFetcher(transportDepsOf(pollDeps, now)),
+      launch: openPickSession,
+      // A reader's pick is a window (D-036). Headless would be a pick that picks
+      // nothing: the click is the reader's, and it needs a screen to happen on.
+      headless: false,
+      // `profiles/<id>` is the only credential in this project (rule 17), and
+      // `profile: true` is what makes a logged-in list visible to the pick.
+      profilesDir: join(deps.root, 'profiles'),
       log,
-      addressOf: (req: IncomingMessage) => req.socket.remoteAddress,
+      now,
     }),
-  );
+    dist: join(deps.root, 'apps', 'web', 'dist'),
+    log,
+    addressOf: (req: IncomingMessage) => req.socket.remoteAddress,
+  });
+  // One handler, two sockets: the scheme is decided by `server.tls` and read at the
+  // top of this function, so the line the boot printed is the scheme the socket
+  // speaks (D-034: the address is the wall, and the wall is described truthfully).
+  const server = material === null ? createHttpServer(handler) : createHttpsServer(material, handler);
   const bound = await listen(server, host, port);
   deps.onListen?.(bound);
 
   log(`${config.masthead.name} — ${config.masthead.tagline}`);
-  log(reachLine(host, bound));
+  log(reachLine(host, bound, scheme));
 
   return {
     port: bound,

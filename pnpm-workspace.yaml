@@ -128,5 +128,18 @@ catalog:
   "@vitest/browser-playwright": 5.1.0
   happy-dom: 21.0.4
   playwright: 1.65.0
+  # TLS material for WP17's tests, ruled in D-040: a self-signed pair minted per run
+  # into the OS temp dir, so this public repository holds **no PEM at all** and
+  # `check:secrets` is green by construction, not by exemption. `node-forge` is pure
+  # JS with **zero dependencies** and no install/build script, so `ignoreScripts:
+  # true` and `strictDepBuilds: true` above stay intact, and it runs on the board's
+  # Linux host. (`@peculiar/x509` was tried first, and is measured out: it pulls
+  # `tsyringe`, which refuses to load without a `reflect-metadata` polyfill at the
+  # entry point — two dependencies, one of them a global side-effect, for a test
+  # fixture. `selfsigned` is the same `@peculiar`/`pkijs` tree.) devDependency of
+  # `packages/server` only: it never enters the paper's runtime, and `pnpm start`
+  # reads a certificate from disk with `node:crypto` alone.
+  node-forge: 1.4.3
+  "@types/node-forge": 1.3.14
 
 catalogMode: prefer

@@ -114,14 +114,31 @@ on the table, and the deciding fact is that **this repository is public on GitHu
   why one host name works and two answer `asn1 encoding routines::wrong tag`; and
   `Array.prototype.flat` does not flatten a `Uint8Array`, so `[u8, u8].flat()` is two
   elements and `new Uint8Array` of that is **zeros**.
+- **`@peculiar/x509`**, this record's first choice, **does not load.** It depends on
+  `tsyringe@4.10.0`, a dependency-injection container, whose entry point throws
+  `tsyringe requires a reflect polyfill. Please add 'import "reflect-metadata"'`. So
+  one test certificate would have arrived with a DI container **and** a global
+  `Reflect` patch, imported at the entry of `packages/server`, changing reflection for
+  every module loaded after it - the only side-effect import in a tree whose seams are
+  all plain function parameters (`BootDeps`, `PollDeps`, `PickApiDeps`).
+  `selfsigned@5.5.0` is the same `@peculiar`/`pkijs` tree.
 
-**Chosen: `@peculiar/x509@3.1.0` as a devDependency** (verified: pure JS -
-`tsyringe`, `@peculiar/asn1-*`, `asn1js`; no native modules, no install scripts, no
-`os`/`cpu` constraints), **minting a fresh self-signed pair per run into the OS temp
-dir.** The repo then contains no PEM, so `check:secrets` is green by construction
-rather than by exemption, the pair is cross-platform, and the same fixture can mint
-the arms the tests need: a pair for a LAN IP, an expired pair, a key without its
-certificate.
+**Chosen: `node-forge@1.4.3` + `@types/node-forge@1.3.14` as a devDependency of
+`packages/server`** - pure JS, **zero dependencies**, no install/build script, so
+`ignoreScripts: true` and `strictDepBuilds: true` in `pnpm-workspace.yaml` stay intact
+and it runs on the board's Linux host - **minting a fresh self-signed pair per run into
+the OS temp dir** (`test/tlsFixture.ts`). The repo then contains no PEM, so
+`check:secrets` is green by construction rather than by exemption, the pair is
+cross-platform, and the same fixture mints the arms the tests need: a pair for a LAN
+IP, an expired pair, a certificate whose key is a different file. The runtime grows by
+nothing: `pnpm start` reads a certificate with `node:crypto` alone, and the
+dependency appears in test code only.
+
+One measured trap in the keeper, because the message names neither the caller nor the
+field: forge spells the **certificate** extension's list `altNames`; `alt` is the
+certification-**request** form. Built with `alt`, the extension reaches the encoder
+unset and dies at `x509.js:2273` as `TypeError: Cannot read properties of undefined
+(reading 'length')`.
 
 Two consequences, both deliberate:
 

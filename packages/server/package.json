@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/node-forge": "catalog:",
+    "node-forge": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "typescript": "catalog:",
