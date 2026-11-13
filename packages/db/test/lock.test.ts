@@ -119,7 +119,25 @@ describe('the claim row', () => {
       const message = (cause as DatabaseLockedError).message;
       expect(message).toContain('keeper');
       expect(message).toContain(FIXED.toISOString());
-      expect(message).toMatch(/900000|30000/);
+      // The window **this opener was given**, not the library default: the message
+      // printed 900000 always, and this assertion accepted either number — which is
+      // how the defect survived. A reader told to wait 15 minutes for a 10-minute rule
+      // re-runs the command for nothing.
+      expect(message).toContain('30000 ms');
+    }
+    holder.close();
+  });
+
+  it('names the window the server boots with, so the wait the reader is told is the real one', () => {
+    const shared = sharedMemory('lock-window');
+    const boot = 600_000; // `bootDb.ts`: 10 minutes, the number docs/architecture.md states.
+    const holder = openDatabase(shared, { token: 'keeper', now: () => FIXED, lockStaleAfterMs: boot });
+    try {
+      openDatabase(shared, { token: 'greedy', now: at(1_000), lockStaleAfterMs: boot });
+      expect.unreachable('a second opener was let in');
+    } catch (cause) {
+      expect(cause).toBeInstanceOf(DatabaseLockedError);
+      expect((cause as DatabaseLockedError).message).toContain(`${boot} ms of silence`);
     }
     holder.close();
   });

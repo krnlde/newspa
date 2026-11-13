@@ -31,10 +31,17 @@ export const DEFAULT_BUSY_TIMEOUT_MS = 5000;
 export const DEFAULT_LOCK_STALE_MS = 15 * 60 * 1000;
 
 export class DatabaseLockedError extends Error {
-  constructor(owner: LockOwner) {
+  /**
+   * `staleAfterMs` is the window **in force**, not the default: the server boots with
+   * 10 minutes (`bootDb.ts`) and the message used to print the 15-minute default, so a
+   * reader told to wait 15 minutes was waiting for a rule the running server does not
+   * use (docs/architecture.md says 10). A refusal that names a number the code does not
+   * obey is a dead end, not an explanation.
+   */
+  constructor(owner: LockOwner, staleAfterMs: number) {
     super(
       `another process holds this database (claim "${owner.owner}" taken at ${owner.takenAt}); ` +
-        `it is takeable after ${DEFAULT_LOCK_STALE_MS} ms of silence, at once if the caller can prove that owner is not running`,
+        `it is takeable after ${staleAfterMs} ms of silence, at once if the caller can prove that owner is not running`,
     );
     this.name = 'DatabaseLockedError';
   }
@@ -99,13 +106,14 @@ export const openDatabase = (file: string, options: OpenOptions = {}): Database 
   const token = options.token ?? randomUUID();
 
   try {
+    const staleAfterMs = options.lockStaleAfterMs ?? DEFAULT_LOCK_STALE_MS;
     const claim = claimLock(tx, {
       token,
       now,
-      staleAfterMs: options.lockStaleAfterMs ?? DEFAULT_LOCK_STALE_MS,
+      staleAfterMs,
       ...(options.ownerIsAlive === undefined ? {} : { isAlive: options.ownerIsAlive }),
     });
-    if (!claim.ok) throw new DatabaseLockedError(claim.owner);
+    if (!claim.ok) throw new DatabaseLockedError(claim.owner, staleAfterMs);
 
     const applied = migrate(tx, { now, migrations });
     let open = true;
