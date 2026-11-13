@@ -65,10 +65,21 @@ const textOf = (item: PickedItem): string =>
 const sectionOfItem = (spec: SourceSpec, item: PickedItem): string =>
   spec.section === undefined ? sectionFor(`${item.title} ${item.summary ?? ''}`) : sectionOf(spec.section).id;
 
-/** The realtime score. `scoreDigest` is the digest pass's column, and no digest has run. */
-const scoreOf = (spec: SourceSpec, item: PickedItem, rules: ScoreRules, now: Date): number =>
+/**
+ * The realtime score. `scoreDigest` is the digest pass's column, and no digest has
+ * run. The sighting is passed in, not read from the item: a publisher that declares
+ * no date leaves the paper's own instant as the only honest age, and that is the age
+ * the card prints (D-047).
+ */
+const scoreOf = (spec: SourceSpec, item: PickedItem, seenAt: string, rules: ScoreRules, now: Date): number =>
   scoreItem(
-    { title: item.title, summary: item.summary, publishedAt: item.publishedAt, sourceLabel: spec.label },
+    {
+      title: item.title,
+      summary: item.summary,
+      publishedAt: item.publishedAt,
+      firstSeenAt: seenAt,
+      sourceLabel: spec.label,
+    },
     rules,
     now,
   ).total;
@@ -152,7 +163,7 @@ export const publishItems = (
   const events: NewItemEvent[] = [];
   for (const item of picked) {
     const before = repos.items.itemOf(spec.id, item.key);
-    const score = scoreOf(spec, item, rules, now);
+    const score = scoreOf(spec, item, before?.firstSeenAt ?? takenAt, rules, now);
     const report = before === undefined ? null : editReport(textOf(before), textOf(item), spec.minEditRatio);
     const changed = report?.meaningful === true ? takenAt : null;
     repos.items.upsert(itemWriteOf(recordOf(spec, item, before, changed, score, takenAt), sectionOfItem(spec, item)));

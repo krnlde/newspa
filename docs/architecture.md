@@ -107,6 +107,8 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    with both counts in the note. **Unbuilt:** `detectBurst` is in core and no poll
    path calls it, so the disappearance ladder has no burst interlock (D-029).
 8. `score` deterministically (watchwords, source weight, recency, headline substance).
+   Recency reads the publisher's date, and the paper's own sighting when the publisher
+   declared none — the instant the card prints, so rank and age cannot disagree (D-047).
 9. Write: `items` upsert, `item_events` insert, `snapshots` insert (one row per
    poll, including the 304s), `sources.health` + validator state, `system_log` for
    anomalies. The ladder's two columns (`missing_streak`, `gone_at`) are written

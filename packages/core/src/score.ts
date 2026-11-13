@@ -22,6 +22,11 @@ export interface ScoreInput {
   readonly title: string;
   readonly summary: string | null;
   readonly publishedAt: string | null;
+  /**
+   * The paper's own sighting of this item, per item and never null. It is the age
+   * scored when the publisher declared none — see `scoreItem`.
+   */
+  readonly firstSeenAt: string;
   readonly sourceLabel: string;
 }
 
@@ -53,11 +58,22 @@ export const tierFor = (total: number): StoryTier => {
 };
 
 const hoursSince = (iso: string | null, now: Date): number => {
+  // 72 is the floor for an instant that **cannot be read**, never the answer for an
+  // undated story: the caller hands the sighting in, so the age scored is the age
+  // printed. An invented 3 days is what let a card read "seen just now" and rank
+  // mid-list at once — one item, two clocks (D-047).
   if (iso === null) return 72;
   const at = Date.parse(iso);
   if (Number.isNaN(at)) return 72;
   return Math.max(0, Math.min(336, (now.getTime() - at) / 3_600_000));
 };
+
+/**
+ * The instant an age is measured from: the publisher's date, and the paper's own
+ * sighting when the publisher declared none. The card prints that same instant, so
+ * the ranked order and the printed age come from one number (D-047).
+ */
+const datedFrom = (input: ScoreInput): string | null => input.publishedAt ?? input.firstSeenAt;
 
 /**
  * Deterministic scoring: recency decay + watchword hits + source weight.
@@ -93,7 +109,7 @@ export const scoreItem = (input: ScoreInput, rules: ScoreRules, now: Date): Scor
   total += sourceWeight * 2;
   if (sourceWeight >= 3) reasons.push(`source weight ${sourceWeight}`);
 
-  const age = hoursSince(input.publishedAt, now);
+  const age = hoursSince(datedFrom(input), now);
   const recency = 4 * 0.5 ** (age / Math.max(1, rules.recencyHalfLifeHours));
   total += recency;
   if (age <= 3) reasons.push('breaking');

@@ -255,7 +255,7 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
                   roadmap-closed-device.md (TLS, the install, the offline edition),
                   decisions.md + decisions-surface.md (the page, the address, the
                   reading list, the one overlay, the picker) + decisions-surface-nav.md (the spine, and no mark behind
-                   copy) + decisions-display.md
+                   copy) + decisions-display.md + decisions-display-dates.md (D-047, the dates)
                   (the device: the server's place, the two display axes, install and
                   TLS), decisions-tooling.md + decisions-styling.md (the CSS law,
                   split at the cap),

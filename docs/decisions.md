@@ -11,7 +11,8 @@ The surface - the page as the product (D-002), the reading list (D-025), the
 address as the wall (D-034) and the one overlay (D-035) - is in
 `decisions-surface.md`. The device - the server's place (D-037), the two display
 axes (D-038), TLS and the install (D-039), and where a test certificate comes from
-(D-040) - is in `decisions-display.md`. Tooling, dependency, testing and paper-shape decisions
+(D-040) - is in `decisions-display.md`; its D-047, the paper's dates, is in
+`decisions-display-dates.md` (split at the cap). Tooling, dependency, testing and paper-shape decisions
 live in `decisions-tooling.md`; the paper's CSS law, its vocabulary, and how the
 styling is measured, in `decisions-styling.md` (D-024, split at the 300-line cap).
 Detection, selector language, `gone`, identity

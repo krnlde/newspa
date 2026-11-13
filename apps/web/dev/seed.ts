@@ -116,7 +116,13 @@ const rules = defaultScoreRules({ watchwords: ['security', 'release', 'v2', 'ker
 const viewOf = (spec: SourceSpec, picked: PickedItem, at: Date): ItemView => {
   const teaser = teaserFor({ title: picked.title, summary: picked.summary, body: picked.body });
   const { total, tier } = scoreItem(
-    { title: picked.title, summary: picked.summary, publishedAt: picked.publishedAt, sourceLabel: spec.label },
+    {
+      title: picked.title,
+      summary: picked.summary,
+      publishedAt: picked.publishedAt,
+      firstSeenAt: at.toISOString(),
+      sourceLabel: spec.label,
+    },
     rules,
     at,
   );

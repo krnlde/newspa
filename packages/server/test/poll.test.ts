@@ -7,11 +7,14 @@
  * The clock is the harness's `FIXED`, so every `takenAt` is a date a test chose;
  * the `fetch` is injected, so nothing here reaches the network.
  */
+
+import { scoreItem } from 'newspa-core';
 import type { Database } from 'newspa-db';
 import { describe, expect, it } from 'vitest';
 import { pollOne } from '../src/poll.ts';
+import { rulesOf } from '../src/pollItems.ts';
 import { fixture, okResponse, pollHarness, storedState, TAKEN_AT } from './pollSupport.ts';
-import { anRssSpec, healthOfSource, stateOfDb, wireItems } from './support.ts';
+import { anRssSpec, FIXED, healthOfSource, stateOfDb, wireItems } from './support.ts';
 
 const spec = anRssSpec({ watchwords: ['inflation', 'central bank'], section: 'World Desk' });
 const frontPage = () => pollHarness(spec, () => okResponse(fixture('feed-bbc-world.xml')));
@@ -90,6 +93,49 @@ describe('one poll of a real feed, written through the repositories', () => {
     const declared = pollHarness(anRssSpec({ section: 'World Desk' }), serve);
     await declared.poll();
     expect(new Set(sectionsOf(declared.db))).toEqual(new Set(['world-desk']));
+  });
+
+  it('scores an undated story from the sighting the card prints, not from a guessed age (D-047)', async () => {
+    // The item declares no `pubDate`, so the paper's sighting is the only instant it
+    // has. The scorer invented 72 hours while the meta line printed the sighting — one
+    // story, two clocks, and a card that read "seen just now" while ranking mid-list.
+    // Two polls, 50 hours apart, are where the two numbers cannot agree by accident.
+    const page = (title: string): string =>
+      `<rss><channel><title>Wire</title><item><title>${title}</title><link>https://bbc.example/bridge</link><description>The trams run again.</description></item></channel></rss>`;
+    const spec = anRssSpec({ watchwords: [] });
+    const h = pollHarness(spec, (call) =>
+      okResponse(page(call === 1 ? 'Harbour bridge reopens' : 'Harbour bridge reopens, the trams run again')),
+    );
+    await h.poll();
+    const seen = h.db.items.list({ sourceId: 'bbc' })[0];
+    if (seen === undefined) throw new Error('the poll wrote no row');
+    expect(seen.publishedAt).toBeNull();
+    expect(seen.firstSeenAt).toBe(TAKEN_AT);
+
+    // The identity the fix is about: the stored score is what scoring the **printed**
+    // instant produces, at the instant the poll was handed. The title is the row's,
+    // because the score is the poll's reading of the story as it stands that day.
+    const at = (row: { title: string; summary: string | null }, now: Date): number =>
+      scoreItem(
+        {
+          title: row.title,
+          summary: row.summary,
+          publishedAt: null,
+          firstSeenAt: TAKEN_AT,
+          sourceLabel: spec.label,
+        },
+        rulesOf(spec),
+        now,
+      ).total;
+    expect(seen.scoreRealtime).toBe(at(seen, FIXED));
+
+    const later = new Date(FIXED.getTime() + 50 * 3_600_000);
+    await h.pollAt(later);
+    const aged = h.db.items.list({ sourceId: 'bbc' })[0];
+    if (aged === undefined) throw new Error('the second poll lost the row');
+    expect(aged.firstSeenAt, 'the sighting is the first sighting, not the last poll').toBe(TAKEN_AT);
+    expect(aged.scoreRealtime).toBe(at(aged, later));
+    expect(aged.scoreRealtime).toBeLessThan(seen.scoreRealtime);
   });
 
   it('publishes the paper: the read side prints the stories the poll wrote', async () => {

@@ -5,10 +5,21 @@ import { countWatchHits, defaultScoreRules, escapeRegExp, scoreItem, tierFor } f
 const NOW = new Date(2026, 10, 9, 12, 0, 0);
 const hoursBefore = (hours: number): string => new Date(NOW.getTime() - hours * 3_600_000).toISOString();
 
-const anInput = (title: string, publishedAt: string | null = null, summary: string | null = null): ScoreInput => ({
+/**
+ * The fixture's sighting defaults to **72 hours** — the age the scorer used to invent
+ * for an undated story — so the suite's totals are the ones this file has always
+ * asserted, and the sighting rule is visible as a variable rather than a constant.
+ */
+const anInput = (
+  title: string,
+  publishedAt: string | null = null,
+  summary: string | null = null,
+  firstSeenAt: string = hoursBefore(72),
+): ScoreInput => ({
   title,
   summary,
   publishedAt,
+  firstSeenAt,
   sourceLabel: 'Src',
 });
 
@@ -146,12 +157,36 @@ describe('scoreItem', () => {
     expect(scored('Alpha Beta Gamma Delta', { sourceWeight: 3 }).reasons).toContain('source weight 3');
   });
 
-  it('treats a missing or unparsable date as 72 hours old', () => {
+  it('treats an unparsable date as 72 hours old', () => {
     const fresh = scored('Alpha Beta Gamma Delta', { sourceWeight: 0 }, NOW.toISOString());
     expect(fresh.total).toBe(4.5);
     expect(fresh.tier).toBe('section');
-    expect(scored('Alpha Beta Gamma Delta', { sourceWeight: 0 }).total).toBe(1);
     expect(scored('Alpha Beta Gamma Delta', { sourceWeight: 0 }, 'not-a-date').total).toBe(1);
+  });
+
+  it('scores an undated story from the paper’s sighting — the age the card prints (D-047)', () => {
+    // A scraped page that declares no date left the scorer guessing 3 days, while
+    // the meta line printed the sighting. One item, two clocks: the card read
+    // "seen just now" and ranked mid-list. Now both read the same instant.
+    const rules = defaultScoreRules({ sourceWeight: 0 });
+    const justSeen = scoreItem(anInput('Alpha Beta Gamma Delta', null, null, hoursBefore(1)), rules, NOW);
+    const longSeen = scoreItem(anInput('Alpha Beta Gamma Delta', null, null, hoursBefore(240)), rules, NOW);
+    expect(justSeen.reasons).toEqual(['breaking']);
+    expect(longSeen.reasons).toEqual(['old']);
+    // The swing is the whole recency weight: the fresh sighting gets it, the old one
+    // has decayed away, and under the invented 72 hours **both** got the same number.
+    expect(justSeen.total - longSeen.total).toBeGreaterThan(3.8);
+  });
+
+  it('ignores the sighting when the publisher declared a date', () => {
+    // The ladder is a ladder: the page's own instant is used only where the
+    // publisher said nothing, never over what the publisher said.
+    const dated = scoreItem(
+      anInput('Alpha Beta Gamma Delta', hoursBefore(240), null, hoursBefore(1)),
+      defaultScoreRules({ sourceWeight: 0 }),
+      NOW,
+    );
+    expect(dated.reasons).toEqual(['old']);
   });
 
   it('decays with the half-life and clamps the age', () => {
