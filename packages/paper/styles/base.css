@@ -112,6 +112,32 @@
   }
 
   /*
+   * A jump to a section glides, and a reader who asked for less motion gets a jump
+   * (D-043). The spine's squares are plain `<a href="#section-world">`, so this one
+   * rule is the whole animation: no script, no library, and the fragment lands in
+   * the URL — which a scripted `scrollTo` would have swallowed.
+   *
+   * The duration is the browser's, and that is a ruling, not an oversight: a 250ms
+   * JS glide was built (a 250ms ease-out on `requestAnimationFrame`, the fragment
+   * written with `pushState`) and **removed** when the reader tried it, because the
+   * page's own scroll felt like the page and the scripted one did not. So there is
+   * no number for the duration in this repo, and the reader who wants a faster
+   * jump changes it in the browser, not in the paper.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /*
+   * The rail is an overlay, so a focused mark must not move the page. Chromium
+   * scrolls a focused element into view: measured, **pressing a square scrolled the
+   * document by 7px**, which is a page that jumps when a reader presses a mark that
+   * navigates nowhere near it. The scroll margin is on the cluster in `spine.css`.
+   */
+
+  /*
    * A reader who asks for contrast gets the rules in ink, not in beige — the law
    * for the **system's** trigger (D-038). The page's own trigger,
    * `[data-contrast='more']`, is answered in `tokens.css`, and the split is the
@@ -196,6 +222,7 @@
     [data-part='contrast-switch'],
     [data-part='install'],
     [data-part='install-recipe'],
+    [data-part='spine'],
     [data-part='health'],
     [data-part='sources-open'],
     [data-part='sources-close'],

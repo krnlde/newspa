@@ -71,7 +71,7 @@ weight and hairlines**:
 - Masthead: `2px` rule above, `4px` below with a `1px` partner (the classic thick/thin pair).
 - Dateline strip: uppercase, `0.5px` hairlines above and below. Its control row is the page's one control row — the two display switches, the editor's entry, the install entry (WP16, D-039) — all in the same `CONTROL` vocabulary, and its stats line prints the worker's stamp (`cached 06:12` / `Stand 06:12`) **only** when the edition was served from a cache.
 - Section head: uppercase label with a `1px` rule extending to the column edge, **sticky** — see below.
-- **Spine**: the section heads as initials, pinned to the scrollbar rail at the position each header has right now; the word is printed only on hover or keyboard focus, and the initial you are inside is ink, the rest muted. Initials, not labels: a wall display and a phone have no hover, and an initial is a tap target. It is a mark in the gutter, so no box, no card, no shadow, and no words at all (D-043).
+- **Spine** (D-043): the sections as **squares of ink on a rail over the scrollbar**, each square at the section head's own fraction of the document, fixed inside the sheet's gutter, printing **nothing else** — no guideline, no registration tick, no progress band. A place where several sections begin in one row — WORLD, TOP STORIES, POLITICS on the front page — is **one cluster of squares side by side**, never a stacked column the page does not have. Hover, focus or pen **expands the cluster into a vertical list**: each square keeps the rail's right edge, grows its own title to the left on the stock's colour, and the title is the anchor that jumps to the section's position. The expanded box is the text's own width, so the page under the rail keeps its clicks. The section you are in is ink and bold, the rest muted. It is an **overlay that reflows nothing** (the columns' left edge is identical with the rail mounted, measured in Edge), and it is not an overlay in D-035's sense: no panel, no scrim, nothing to escape from. Below `640px` the paper is one column and the spine is not printed.
 - Story separators inside a column: `0.5px` hairline, `1.25rem` of air.
 - Ornament (`❦`) between the lead and the fold, centred, muted.
 - Drop cap (`::first-letter`, 2-line) on the lead deck only.
@@ -128,18 +128,21 @@ tailwindcss.com's own stylesheet** (CSSOM, 2026-11-09) rather than eyeballed, an
 only the palette changed — the ink is the paper's own ink at 10%, the ring is the
 hairline, and there is no radius, no fill and no shadow:
 
-| mark               | what it is                                                                            | where it prints                                                              |
-| ------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| diagonal crossings | `repeating-linear-gradient(315deg, …1px, transparent 0, transparent 50%)`, 10 px tile | the stock under the sheet (fixed, **never in print**); a non-`ok` health row |
-| dot grid           | `radial-gradient(… 1px, transparent 0)`, 10 px tile                                   | inside a panel                                                               |
-| guideline          | 1 px inset ring                                                                       | the sheet and every panel                                                    |
-| crop marks         | the printer's corner ticks                                                            | the sheet and the lead's figure, **in the waste outside the box**            |
+| mark               | what it is                                                                            | where it prints                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| diagonal crossings | `repeating-linear-gradient(315deg, …1px, transparent 0, transparent 50%)`, 10 px tile | the stock under the sheet (fixed, **never in print**) — and **behind no words** (D-044) |
+| dot grid           | `radial-gradient(… 1px, transparent 0)`, 10 px tile                                   | **in the vocabulary only**: no box that carries copy (D-044)                            |
+| guideline          | 1 px inset ring                                                                       | the sheet and every panel                                                               |
+| crop marks         | the printer's corner ticks                                                            | the sheet and the lead's figure, **in the waste outside the box**                       |
 
-The crossings are the cross-hatch a newspaper prints **where a photograph is
-missing**, so a health row that carries them marks an absence — that is what
-keeps the layer structural rather than decorative. The sheet is a solid panel of
-paper lying on that stock. Rails, "edited", health and onboarding are panels:
-ring, dots, padding.
+**A mark may frame a box, shade a region, or be the page's ground — it may not sit
+behind words** (D-044, the reader's ruling, twice, by screenshot). The patterns are
+`--pattern-fg`: **10% of `--ink`, the ink the copy is set in**, so a field of them
+behind text is that text made noisy, at its own colour. The `panel` utility is
+therefore the ring and the padding, and rails, "edited", health and onboarding print
+no field. The crossings' old job on a health row — the cross-hatch a newspaper prints
+**where a photograph is missing** — is done by the row's state word, the source's own
+note, and the hairline between rows, which is what the mark was standing for.
 
 **Every box with a rule is padded.** `--spacing-box` is 1 rem, `--spacing-box-wide`
 2 rem from 40 rem. A border with content flush to it is the defect every

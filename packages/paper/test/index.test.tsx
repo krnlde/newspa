@@ -16,6 +16,9 @@ import type {
   SourcesModalProps,
   SourcesProps,
   SourcesTemplateLabels,
+  SpineGroup,
+  SpineMark,
+  SpineProps,
   StoryLabels,
   StoryProps,
   StorySlot,
@@ -47,6 +50,7 @@ const COMPONENTS: readonly string[] = [
   'Onboarding',
   'Paper',
   'Section',
+  'Spine',
   'SourcesModal',
   'SourcesPanel',
   'Story',
@@ -80,6 +84,9 @@ export type PublicTypeSurface = [
   SourcesModalProps,
   SourcesProps,
   SourcesTemplateLabels,
+  SpineGroup,
+  SpineMark,
+  SpineProps,
 ];
 
 /**

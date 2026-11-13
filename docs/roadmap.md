@@ -22,13 +22,16 @@ What is left is quality of life, not architecture, and the queue is the reader's
 next sentence: _put it on a screen that is not a laptop._ **WP16 (the installable
 paper) is built**, and so is **WP17 (TLS)**, the address it needed: the paper installs,
 the worker keeps the last edition, and the dateline strip says when the page is served
-from a cache. So the next package is **WP15 (the board)**, the recipe that ties them to
+from a cache. The page has a way to navigate a long edition now: **WP18 (the spine)** is
+built, the rail of squares over the scrollbar, and it brought **D-044** with it — no
+mark behind words. So the next package is **WP15 (the board)**, the recipe that ties them to
 D-037's topology. After it:
 search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
 README (WP13). Closed packages are in `docs/roadmap-closed.md` (the pipeline) and
-`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS, the install)
+`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS, the install,
+the spine)
 with what each
-measured - WP1, WP2, WP3, WP6, WP12, WP14, WP16, WP17; read WP12 before reopening those files.
+measured - WP1, WP2, WP3, WP6, WP12, WP14, WP16, WP17, WP18; read WP12 before reopening those files.
 (WP4 and WP5 are built and recorded below, where their open halves are named.)
 
 ## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_

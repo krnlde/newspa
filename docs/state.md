@@ -79,10 +79,12 @@ the page — and its run half, `docs/state-device.md`: the `db_lock` claim (D-04
 `start` taking no arguments (D-042), TLS as the scheme (D-039), and the installable
 paper (WP16).
 
-**paper**: browser-safe, consumed by the app, fourteen modules. The barrel's public
-surface is eight components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,
-`HealthStrip`, `Onboarding`, `SourcesPanel`), the label/props types — including
-`SourcesLabels`/`SourcesProps`, because the panel prints no string of its own (D-019) —
+**paper**: browser-safe, consumed by the app, fifteen modules. The barrel's public
+surface is nine components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,
+`HealthStrip`, `Onboarding`, `SourcesPanel`, `Spine`), the label/props types — including
+`SourcesLabels`/`SourcesProps`, because the panel prints no string of its own (D-019),
+and `SpineProps`/`SpineGroup`/`SpineMark`, because the rail prints only the section's
+own word, which is the publisher's —
 and one string —
 `sheetClass`, the shell's class string, public because the app's loading and
 failure states are shells of the same page. `packages/paper/test/index.test.tsx`
@@ -93,18 +95,27 @@ failing test.
 '/api/events'`, and the three source verbs, each answer parsed by a core schema before
 the app sees it), `SourcesSection.tsx` (the panel's wire: the list query, the two
 mutations, and the rule that a refusal **rejects** so the editor keeps the reader's
-text), `sourcesTemplates.ts` (the three skeletons), i18n chrome, the dev API plugin and
+text), `sourcesTemplates.ts` (the three skeletons), `spine.ts` (the rail's one number:
+`cluster` — sections whose heads share a position are one place — and `groupsOf`, the
+fractions read from the layout, plus one `IntersectionObserver` for the section the
+reader is in and one `ResizeObserver` for the heights that move under the page: **no
+scroll listener**, D-043), i18n chrome, the dev API plugin and
 the seed.
 
 ## Styling: Tailwind v4, migration complete
 
-Tailwind v4 (D-024). Four stylesheets remain, all of them the residue a utility
+Tailwind v4 (D-024). Five stylesheets remain, all of them the residue a utility
 cannot express: `tokens.css` (`@theme` vocabulary + the dark / print / contrast
 rebinding, so no `dark:` or `print:` variant exists), `base.css` (`@layer base`
 
 - the flash keyframes), `marks.css` (the sketch layer: diagonal crossings 315°,
   dot grid, hairline inset ring, crop marks — geometry copied from
-  tailwindcss.com's own stylesheet, recoloured to newsprint), `paper.css` (the
+  tailwindcss.com's own stylesheet, recoloured to newsprint; and the law that
+  **a mark never sits behind copy**, so `panel` is the ring and the padding, D-044),
+  `spine.css` (the rail, D-043: every rule `position: fixed` or `absolute` inside a
+  fixed box, so it reflows nothing — the row of squares, the submenu that expands into
+  a vertical list on `:hover`/`:focus-within`, the `--i`/`--at` transitions, and the
+  640px floor), `paper.css` (the
   entry, imported by `App.tsx`). The four BEM sheets — `sheet.css`, `blocks.css`,
   `front.css`, `stories.css`, 661 lines — are deleted, and no BEM class name
   survives in the repo's own code:

@@ -54,6 +54,7 @@ const SRC_FILES: readonly string[] = [
   'SourcesModal.tsx',
   'SourcesNew.tsx',
   'SourcesPanel.tsx',
+  'Spine.tsx',
   'Story.tsx',
   'blockHead.ts',
   'index.ts',

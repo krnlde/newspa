@@ -166,3 +166,69 @@ id keying, the poll stopping on `picked`/`failed`/error/unmount, and **no
 `POST /api/sources`** when a pick lands. The stub window reports a real fingerprint
 against a real page, so the pre-commit floor (rule 16) runs all of this on a machine
 with no browser.
+
+## WP18 — closed: the spine, and the marks that came off the words (2026-11-13)
+
+**The ask was one sentence**: _"add a spine … to indicate the sections in the article
+view, similar to the scrollbar."_ What shipped is the rail over the scrollbar, the
+sections as squares of ink at the position each section head has, and a cluster that
+expands into a vertical list whose titles are the anchors (D-043). Seven rulings from
+the reader reshaped it, each recorded in `docs/decisions-surface-nav.md`, and **four
+things that were built and shipped were then deleted**: a `CONTENTS` panel (_"No extra
+menu should open. This essentially works as a submenu"_), the rail's guideline,
+registration ticks, progress band and window band (_"remove all the lines, just keep
+the squares"_), a 1px tick as the mark (_"the thin lines are almost impossible to
+click"_), and a 250ms scripted scroll (_"Now there is no animation at all"_ — the
+browser's own `smooth` stays, and **no scroll-duration number is in this repo**).
+
+**The collision rule is the one inherited from the 2013 ancestor** — a mark's place is
+the section's fraction of the document — and the plugin's `$li.hide()` is refused: the
+front page prints WORLD, TOP STORIES and POLITICS **in one row**, so three sections
+share a position, and a spine that hides collisions hides two sections. A cluster is
+one place, its squares sit **side by side** (a row of three at y 119, x 1408/1415/1422,
+measured in Edge), and expanding it moves x left, never y down.
+
+**Measured, and it changed the code.**
+
+- The app gates the rail on `edition.sections.length`, not the component: the entries
+  the marks need are read from the layout, and a rail mounted by its own ticks measures
+  zero, so every mark piled at the top.
+- A `position: fixed` **fragment target** makes Chromium scroll the document — the page
+  moved 92px to open a panel. Fixed targets are not anchors.
+- A focused element is scrolled into view: pressing a square moved the page **7px**.
+  `scroll-margin-block: 100vh` on the cluster is what answers it, found by measuring the
+  scroll with the mouse out of the way.
+- `:target` is resolved **at navigation time**, so a hash present at load never matches
+  a React-rendered box.
+- The rail's width is not taste: the sheet's own gutter is **40px at 1440, 30.7px at
+  1024, 23px at 768** (`pnpm shots` prints it), and the 1.25rem rail lives inside all
+  three. The spine is not printed below `640px`.
+- `--spine-pitch` (7px) is the threshold that makes marks "the same place", and it is
+  read out of the CSS by a test, so the script's collision and the square's spacing
+  cannot drift apart.
+- **No relayout**: `[data-part='columns']` is `x` 81 at 1440 with and without the rail
+  and with a cluster open, and the document's scroll width is identical with and without
+  the rail. The strip is `pointer-events: none`, the cluster is `auto`.
+
+**And then the marks (D-044).** The reader sent a screenshot of WORLD and TOP STORIES:
+_"the dotted background … visual noise behind the text, they have the same color"_, then
+_"Same for the Edited and Sources panels"_, then _"The sources also have a hatching.
+This is super distracting"_. The patterns are `--pattern-fg` — **10% of `--ink`, the ink
+the copy is set in** — so behind text a pattern is that text made noisy. `panel` is now
+the ring and the padding, `panel-bare` (introduced mid-ruling) is folded back in, the
+health row's `pattern-crossings` is gone, and `pattern-dots`/`pattern-crossings` survive
+as vocabulary for a box with no copy. The law is in `AGENTS.md` rule 11, `docs/design.md`
+and `marks.css`: **a mark may frame a box, shade a region, or be the page's ground — it
+may not sit behind words.**
+
+**Accept.** paper 184 (9 for the rail: a square per section, `--at`/`--i` per mark, the
+group label is the section's own word, `aria-current` marks where the reader is, the
+group has no `href`); web unit 13 (`cluster`: a place is a place, neighbours are
+clusters, 3-of-3, 1-of-2; a section with no DOM entry is skipped); **web design, real
+Edge, 11** (the rail is fixed, squares-only, `aria-current` answers the page, the
+cluster's y is the section head's y, squares side by side 7px apart, the cluster grows
+**left not down**, every title's right edge is the rail's, marks 24px apart, the
+`transform`/`inline-size` transition is `260ms … 0ms, …` so both properties animate, the
+columns' left edge is identical, the title's click area is its text). The `boxes.test`
+claim now asserts the **absence** of a field on rails, "edited" and health, and that
+each keeps its ring and its `--spacing-box` padding.

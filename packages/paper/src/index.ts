@@ -19,6 +19,7 @@ export {
   type SourcesProps,
   type SourcesTemplateLabels,
 } from './SourcesPanel.tsx';
+export { Spine } from './Spine.tsx';
 export { EditDiff, Story } from './Story.tsx';
 export type {
   FormatProps,
@@ -27,6 +28,9 @@ export type {
   MastheadProps,
   SectionProps,
   SourcesControl,
+  SpineGroup,
+  SpineMark,
+  SpineProps,
   StoryLabels,
   StoryProps,
   StorySlot,

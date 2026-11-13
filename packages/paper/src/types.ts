@@ -119,6 +119,43 @@ export interface InstallControl {
 export type InstallMode = 'prompt' | 'recipe' | 'none';
 
 /**
+ * One section's square on the rail (D-043). `id` is the anchor the panel's title
+ * points at — `Section.tsx` stamps `id="section-<id>"` on every section, so the
+ * spine adds no ids and invents no targets; `active` is the section the reader
+ * is in.
+ */
+export interface SpineMark {
+  readonly id: string;
+  readonly title: string;
+  readonly active: boolean;
+}
+
+/**
+ * One **place** on the rail (D-043): `at` is its fraction of the rail (0..1), and
+ * `marks` are the sections that begin there. The front page prints WORLD, TOP
+ * STORIES and POLITICS in one row, so those three heads are at one y, and the
+ * reader's ruling is that the rail says so: **the squares of one place sit side
+ * by side in one cluster**, and each square names its own section when the
+ * pointer is on it. Not one square stacked under the next, which is a column the
+ * page does not have.
+ */
+export interface SpineGroup {
+  readonly at: number;
+  readonly marks: readonly SpineMark[];
+}
+
+/**
+ * The spine's props: the clusters, and the rail's accessible name — the only word
+ * the app owns here (D-019). A square's name is its section's title, which is the
+ * publisher's, and an anchor's accessible name is its text, so the paper needs no
+ * label of its own: there is no menu to name, because there is no menu.
+ */
+export interface SpineProps {
+  readonly groups: readonly SpineGroup[];
+  readonly railLabel: string;
+}
+
+/**
  * The stock's two axes (D-038): `theme` answers "which stock", `contrast` answers
  * "how hard". They are **not** one enum of four modes: the pair composes, the CSS
  * rebinds the same token names under `[data-theme]` and `[data-contrast]`, and a

@@ -26,6 +26,14 @@
 @import './tokens.css';
 @import './base.css';
 @import './marks.css';
+@import './spine.css';
+
+/*
+ * `spine.css` is the one sheet of the paper's **overlay** layer (D-043): every
+ * rule in it is `position: fixed`, and it relayouts nothing. It follows
+ * `marks.css` because it borrows that file's marks — the guideline, the crop
+ * tick, the dot grid, the hatch — and a mark has one definition.
+ */
 
 /*
  * The four hand-written sheets that used to be imported here are gone, and with

@@ -1,0 +1,226 @@
+/*
+ * The spine (D-043): the sections as **squares on a rail over the scrollbar**, and
+ * the titles that appear when a square is asked for them.
+ *
+ * The rail draws **nothing but its squares**. That is the reader's ruling, given
+ * after reading the live page: a guideline, a printer's registration tick and a
+ * hatched progress band in the gutter read as debug marks, not as the paper's own,
+ * and a 1px rule is not something a thumb can find. What is left is the paper's
+ * vocabulary: a 5px square of ink, the hatch as the word for "press me"
+ * (`marks.css`: the crossings shade a region, they never paint one), a hairline
+ * ring for the keyboard, and the deck's own volume for a title.
+ *
+ * **A cluster is a place, and a place has one y** (the reader's ruling, measured on
+ * the live page). The front page prints WORLD, TOP STORIES and POLITICS in one row,
+ * so their heads are at one document position, and the rail shows that: three
+ * squares **side by side**, not stacked in a column the page does not have.
+ *
+ * **The cluster is a submenu, and it is the whole of the navigation.** Hovering —
+ * or focusing, the keyboard's and the pen's way — expands it: the squares keep their
+ * column at the rail and each grows its title to the left, in the deck's volume,
+ * right-aligned, stacked. The title is the link. There is no panel and no dialog:
+ * D-035's one-overlay law is untouched, because the spine adds no overlay at all.
+ *
+ * Rules this file keeps, each answerable to a law:
+ *
+ *  - **no scrim, no shadow, no radius, no card, no saturated colour** (rule 11): the
+ *    revealed title sits on `--paper`, the stock's own colour, which is the
+ *    newspaper's knockout — text made legible over other text, not a box laid on it;
+ *  - **no script for the reveal, the jump, or the motion** — `:hover`,
+ *    `:focus-within` and a native `<a href="#section-world">`, so the URL keeps the
+ *    section, the back button works, and a device with no JavaScript has a rail of
+ *    links;
+ *  - **an overlay, and it relayouts nothing** (the reader's ruling): every rule in
+ *    this file is `position: fixed` or `position: absolute` inside a fixed box, and
+ *    none touches a box in the flow. The width is set by measurement, not taste —
+ *    the sheet's gutter is 40px at 1440, 30.7px at 1024 and 23px at 768 (`pnpm
+ *    shots`), so a 1.25rem rail sits **inside the gutter** and covers no rule, no
+ *    column and no word. `apps/web/test/design/spine.test.tsx` asserts that with the
+ *    rail mounted the columns' left edge has not moved;
+ *  - **`z-index: 3`** is above the **sticky** block heads (`z-[2]`, `blockHead.ts`):
+ *    they scroll under an opaque label, and a revealed title that scrolled under one
+ *    would be a word the reader cannot finish reading.
+ *
+ * The one number the sheet cannot read is set by `apps/web/src/spine.ts`: `--at` on
+ * a cluster, its fraction of the document.
+ */
+
+@layer base {
+  [data-part='spine'] {
+    position: fixed;
+    inset-block: 0;
+    /* Not flush to the viewport edge: a classic scrollbar is ~15px and would eat
+       the squares, and on a tablet the overlay scrollbar floats over them. 12px in
+       from the edge is inside the sheet's own gutter at every width the spine is
+       printed at (measured: 23px at 768, 30.7px at 1024, 40px at 1440). */
+    inset-inline-end: 0.75rem;
+    inline-size: var(--spine-width);
+    z-index: 3;
+    /* Lets a width animate to `max-content`, which is what the expanded mark is: a
+       line of type, no wider. Baseline in Chromium 129, Firefox 156, Safari 26
+       (measured on this page's Edge 157); where it is absent the state snaps, which
+       is the same shape, only less graceful. */
+    interpolate-size: allow-keywords;
+    /* The strip is wide so a thumb reaches it; only a cluster's box takes the
+       pointer, so the gutter's air never steals a click from a link. */
+    pointer-events: none;
+  }
+
+  /* The rail: the box the clusters are measured against. It draws nothing — the
+     squares are the rail. `inset-block` is `--spacing-box` deep at each end, so a
+     square never crowds the sheet's own top rule. */
+  [data-part='spine-rail'] {
+    position: absolute;
+    inset-block: var(--spacing-box);
+    inset-inline: 0;
+  }
+
+  /*
+   * A cluster: one place on the rail. At rest it is a **row of squares**, centred
+   * on `--at` — the fraction of the rail the script measured — and each square sits
+   * at `--i` × `--spine-pitch` leftward, because a place with three sections
+   * beginning in it has three squares and one y.
+   *
+   * The box is `--spine-tap` (24px) deep, so the strip a thumb finds is 24px high
+   * across the whole cluster. It cannot be 24px per square: the rail is 20px wide,
+   * and a place of three has 6.6px to give each. The rest of the target is the
+   * animation — expanding the cluster makes each mark a full line of type. The Edge
+   * test measures both numbers.
+   */
+  [data-part='spine-cluster'] {
+    position: absolute;
+    top: calc(var(--at) * 100%);
+    inset-inline-end: 0;
+    inline-size: var(--spine-width);
+    block-size: var(--spine-tap);
+    transform: translateY(-50%);
+    /* A click on a mark focuses it, and Chromium scrolls a focused element into
+       view: measured, the page moved **7px** as a square was pressed, which breaks
+       the spine's one law. Scroll margins the height of the viewport make the fixed
+       mark count as already in view, so the focus scrolls nowhere — and a jump to a
+       section, which is the browser navigating to a box in the flow, is untouched. */
+    scroll-margin-block: 100vh;
+    pointer-events: auto;
+  }
+
+  /*
+   * A section at that place: its square, and its word, in **one** link — so a tap
+   * on the mark and a click on the title are the same jump, there is no dead mark,
+   * no second tab stop, and one name to a screen reader, which is the section's own
+   * word.
+   *
+   * At rest the box is a square wide and the word is clipped away inside it.
+   * Expanded it is a line of type wide, and the word slides out of the rail. Both
+   * the place (`transform`) and the width are transitioned, which is the animation:
+   * the squares travel from the row into a column while their titles run out beside
+   * them. `cubic-bezier(0.22, 1, 0.36, 1)` is an ease-out that arrives and stops,
+   * and `base.css` kills the duration for a reader who asked for less motion.
+   */
+  [data-part='spine-mark'] {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    display: flex;
+    flex-direction: row;
+    /* Packed to the rail's edge, in both shapes: at rest the box is a square wide,
+       and the five pixels it shows are the square, not the word's first letters. */
+    justify-content: flex-end;
+    align-items: center;
+    /* No gap: the strip between a title and its square would be dead space that
+       takes the pointer's click away from the column it covers. */
+    gap: 0;
+    inline-size: var(--spine-bullet);
+    block-size: var(--spine-tap);
+    overflow: hidden;
+    transform: translateX(calc(var(--i) * var(--spine-pitch) * -1));
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      inline-size 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    text-decoration: none;
+    white-space: nowrap;
+    color: inherit;
+  }
+
+  [data-part='spine-square'] {
+    /* The square is the mark's last word, and sits at the rail's right edge in both
+       shapes: the bullets stay on the right, and the title grows out to the left. */
+    inline-size: var(--spine-bullet);
+    block-size: var(--spine-bullet);
+    background: var(--ink-2);
+    flex: none;
+  }
+
+  /* The word, right-aligned in the box that grows, so it reads out of the rail and
+     its end stays put. `--paper` is the stock's own colour: the newspaper's
+     knockout, which makes text legible over other text without drawing a card. */
+  [data-part='spine-label'] {
+    flex: none;
+    padding-inline: 0.4rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: var(--text-deck);
+    line-height: var(--leading-read);
+    text-align: end;
+  }
+
+  /* The section the reader is in: its square is ink and grows by a pixel, and its
+     title is set bold, which is the paper's one word for "you are here". */
+  [data-part='spine-mark'][data-active='true'] [data-part='spine-square'] {
+    background: var(--ink);
+    inline-size: calc(var(--spine-bullet) + 2px);
+    block-size: calc(var(--spine-bullet) + 2px);
+  }
+
+  [data-part='spine-mark'][data-active='true'] [data-part='spine-label'] {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /*
+   * **The submenu.** The pointer, the keyboard or the pen expands the cluster: each
+   * mark leaves the row, drops to `--i` × `--spine-tap` down the rail, and widens to
+   * a line of type — the squares become a vertical list, each staying at the rail's
+   * right edge, with its title grown out to the left. There is no panel to open:
+   * D-035's one-overlay law is untouched, because the spine adds no overlay at all.
+   *
+   * **No hatch on the expanded mark** (the reader's ruling): the stock behind the
+   * rail is already the diagonal crossings, and a hatch laid over them collides and
+   * says nothing. The expanded state is carried by ink alone — the square at full
+   * ink, the title in the deck's volume on the stock's own colour.
+   *
+   * The marks are `position: absolute` inside the fixed rail, so the cluster grows
+   * leftward and downward over the gutter's air and **nothing in the flow moves** —
+   * the law the whole spine lives by, measured in real Edge.
+   *
+   * `40vw` is the ceiling: the longest section name in the seed edition is 16 chars,
+   * and a title must not run past the column it belongs to.
+   */
+  [data-part='spine-cluster']:is(:hover, :focus-within) [data-part='spine-mark'] {
+    /* A line of type, and no wider: the box is the title's own measure plus its
+       square, so the pointer's target is the text and nothing the rail covers on its
+       way there is stolen from the page. `interpolate-size: allow-keywords`, on the
+       spine's root, is what lets this width animate from a square's 5px. */
+    inline-size: max-content;
+    transform: translate(0, calc(var(--i) * var(--spine-tap)));
+  }
+
+  [data-part='spine-cluster']:is(:hover, :focus-within) [data-part='spine-square'] {
+    background: var(--ink);
+  }
+
+  [data-part='spine-mark']:focus-visible {
+    outline: var(--hair) solid var(--ink);
+    outline-offset: 1px;
+  }
+
+  /*
+   * Below the phone stack the paper is one column and the gutter is 19px: there is
+   * nothing for a rail to live in, and a strip of marks over a single column of text
+   * is a mis-tap waiting to happen.
+   */
+  @media (max-width: 639.98px) {
+    [data-part='spine'] {
+      display: none;
+    }
+  }
+}

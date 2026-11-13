@@ -179,6 +179,10 @@ export const en = {
     // the browser that has no control to offer. iOS's own words, because a reader
     // follows them on iOS's own screen.
     install: { label: 'Install', recipe: 'Share → Add to Home Screen' },
+    // The spine (D-043): the rail's accessible name is the app's only word here.
+    // Every square is an anchor whose text is the section's title, so a screen
+    // reader hears the section's own word, and there is no menu to name.
+    spine: { rail: 'Section rail' },
     kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed' },
     byline: 'By {{author}}',
     opensInNewTab: 'Open the {{source}} story in a new tab',

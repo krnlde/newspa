@@ -83,6 +83,12 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     opened with `showModal()`, a **scrim and no shadow** (the scroll edge is the
     page's only shadow), two ways out — Esc and the close control — no radius, and
     it opens **above** the sheet, never inside it, and **unmounts** when closed.
+    The **spine** (D-043) is not an overlay in this sense and must not become one: a
+    fixed rail of squares over the scrollbar that **reflows nothing** — a place where
+    several sections begin in one row is **one cluster of squares side by side**, never
+    a stacked column, and expanding it (hover, focus, pen) turns the row into a
+    **vertical list whose titles are the anchors** that jump to the sections. No
+    guideline, no progress band, no panel, nothing to escape from.
     Styling is
     **Tailwind v4** (D-024): the vocabulary is `@theme` in
     `packages/paper/styles/tokens.css`, utilities are written on the elements in
@@ -90,7 +96,11 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     `base.css`, under `@layer base`. The sketch marks — diagonal crossings, dot
     grid, guideline ring, crop marks — are **one recipe** in `marks.css`, with
     geometry copied from a measured source, never eyeballed, and recoloured to
-    newsprint: no component may write its own gradient. Structural hooks are
+    newsprint: no component may write its own gradient. **A mark never sits behind
+    copy** (D-044): the patterns are 10% of the ink the text is set in, so `panel` is
+    the ring and the padding — the dot grid and the crossings are the stock's ground,
+    never a field under words, and a box that carries copy prints no field.
+    Structural hooks are
     `data-part` attributes, never BEM class names — the design suite, the print
     rules and the SSE flash query those. **Every box with a rule is padded**
     (`--spacing-box` / `--spacing-box-wide`), and **the sheet has a waste area**
@@ -241,7 +251,8 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
                   roadmap-closed-surface.md (the picker, the styling, the panel) +
                   roadmap-closed-device.md (TLS, the install, the offline edition),
                   decisions.md + decisions-surface.md (the page, the address, the
-                  reading list, the one overlay, the picker) + decisions-display.md
+                  reading list, the one overlay, the picker) + decisions-surface-nav.md (the spine, and no mark behind
+                   copy) + decisions-display.md
                   (the device: the server's place, the two display axes, install and
                   TLS), decisions-tooling.md + decisions-styling.md (the CSS law,
                   split at the cap),

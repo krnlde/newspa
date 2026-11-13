@@ -175,6 +175,9 @@ export const de = {
     contrast: { toNormal: 'Normal', toMore: 'Hoher Kontrast' },
     // D-039's install entry, in the iOS words the reader follows on that screen.
     install: { label: 'Installieren', recipe: 'Freigeben → Zum Startbildschirm hinzufügen' },
+    // D-043's spine: the rail's accessible name is the app's only word here; every
+    // square is an anchor whose text is the section's title.
+    spine: { rail: 'Abschnittsschiene' },
     kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert' },
     byline: 'Von {{author}}',
     opensInNewTab: 'Die {{source}}-Meldung in einem neuen Tab öffnen',

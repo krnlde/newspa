@@ -4,7 +4,8 @@ import { FrontPage } from './FrontPage.tsx';
 import { type HealthLabels, HealthStrip } from './HealthStrip.tsx';
 import { Masthead } from './Masthead.tsx';
 import { Section } from './Section.tsx';
-import type { Contrast, FormatProps, InstallControl, SourcesControl, StoryLabels } from './types.ts';
+import { Spine } from './Spine.tsx';
+import type { Contrast, FormatProps, InstallControl, SourcesControl, SpineProps, StoryLabels } from './types.ts';
 
 /**
  * The page: masthead, front page, sections, the edited strip, source health.
@@ -94,6 +95,12 @@ export interface PaperProps {
    * modal (`SourcesModal.tsx`).
    */
   readonly editor?: SourcesControl;
+  /**
+   * The spine (D-043): the rail of section ticks over the scrollbar, and the
+   * panel of titles. Omitted when there is nothing to navigate — an empty paper
+   * has no sections, and a rail with no ticks is a mark drawn for nothing.
+   */
+  readonly spine?: SpineProps;
 }
 
 export const Paper = ({
@@ -111,6 +118,7 @@ export const Paper = ({
   cachedAt = null,
   install,
   editor,
+  spine,
 }: PaperProps) => (
   <div data-part="sheet" className={sheetClass}>
     <Masthead
@@ -150,6 +158,13 @@ export const Paper = ({
         </div>
         <EditedStrip items={edition.edited} labels={labels} format={format} />
         <HealthStrip sources={sources} labels={labels.health} format={format} />
+        {/* The rail is last in the sheet's order, so tabbing reaches it after the
+            news. It prints whenever the edition has a place to go (the app decides
+            from the section count): the rail's box must exist **before** the ticks
+            are measured, because a tick's place is a fraction of the rail's height,
+            and a rail mounted by its own ticks measures zero and piles every mark
+            at the top. Measured, 2026-11-13. */}
+        {spine === undefined ? null : <Spine {...spine} />}
       </>
     )}
   </div>

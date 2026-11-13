@@ -1,7 +1,10 @@
 import { cleanup, render } from '@testing-library/react';
 import type { Edition, ItemView, MastheadView, SourceHealthView } from 'newspa-core';
 import { type FormatProps, Paper, type PaperLabels } from 'newspa-paper';
+import type { ReactElement } from 'react';
+import { useMemo } from 'react';
 import { afterEach } from 'vitest';
+import { spineSectionsOf, useSpine } from '../../src/spine.ts';
 import 'newspa-paper/styles/paper.css';
 
 /**
@@ -153,19 +156,46 @@ const SOURCES: readonly SourceHealthView[] = [
 ];
 
 /** The paper, as the app renders it: one tree, the real stylesheet, a real browser. */
+const PAPER_BASE = {
+  masthead: THE_MASTHEAD,
+  edition: THE_EDITION,
+  sources: SOURCES,
+  labels: LABELS,
+  format: THE_FORMAT,
+} as const;
+
 export const showPaper = (): void => {
-  render(
-    <Paper
-      masthead={THE_MASTHEAD}
-      edition={THE_EDITION}
-      sources={SOURCES}
-      labels={LABELS}
-      format={THE_FORMAT}
-      theme="light"
-      onToggleTheme={() => undefined}
-      themeLabel="Switch to dark"
-    />,
-  );
+  render(<Paper {...PAPER_BASE} theme="light" onToggleTheme={() => undefined} themeLabel="Switch to dark" />);
+};
+
+/**
+ * The paper **with the spine** (D-043), and its numbers from the real hook.
+ *
+ * The rail's geometry is the suite's subject: each tick's place is a fraction of
+ * the rail, and the hatch band's height is the share of the page on screen. A stub
+ * of `useSpine` would measure the stub, so this renders the same edition through
+ * `useSpine(spineSectionsOf(...))`, with real `IntersectionObserver` and
+ * `ResizeObserver`, which a real browser has. The four words the app owns are the
+ * app's English ones; that the paper prints no words of its own is proved in
+ * `packages/paper/test/spine.test.tsx`.
+ */
+export const showSpinedPaper = (): void => {
+  const Spined = (): ReactElement => {
+    // Memoised, as the app memoises: a new array each render would re-make the
+    // observers on every render, and the rail's own state change is a render.
+    const sections = useMemo(() => spineSectionsOf(THE_EDITION.sections), []);
+    const spine = useSpine(sections);
+    return (
+      <Paper
+        {...PAPER_BASE}
+        theme="light"
+        onToggleTheme={() => undefined}
+        themeLabel="Switch to dark"
+        spine={{ groups: spine.groups, railLabel: 'Section rail' }}
+      />
+    );
+  };
+  render(<Spined />);
 };
 
 /**

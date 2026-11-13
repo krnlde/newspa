@@ -171,6 +171,23 @@
   --spacing-box: 1rem;
   --spacing-box-wide: 2rem;
 
+  /*
+   * The spine's numbers (D-043). `--spine-tap` is one number doing two jobs: a
+   * cluster's box is that tall and that wide, and it is the minimum a pointer
+   * target may be — the reader's ruling was "the thin lines are almost impossible
+   * to click", and a 1px rule is not a target. The **square** is what is visible:
+   * 5px of ink, and a place with three sections beginning in it holds three of
+   * them side by side. `--spine-width` fits inside the sheet's own gutter (23px at
+   * 768, 30.7px at 1024, 40px at 1440, all measured by `pnpm shots`), so the rail
+   * is an overlay that covers no rule and reflows nothing; the 24px box overhangs
+   * the 20px rail by 2px each side, into the gutter's air, which is why the box is
+   * transparent and only the square is ink.
+   */
+  --spine-width: 1.25rem;
+  --spine-tap: 24px;
+  --spine-bullet: 5px;
+  --spine-pitch: 7px;
+
   /* The paper's one functional shadow: a scroll edge under a sticky label, not a
      card. docs/design.md records it as the exception to the no-shadow rule. */
   --shadow-scroll: 0 0.5rem 0.75rem -0.5rem rgb(0 0 0 / 55%);

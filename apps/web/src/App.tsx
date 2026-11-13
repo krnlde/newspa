@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import 'newspa-paper/styles/paper.css';
 import { Onboarding, Paper, SourcesModal, sheetClass } from 'newspa-paper';
@@ -10,6 +10,7 @@ import { useInstallPrompt } from './install.ts';
 import { paperLabelsOf, sourcesModalLabelsOf } from './labels.ts';
 import { useLocale } from './lib/useLocale.ts';
 import { SourcesSection } from './SourcesSection.tsx';
+import { spineSectionsOf, useSpine } from './spine.ts';
 import { useTheme } from './theme.ts';
 
 /**
@@ -86,6 +87,14 @@ export const App = () => {
   // The install entry (WP16, D-039): the hook knows what this browser offered, and
   // the words are the app's (D-019), so the control is composed here from the two.
   const install = useInstallPrompt();
+  // The spine (D-043): the sections the sheet prints, as rail entries. Called
+  // **before** the loading and failure returns, and with an empty list when there
+  // is no edition — a hook that runs on one branch and not the next is a hook order
+  // React cannot match, and the crash it causes is famous and pointless. The list is
+  // memoised on the state, so `useSpine`'s observers are re-made when the paper
+  // changes and not on every render of the app.
+  const spineSections = useMemo(() => spineSectionsOf(state.data?.state.edition.sections ?? []), [state.data]);
+  const spine = useSpine(spineSections);
 
   if (state.isPending) {
     return (
@@ -132,6 +141,21 @@ export const App = () => {
         contrast={contrast}
         onToggleContrast={toggleContrast}
         contrastLabel={contrastLabel}
+        {...(edition.sections.length < 2
+          ? {}
+          : {
+              // One section is not a contents list, and a mark that navigates
+              // nowhere is the paper drawing an ornament for nothing. The count
+              // decides here, in the app, so the rail's box mounts ready to be
+              // measured: its height is the denominator of every tick's place.
+              spine: {
+                groups: spine.groups,
+                // The rail's name is the app's one word here; every square's name is
+                // its section's title, which is the publisher's (D-019), and there is
+                // no menu to name, because the rail is the submenu.
+                railLabel: t('paper.spine.rail'),
+              },
+            })}
         {...(install.mode === 'none'
           ? {}
           : {

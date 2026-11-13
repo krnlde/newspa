@@ -199,6 +199,12 @@ export const PART = {
   contrastSwitch: "[data-part='contrast-switch']",
   install: "[data-part='install']",
   installRecipe: "[data-part='install-recipe']",
+  spine: "[data-part='spine']",
+  spineRail: "[data-part='spine-rail']",
+  spineCluster: "[data-part='spine-cluster']",
+  spineMark: "[data-part='spine-mark']",
+  spineSquare: "[data-part='spine-square']",
+  spineLabel: "[data-part='spine-label']",
   title: "[data-part='title']",
   tagline: "[data-part='tagline']",
   summaryStrip: "[data-part='summary-strip']",
@@ -258,6 +264,17 @@ export const PART = {
 
 /** A rail on one side: the hook is `data-side`, the old `front__rail--left`. */
 export const railOf = (side: 'left' | 'right'): string => `${PART.rail}[data-side='${side}']`;
+
+/**
+ * The first node a selector matches, for a claim about **one of many** — `one` is
+ * the strict reader that fails when a count is wrong, which is the right answer for
+ * a box the paper prints once and the wrong answer for the first mark of a cluster.
+ */
+export const firstOf = (selector: string, root: ParentNode = document): HTMLElement => {
+  const found = root.querySelector<HTMLElement>(selector);
+  if (found === null) throw new Error(`no ${selector} on the page`);
+  return found;
+};
 
 /** The structural name of every child of `root`, a rail named by its side. */
 export const partsOf = (root: Element): string[] =>
