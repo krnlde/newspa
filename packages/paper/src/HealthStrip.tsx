@@ -11,10 +11,13 @@ import type { FormatProps } from './types.ts';
  * "everything reported", and any other state names the source, the state and
  * the parser's own note.
  *
- * Every row here is a source that is **not** reporting, so every row carries
+ * Every row here is a source that is **not** reporting, and each one used to carry
  * `pattern-crossings`: a newspaper prints a cross-hatch where a photograph is
- * missing. The mark names an absence, which is why it is never decoration, and
- * why an `ok` source prints no row at all.
+ * missing, so the mark named an absence. That is why the strip prints no pattern now
+ * (D-044): the hatch was `--pattern-fg`, 10% of the same ink the row's words are set
+ * in, and a hatch behind words is those words made noisy. The absence is named by
+ * what is left — the state word, the source's own note, and the hairline between rows
+ * — which is also why an `ok` source prints no row at all.
  */
 export interface HealthLabels {
   readonly headline: string;
@@ -71,7 +74,7 @@ export const HealthStrip = ({ sources, labels, format }: HealthProps) => {
             key={source.id}
             data-part="row"
             data-state={source.state}
-            className="flex flex-wrap gap-2 py-[0.3rem] border-b border-b-[length:var(--hair)] border-b-rule pattern-crossings"
+            className="flex flex-wrap gap-2 py-[0.3rem] border-b border-b-[length:var(--hair)] border-b-rule"
           >
             <span data-part="label" className="font-bold text-ink">
               {source.label}

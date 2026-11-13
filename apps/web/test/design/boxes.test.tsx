@@ -19,10 +19,21 @@ describe('the boxes', () => {
     }
   });
 
-  it('draws the crossings on the stock and the dot grid on a panel, from one recipe', () => {
+  it('keeps the patterns on the stock, and off every box that carries copy', () => {
     showPaper();
     expect(globalThis.getComputedStyle(document.body).backgroundImage).toContain('repeating-linear-gradient');
-    expect(cssOf("[data-part='edited']").backgroundImage).toContain('radial-gradient');
+    // **No mark behind words** (D-044, the reader's ruling, twice and by screenshot):
+    // the dot grid and the row hatch were both `--pattern-fg`, 10% of the ink the
+    // copy is set in, so behind text they are that text made noisy. A panel is a ring
+    // and padding; the stock is the only pattern on the page.
+    const boxes = ["[data-part='edited']", "[data-part='health']"];
+    for (const side of ['left', 'right']) boxes.push(`[data-part='rail'][data-side='${side}']`);
+    for (const selector of boxes) {
+      const box = cssOf(selector);
+      expect(box.backgroundImage, `${selector} prints a field behind its copy`).toBe('none');
+      expect(box.boxShadow, `${selector} lost its ring`).toContain('inset');
+      expect(px(box.paddingLeft), `${selector} is flush to its rule`).toBeGreaterThanOrEqual(16);
+    }
   });
 
   /*

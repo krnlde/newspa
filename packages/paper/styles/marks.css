@@ -84,15 +84,27 @@
 }
 
 /*
- * A box the paper shows you: a guideline on all four sides (their inset ring,
- * at the paper's hairline), their padding, and their dot grid inside. No
- * radius, no shadow, no fill: a newspaper boxes a story with rules.
+ * A box the paper shows you: a guideline on all four sides (the inset ring, at the
+ * paper's hairline) and the padding. No radius, no shadow, no fill: a newspaper
+ * boxes a story with rules.
+ *
+ * **It has no field, and that is a ruling (D-044).** The box used to print the dot
+ * grid inside, and the health strip used to hatch each row. Both are
+ * `--pattern-fg` — 10% of `--ink`, the same ink the copy is set in — so a field of
+ * them behind body text is the text's own colour, multiplied: noise behind words. The
+ * reader ruled it out twice, by screenshot: the front page's rails (WORLD, TOP
+ * STORIES), then the "edited" diff and the sources strip. So `panel` is the ring and
+ * the padding, and the patterns are printed **only where there is no copy**: the
+ * stock, which is the paper's ground.
+ *
+ * `pattern-dots` and `pattern-crossings` remain in the vocabulary, because the marks
+ * have one recipe (`marks.css`) and a box with no copy may want one. Nothing on this
+ * page prints a pattern behind words, and `boxes.test.tsx` measures that: rails,
+ * "edited", health and onboarding carry no field.
  */
 @utility panel {
   box-shadow: inset 0 0 0 var(--ring) var(--guide-strong);
   padding: var(--spacing-box);
-  background-image: var(--dot-image);
-  background-size: var(--pattern-tile) var(--pattern-tile);
 }
 
 /* The container's edges, drawn so the measure has a visible start and end. */
