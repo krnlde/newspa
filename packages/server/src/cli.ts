@@ -29,13 +29,18 @@ import {
   START,
   unknownCommandLine,
 } from './commands.ts';
+import { channelsOf, createLogger } from './logger.ts';
 import { runPickCommand } from './pickCli.ts';
 import { pickTextFetcher } from './pickTransport.ts';
 import { boot, ROOT } from './start.ts';
 
-const log = (line: string): void => {
-  console.log(line);
-};
+/**
+ * The process's log (D-046): pino's levels, a clock on every line, and the loudness
+ * `config.json` names (`server.logLevel`, set once the config is read). A terminal
+ * gets `14:33:08 info …`; a redirect gets JSON lines. The words on a poll's line are
+ * the database's own (`snapshots.outcome`), so the terminal and the row agree.
+ */
+const { log, debug, setLevel } = channelsOf(createLogger('info'));
 
 /** The last resorts, printed. A crash that leaves no line is unfindable. */
 const installCrashReports = (): void => {
@@ -68,7 +73,7 @@ const runStart = async (args: readonly string[]): Promise<void> => {
   }
   let running: Awaited<ReturnType<typeof boot>>;
   try {
-    running = await boot({ root: ROOT, log });
+    running = await boot({ root: ROOT, log, debug, setLevel });
   } catch (cause) {
     log(failureLine('start', cause));
     process.exit(1);

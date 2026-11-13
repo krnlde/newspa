@@ -17,6 +17,7 @@
     "newspa-db": "workspace:*",
     "newspa-fetch": "workspace:*",
     "newspa-paper": "workspace:*",
+    "pino": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"

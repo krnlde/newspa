@@ -83,6 +83,9 @@ export const harness = (db: Database, over: Partial<SchedulerDeps> = {}) => {
     log: (line) => {
       logs.push(line);
     },
+    debug: (line) => {
+      logs.push(line);
+    },
     token: 'tok-a',
     ...over,
   };

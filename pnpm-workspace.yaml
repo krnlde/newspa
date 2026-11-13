@@ -141,5 +141,17 @@ catalog:
   # reads a certificate from disk with `node:crypto` alone.
   node-forge: 1.4.3
   "@types/node-forge": 1.3.14
+  # The server's logger (D-046): timestamps on every line, levels the reader can
+  # dial from `config.json`, and one line per poll in the `snapshots.outcome`
+  # vocabulary. Chosen over a hand-rolled `console.log` prefix because levels,
+  # child loggers and a JSON mode for a headless board are the part worth buying;
+  # over `winston` (its transport/formatter tree is ~10 packages for stdout) and
+  # over `debug` (namespaced toggling, no levels, no JSON). `pino-pretty` is **not**
+  # a dependency: it is a transport of its own (10 deps, worker threads) for a
+  # formatting job this repo does in ten lines, the same reason `sw.js` is
+  # hand-written and Workbox is out (WP16). Pure JS, 11 deps, **no install script**,
+  # so `ignoreScripts` / `strictDepBuilds` stay intact; 10.4.0 (2026-10-02) clears
+  # the 2-day age gate.
+  pino: 10.4.0
 
 catalogMode: prefer

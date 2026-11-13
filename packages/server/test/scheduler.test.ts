@@ -190,7 +190,11 @@ describe('runBatch: failure, and the report that comes with it', () => {
     const { db, h } = failing(async (spec) => aResult(spec.id, { health: 'blocked' }));
     expect(await runBatch(h.deps, emptyTally())).toMatchObject({ polled: 0, failed: 1, planned: 1 });
     expect(scheduleOf(db, 'xx')).toEqual({ nextRunAt: isoAt(40), failures: 1 });
-    expect(h.logs).toEqual(['xx: backoff after 1 failure(s) → 2026-11-09T10:40:00.000Z (+40 min)']);
+    // Filtered, not the whole bag: a poll now prints its own line as well (D-046),
+    // and this test's claim is the plan the source was given.
+    expect(h.logs.filter((line) => line.includes('backoff'))).toEqual([
+      'xx: backoff after 1 failure(s) → 2026-11-09T10:40:00.000Z (+40 min)',
+    ]);
   });
 
   it('pauses at `maxFailuresBeforePause`, and says "paused", not "backoff"', async () => {
@@ -198,7 +202,10 @@ describe('runBatch: failure, and the report that comes with it', () => {
     db.sources.setSchedule('xx', T0.toISOString(), config.maxFailuresBeforePause - 1);
     await runBatch(h.deps, emptyTally());
     expect(scheduleOf(db, 'xx')).toEqual({ nextRunAt: isoAt(60), failures: 6 });
-    expect(h.logs[0]).toContain('paused after 6 failure(s)');
+    expect(h.logs.join('\n')).toContain('paused after 6 failure(s)');
+    // And the poll's own line says the state, with the evidence: a failing source is
+    // visible in the terminal, not only in the health strip (rule 5).
+    expect(h.logs.join('\n')).toContain('xx 200 changed · 1 item, +1 new · 1.2 KB · 5 ms · error: stub poll');
   });
 
   it('a poll that throws is a report, a counted failure and a plan — the loop never sees it', async () => {
@@ -232,6 +239,44 @@ describe('runBatch: failure, and the report that comes with it', () => {
     db.sources.setSchedule('xx', T0.toISOString(), 5);
     await runBatch(h.deps, emptyTally());
     expect(scheduleOf(db, 'xx')).toEqual({ nextRunAt: isoAt(10), failures: 0 });
-    expect(h.logs[0]).toContain('xx: cadence →');
+    // `join`, not `[0]`: the poll's own line is the first one now (D-046), and this
+    // test's claim is that the recovery is spoken, not which line number it lands on.
+    expect(h.logs.join('\n')).toContain('xx: cadence →');
+  });
+});
+
+describe('the log line per poll (D-046)', () => {
+  it('prints one line per poll, in the words the `snapshots` row uses', async () => {
+    const db = oneSource(20, 'strata-releases');
+    const h = harness(db, {
+      poll: async (spec) =>
+        aResult(spec.id, { outcome: 'not-modified', status: 304, itemCount: null, bytes: 0, durationMs: 38 }),
+    });
+    await runBatch(h.deps, emptyTally());
+    // The `304` prints, with no item clause: it counted nothing (D-006), and rule 6
+    // says a rung that never fires must not be invisible.
+    expect(h.logs).toContain('strata-releases 304 not-modified · 38 ms');
+  });
+
+  it('prints the counts a poll made, so a quiet feed is distinguishable from a dead one', async () => {
+    const db = oneSource(20, 'bbc-world');
+    const h = harness(db, {
+      poll: async (spec) => aResult(spec.id, { newItems: 2, newKeys: ['a', 'b'], itemCount: 9, bytes: 61_750 }),
+    });
+    await runBatch(h.deps, emptyTally());
+    expect(h.logs).toContain('bbc-world 200 changed · 9 items, +2 new · 60.3 KB · 5 ms');
+  });
+
+  it('plans at `debug`, so the level the reader sees is a fetch, not a schedule', async () => {
+    const db = oneSource(10, 'xx');
+    const debugs: string[] = [];
+    const h = harness(db, {
+      debug: (line) => {
+        debugs.push(line);
+      },
+    });
+    await runBatch(h.deps, emptyTally());
+    expect(h.logs).toEqual(['xx 200 changed · 1 item, +1 new · 1.2 KB · 5 ms']);
+    expect(debugs.join('\n')).toContain('xx: cadence →');
   });
 });

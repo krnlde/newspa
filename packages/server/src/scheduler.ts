@@ -24,11 +24,13 @@
  *    list is polled in batches. The first batch of a process does **not** jitter —
  *    a boot that sleeps before filling the paper looks like a boot that failed.
  *  - **every tick's decisions are observable**: `tally()` counts batches, polls,
- *    failures and deferrals, each source gets one log line naming the rule that
- *    planned it, and a batch with work publishes `cycle:start` then `cycle:done`
- *    with its own counts — the paper's wire (`core/api.ts`, `apps/web`'s SSE). An
- *    optimization that never fires is invisible (D-020); a scheduler that never
- *    fires has to be, too.
+ *    failures and deferrals; **one poll, one line** at `info` — the source, the
+ *    status, the `snapshots.outcome` word, what it counted, the bytes, the
+ *    milliseconds (D-046) — and the rule that planned the next run at `debug`; a
+ *    batch with work publishes `cycle:start` then `cycle:done` with its own counts —
+ *    the paper's wire (`core/api.ts`, `apps/web`'s SSE). An optimization that never
+ *    fires is invisible (D-020), and so is a poll that answered `304`: both print a
+ *    line, because a scheduler that never speaks is a scheduler nobody trusts.
  *
  * The clock and the sleep are injected, so the whole loop runs under fake timers
  * in a test, and a 20-minute cadence costs no wall time. Jitter is `random()`, so
@@ -39,6 +41,7 @@ import type { SourceSpec } from 'newspa-config';
 import type { ServerEvent } from 'newspa-core';
 import type { Database, LockResult } from 'newspa-db';
 import { claimLock, extendLock, releaseLock } from 'newspa-db';
+import { pollLine } from './logger.ts';
 import type { PollResult } from './pollTypes.ts';
 import { planNextRun } from './schedulePlan.ts';
 
@@ -63,6 +66,13 @@ export interface SchedulerDeps {
   readonly now: () => Date;
   readonly sleep: (ms: number) => Promise<void>;
   readonly log: (line: string) => void;
+  /**
+   * The plan channel (D-046): a plan line per source per tick is the schedule, not
+   * a fetch, so it is `debug` and the poll line is `info`. Required, not optional:
+   * a `??` in the batch's body is a branch of the loop's complexity, and the caller
+   * that has no debug channel says so once, at the edge.
+   */
+  readonly debug: (line: string) => void;
   /** An opaque token, unique per process launch (the lock's, not a PID). */
   readonly token: string;
   readonly random?: () => number;
@@ -148,6 +158,11 @@ export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Prom
     let failures = source.consecutiveFailures;
     try {
       const result = await deps.poll(source.spec);
+      // One line per poll, in the `snapshots.outcome` vocabulary (D-046). Rule 6 asks
+      // for the record and warns that an optimization which never fires is invisible:
+      // a `304` that prints nothing is a poll no reader can see, so the cheap rungs
+      // print too — with no item clause, because they counted nothing (D-006).
+      deps.log(pollLine(result));
       failures = result.health === 'ok' ? 0 : failures + 1;
       newItems += result.newItems;
       editedItems += result.editedItems;
@@ -171,7 +186,7 @@ export const runBatch = async (deps: SchedulerDeps, tally: SchedulerTally): Prom
     });
     db.sources.setSchedule(source.spec.id, plan.nextRunAt.toISOString(), failures);
     tally.planned += 1;
-    deps.log(`${source.spec.id}: ${plan.why} → ${plan.nextRunAt.toISOString()} (+${String(plan.minutes)} min)`);
+    deps.debug(`${source.spec.id}: ${plan.why} → ${plan.nextRunAt.toISOString()} (+${String(plan.minutes)} min)`);
   }
 
   tally.batches += 1;

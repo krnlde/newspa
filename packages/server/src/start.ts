@@ -24,8 +24,10 @@
  * standing in front of a phone (D-034).
  *
  * Not here, on purpose: the browser spawn (`openBrowser` is honoured by the printed
- * URL, not by launching Edge), the toast sender (WP10), and every command whose
- * answer is the paper (WP5's cut list). The picker (WP6) **is** wired here, and it
+ * URL, not by launching Edge), and every command whose
+ * answer is the paper (WP5's cut list). Notifications are not here at all: the
+ * reader retired them (D-045), and the `notify` config block that planned for them is
+ * gone with them. The picker (WP6) **is** wired here, and it
  * opens its window on the machine that runs this process — which is why `/api/pick`
  * is a loopback route (rule 20): a LAN peer cannot ask a desk machine to launch a
  * browser. The process edge — argv,
@@ -39,7 +41,7 @@ import { createServer as createHttpServer, type IncomingMessage, type Server } f
 import { createServer as createHttpsServer } from 'node:https';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { SourceIssue, SourceSpec } from 'newspa-config';
+import type { AppConfig, SourceIssue, SourceSpec } from 'newspa-config';
 import { ensureSourcesDir, loadAppConfig, loadSources, sourceFilePath } from 'newspa-config';
 import { type Database, releaseLock } from 'newspa-db';
 import type { FetchLike } from 'newspa-fetch';
@@ -65,6 +67,14 @@ export const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 export interface BootDeps {
   readonly root: string;
   readonly log: (line: string) => void;
+  /**
+   * The plan channel (D-046): one line per source per tick is `debug`, so the
+   * default level shows **what the paper fetched** and hides the schedule. Absent
+   * means `log`, which is what a test wants: every line in one bag.
+   */
+  readonly debug?: (line: string) => void;
+  /** Called once with `server.logLevel` after the config is read, so the knob is honoured. */
+  readonly setLevel?: (level: AppConfig['server']['logLevel']) => void;
   /** The socket for a poll. Absent means `globalThis.fetch`, which is a real poll. */
   readonly fetch?: FetchLike;
   readonly token?: string;
@@ -178,8 +188,12 @@ const tlsBootOf = async (
 /** The boot. Every input is a parameter, so a test runs it against a temp tree. */
 export const boot = async (deps: BootDeps): Promise<Running> => {
   const log = deps.log;
+  const debug = deps.debug ?? deps.log;
   const now = deps.now ?? ((): Date => new Date());
   const { config, file, messages } = await loadAppConfig(join(deps.root, 'config.json'));
+  // The knob is honoured before the config's own line, so `silent` is silent from
+  // the first line the file can speak about (D-046).
+  deps.setLevel?.(config.server.logLevel);
   log(`config: ${file}`);
   for (const message of messages) log(message);
 
@@ -216,6 +230,7 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
               setTimeout(resolveSleep, ms).unref();
             }),
           log,
+          debug,
           token,
           publish: (event) => {
             hub.publish(event);
