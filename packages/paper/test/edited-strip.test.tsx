@@ -56,7 +56,7 @@ describe('the edited strip', () => {
       [...container.querySelectorAll<HTMLElement>(`${PART.editedRow} ${PART.meta}`)].map((p) =>
         p.getAttribute('title'),
       ),
-    ).toEqual([`stamp(${at('09:30')})`, `stamp(${at('09:30')})`]);
+    ).toEqual([`absolute(${at('09:30')})`, `absolute(${at('09:30')})`]);
   });
 
   it('omits a story whose report is null, and prints no strip when none has one', () => {
@@ -71,7 +71,7 @@ describe('the edited strip', () => {
     });
     const meta = one(`${PART.editedRow} ${PART.meta}`, container);
     expect(meta.textContent).toBe(`ago(${at('06:00')})`);
-    expect(meta.getAttribute('title')).toBe(`stamp(${at('06:00')})`);
+    expect(meta.getAttribute('title')).toBe(`absolute(${at('06:00')})`);
   });
 
   it('prints no date and carries no tooltip when the publisher declared no instant', () => {

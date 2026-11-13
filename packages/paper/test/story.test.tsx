@@ -169,7 +169,7 @@ describe('the meta line', () => {
             asked.push(iso);
             return `ago(${iso})`;
           },
-          stamp: THE_FORMAT.stamp,
+          absolute: THE_FORMAT.absolute,
         }}
         showImage={false}
       />,
@@ -188,12 +188,12 @@ describe('the meta line', () => {
 describe('the exact date, in the tooltip', () => {
   it('carries both dates the line shows, absolute', () => {
     const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: at('09:30') }));
-    expect(story.getAttribute('title')).toBe(`stamp(${at('06:00')}) · changed stamp(${at('09:30')})`);
+    expect(story.getAttribute('title')).toBe(`absolute(${at('06:00')}) · changed absolute(${at('09:30')})`);
   });
 
   it('carries only the publication when there was no change', () => {
     const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: null }));
-    expect(story.getAttribute('title')).toBe(`stamp(${at('06:00')})`);
+    expect(story.getAttribute('title')).toBe(`absolute(${at('06:00')})`);
   });
 
   it('names the sighting as a sighting in the tooltip too', () => {
@@ -201,7 +201,7 @@ describe('the exact date, in the tooltip', () => {
     // instant the line was built from — so the undated story's tooltip cannot read
     // like a publication date either.
     const story = one(PART.story, showStory({ publishedAt: null, lastChangedAt: null }));
-    expect(story.getAttribute('title')).toBe(`seen stamp(${at('06:05')})`);
+    expect(story.getAttribute('title')).toBe(`seen absolute(${at('06:05')})`);
   });
 });
 

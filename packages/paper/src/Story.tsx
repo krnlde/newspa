@@ -32,7 +32,7 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
         ? labels.goneKicker
         : labels.newKicker;
   const meta = metaOf(item, labels, format);
-  const stamps = stampsOf(item, labels, format);
+  const absolutes = absoluteOf(item, labels, format);
   const figure =
     showImage && item.image !== null ? (
       <figure data-part="figure" className="mb-[0.6rem] cropmarks">
@@ -48,7 +48,7 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
       data-slot={slot}
       data-key={item.key}
       data-read={item.read ? 'true' : 'false'}
-      {...(stamps === '' ? {} : { title: stamps })}
+      {...(absolutes === '' ? {} : { title: absolutes })}
       className={SLOT_OF[slot]}
     >
       {slot === 'lead' ? null : figure}
@@ -201,12 +201,12 @@ const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): strin
  * paints an overlay over the whole card (`after:absolute after:inset-0`), so a
  * tooltip hung on the meta line is never under the pointer — the card is.
  */
-const stampsOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
+const absoluteOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
   const when = datedBy(item);
-  const stamp = format.stamp(when.at);
-  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${stamp}` : stamp;
+  const exact = format.absolute(when.at);
+  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${exact}` : exact;
   const changed =
-    item.lastChangedAt === null ? '' : `${labels.changedLabel.toLowerCase()} ${format.stamp(item.lastChangedAt)}`;
+    item.lastChangedAt === null ? '' : `${labels.changedLabel.toLowerCase()} ${format.absolute(item.lastChangedAt)}`;
   return [published, changed].filter((part) => part.length > 0).join(' · ');
 };
 

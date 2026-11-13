@@ -74,7 +74,7 @@ export const HealthStrip = ({ sources, labels, format }: HealthProps) => {
             key={source.id}
             data-part="row"
             data-state={source.state}
-            {...(source.lastFetchAt === null ? {} : { title: format.stamp(source.lastFetchAt) })}
+            {...(source.lastFetchAt === null ? {} : { title: format.absolute(source.lastFetchAt) })}
             className="flex flex-wrap gap-2 py-[0.3rem] border-b border-b-[length:var(--hair)] border-b-rule"
           >
             <span data-part="label" className="font-bold text-ink">

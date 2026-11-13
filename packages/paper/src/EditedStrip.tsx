@@ -36,7 +36,7 @@ export const EditedStrip = ({
         // The change when there was one, the publication when there was not, and no
         // instant at all when the publisher never declared one — no date, no tooltip.
         const at = item.lastChangedAt ?? item.publishedAt;
-        const stamp = format.stamp(at);
+        const absolute = format.absolute(at);
         return (
           <article
             data-part="edited-row"
@@ -66,7 +66,7 @@ export const EditedStrip = ({
                 carry it. */}
             <p
               data-part="meta"
-              {...(stamp === '' ? {} : { title: stamp })}
+              {...(absolute === '' ? {} : { title: absolute })}
               className="m-0 text-kicker font-normal tracking-kicker uppercase text-muted"
             >
               {at === null ? '' : format.ago(at)}

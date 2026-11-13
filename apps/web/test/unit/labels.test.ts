@@ -125,8 +125,10 @@ describe('the counted strings', () => {
     expect(lastKey(spy)).toBe('paper.stats.cached');
     const options = lastOptions(spy);
     expect(typeof options['at']).toBe('string');
-    // The time is `Intl`'s answer, so the assertion is its shape, not its text.
+    // The time is `Intl`'s answer, so the assertion is its shape, not its text —
+    // and it names the zone, which is D-047's rule for every date on the page.
     expect(String(options['at'])).toMatch(/\d{1,2}:\d{2}/);
+    expect(String(options['at'])).toMatch(/[+-]\d{2}:\d{2}/u);
     // And no stamp, no call: a live page prints no sentence about a cache.
     spy.mockClear();
     labels.stats(statsOf({}), null);

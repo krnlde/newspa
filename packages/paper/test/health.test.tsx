@@ -69,7 +69,7 @@ describe('a source that is not reporting', () => {
     // The row's age is measured from the reader's clock, so the exact instant is the
     // part a reader cannot derive from what they see: when the poll ran, zone named.
     const container = showHealth([broken({ id: 'world', lastFetchAt: at('09:30') })]);
-    expect(one(rowSelector, container).getAttribute('title')).toBe(`stamp(${at('09:30')})`);
+    expect(one(rowSelector, container).getAttribute('title')).toBe(`absolute(${at('09:30')})`);
   });
 
   it('carries no tooltip for a source that has never been fetched', () => {

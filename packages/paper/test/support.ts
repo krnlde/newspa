@@ -151,7 +151,7 @@ export const THE_LABELS: PaperLabels = {
  */
 export const THE_FORMAT: FormatProps = {
   ago: (iso: string) => `ago(${iso})`,
-  stamp: (iso: string | null) => (iso === null ? '' : `stamp(${iso})`),
+  absolute: (iso: string | null) => (iso === null ? '' : `absolute(${iso})`),
 };
 
 export const THE_MASTHEAD_PROPS: MastheadProps = {

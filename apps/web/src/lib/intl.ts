@@ -11,36 +11,30 @@ import { baseLanguage, DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGE
  * languages. The language is an argument, never a module-level constant: a
  * formatter built at import time freezes the paper's language at whatever it was
  * on first render, which is the bug this module exists to make impossible.
+ *
+ * Four renderings, because the page asks four questions: how old (relative),
+ * when exactly (absolute, zone named), what time (clock, zone named), how many
+ * (number). A formatter nobody calls is not a small saving, it is a small lie
+ * about what the page does, so this list is exactly the list of callers.
  */
 
 export interface Formatters {
   readonly language: string;
   readonly relative: Intl.RelativeTimeFormat;
-  readonly date: Intl.DateTimeFormat;
-  readonly dateTime: Intl.DateTimeFormat;
-  readonly time: Intl.DateTimeFormat;
-  /** "Monday, 9 November" — the heading above a day's items. */
-  readonly dayHead: Intl.DateTimeFormat;
   /**
-   * "November 13, 2026 at 03:03 PM GMT+01:00" — the tooltip's date: the whole
-   * instant **and the zone that produced it**, because a relative label ("2 hours
-   * ago") is an age measured from the reader's clock, and the answer to "so when,
-   * exactly?" has to name the clock.
+   * The instant, in the page's language, **with the zone in the string**:
+   * `November 13, 2026 at 2:30 PM +01:00`, `13. November 2026 um 14:30 +01:00`.
    *
-   * The components are spelled out, not `dateStyle: 'full'`: **`dateStyle` and
-   * `timeZoneName` together throw a `TypeError`** (measured, V8/ICU — the option is
-   * forbidden by ECMA-402 when a style is present), and the zone is the one clause
-   * this formatter exists to print.
+   * The components are spelled out because the shorthand cannot do this: **`dateStyle`
+   * and `timeStyle` together with `timeZoneName` throw a `TypeError`** (measured;
+   * ECMA-402 forbids the pair), while `year/month/day` plus `timeZoneName` is legal.
+   * The zone is not garnish — an age is measured from the reader's clock, and a date
+   * without an offset is a day in a calendar the page has not named (D-047).
    */
-  readonly stamp: Intl.DateTimeFormat;
-  /** "November 2026" — the archive grouping. */
-  readonly monthHead: Intl.DateTimeFormat;
-  /** A poll duration: seconds, no unit drift. */
-  readonly seconds: Intl.NumberFormat;
+  readonly absolute: Intl.DateTimeFormat;
+  /** The wall clock, zone named: `02:30 PM +01:00`. Same reason, same shape. */
+  readonly time: Intl.DateTimeFormat;
   readonly number: Intl.NumberFormat;
-  readonly compact: Intl.NumberFormat;
-  readonly list: Intl.ListFormat;
-  readonly plural: Intl.PluralRules;
 }
 
 const cache = new Map<string, Formatters>();
@@ -63,24 +57,16 @@ export const formattersFor = (language: string): Formatters => {
   const built: Formatters = {
     language: lng,
     relative: new Intl.RelativeTimeFormat(lng, { numeric: 'auto' }),
-    date: new Intl.DateTimeFormat(lng, { dateStyle: 'medium' }),
-    dateTime: new Intl.DateTimeFormat(lng, { dateStyle: 'medium', timeStyle: 'short' }),
-    time: new Intl.DateTimeFormat(lng, { timeStyle: 'short' }),
-    dayHead: new Intl.DateTimeFormat(lng, { weekday: 'long', day: 'numeric', month: 'long' }),
-    stamp: new Intl.DateTimeFormat(lng, {
+    absolute: new Intl.DateTimeFormat(lng, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: '2-digit',
+      hour: 'numeric',
       minute: '2-digit',
       timeZoneName: 'longOffset',
     }),
-    monthHead: new Intl.DateTimeFormat(lng, { month: 'long', year: 'numeric' }),
-    seconds: new Intl.NumberFormat(lng, { maximumFractionDigits: 1 }),
+    time: new Intl.DateTimeFormat(lng, { hour: '2-digit', minute: '2-digit', timeZoneName: 'longOffset' }),
     number: new Intl.NumberFormat(lng),
-    compact: new Intl.NumberFormat(lng, { notation: 'compact', maximumFractionDigits: 1 }),
-    list: new Intl.ListFormat(lng, { style: 'long', type: 'conjunction' }),
-    plural: new Intl.PluralRules(lng),
   };
   cache.set(lng, built);
   return built;
@@ -92,60 +78,43 @@ export const cachedLanguageCount = (): number => cache.size;
 export const supportedLanguages = (): readonly string[] => SUPPORTED_LANGUAGES;
 
 /**
+ * `Intl` spells an offset as `GMT+01:00`; the page writes `+01:00`, which is the
+ * form that carries no assumption about a prime meridian. A language that spells
+ * its own word for the zone (`fr` prints `UTC+01:00`) is left alone: that is what
+ * that language calls it, and rewriting it is the page overruling the locale.
+ */
+const offsetOnly = (rendered: string): string => rendered.replace(/\sGMT(?=[+-])/u, ' ');
+
+/**
  * A relative label from core's locale-free parts.
  *
  * `Intl.RelativeTimeFormat` wants a number and a unit, which is exactly what
- * `relativeParts` returns; the only strings this module owns are the two the
+ * `relativeParts` returns; the two strings this module owns are the ones the
  * formatter cannot express: "just now" (a 0-minute delta renders as "in 0
- * minutes") and an absolute date, which is what a month-old item deserves.
+ * minutes") and the absolute instant, which is what a month-old item deserves —
+ * the same rendering the tooltip carries, so a page has one way to say a date.
  */
 export const formatRelative = (parts: RelativeParts, formatters: Formatters, strings: { now: string }): string => {
   if (Number.isNaN(parts.at.getTime())) return '';
-  if (parts.unit === null) return formatters.date.format(parts.at);
+  if (parts.unit === null) return offsetOnly(formatters.absolute.format(parts.at));
   if (parts.unit === 'minute' && parts.delta === 0) return strings.now;
   // No cast: every `RelativeUnit` is a valid `Intl.RelativeTimeFormatUnit`, which
   // is why core is allowed to name them.
   return formatters.relative.format(parts.delta, parts.unit);
 };
 
-/** Empty for a missing instant, so a caller never prints "Invalid Date". */
+/** The instant, zone named. Empty for a missing one, so no caller prints "Invalid Date". */
+export const formatAbsolute = (iso: string | null, formatters: Formatters): string => {
+  if (iso === null) return '';
+  const at = Date.parse(iso);
+  return Number.isNaN(at) ? '' : offsetOnly(formatters.absolute.format(at));
+};
+
+/** The wall clock, zone named. Empty for a missing instant. */
 export const formatTime = (iso: string | null, formatters: Formatters): string => {
   if (iso === null) return '';
   const at = Date.parse(iso);
-  return Number.isNaN(at) ? '' : formatters.time.format(at);
+  return Number.isNaN(at) ? '' : offsetOnly(formatters.time.format(at));
 };
-
-export const formatDateTime = (iso: string | null, formatters: Formatters): string => {
-  if (iso === null) return '';
-  const at = Date.parse(iso);
-  return Number.isNaN(at) ? '' : formatters.dateTime.format(at);
-};
-
-export const formatDate = (iso: string | null, formatters: Formatters): string => {
-  if (iso === null) return '';
-  const at = Date.parse(iso);
-  return Number.isNaN(at) ? '' : formatters.date.format(at);
-};
-
-/**
- * The absolute stamp, with the zone: what a `title` attribute carries when the
- * page's visible date is an age. Empty for a missing or unparseable instant, so
- * a caller renders no attribute rather than "Invalid Date".
- */
-export const formatStamp = (iso: string | null, formatters: Formatters): string => {
-  if (iso === null) return '';
-  const at = Date.parse(iso);
-  return Number.isNaN(at) ? '' : formatters.stamp.format(at);
-};
-
-/**
- * The day heading an item belongs in, in the reader's language and calendar
- * rules: the day boundary is the *edition's* (core computes the id), so this
- * takes the id and formats the date, rather than parsing a timestamp.
- */
-export const formatDayHead = (date: Date, formatters: Formatters): string =>
-  Number.isNaN(date.getTime()) ? '' : formatters.dayHead.format(date);
 
 export const formatCount = (value: number, formatters: Formatters): string => formatters.number.format(value);
-
-export const formatCompactCount = (value: number, formatters: Formatters): string => formatters.compact.format(value);

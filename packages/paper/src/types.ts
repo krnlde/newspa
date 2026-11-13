@@ -52,17 +52,17 @@ export interface StoryLabels {
  * A date, an age, an instant — formatted by the app, in the app's language.
  *
  * Two renderings of one instant, and the page uses both: the **age** is what a
- * front page is scanned by ("2 hours ago"), and the **stamp** is what the
- * `title` attribute carries — the same instant written out with its time zone.
- * An age is a distance from the reader's clock, so the exact answer has to name
- * the clock it was measured from; a bare date in a tooltip is a number the
- * reader cannot check.
+ * front page is scanned by ("2 hours ago"), and the **absolute** form is what
+ * the `title` attribute carries — the instant written out in the page's language
+ * with the zone inside it (`November 13, 2026 at 2:30 PM +01:00`). An age is a
+ * distance from the reader's clock, so the exact answer has to name the clock it
+ * is written on; a date without an offset is a day in a calendar nobody named.
  */
 export interface FormatProps {
-  /** An age: `"3 hours ago"`, `"just now"`, and an absolute date past a month. */
+  /** An age: `"3 hours ago"`, `"just now"`, and the absolute form past a month. */
   readonly ago: (iso: string) => string;
-  /** `"November 13, 2026 at 03:03 PM GMT+01:00"` — empty for no instant. */
-  readonly stamp: (iso: string | null) => string;
+  /** The instant, zone named — empty for no instant, so no caller prints "Invalid Date". */
+  readonly absolute: (iso: string | null) => string;
 }
 
 export interface StoryProps {

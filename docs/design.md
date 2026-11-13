@@ -247,15 +247,18 @@ A story in the paper is a **teaser**, and the paper never renders full text:
 - **Every date is an age, and its exact instant is one hover away** (D-047). The page
   prints `"2 hours ago"`, not `"14:03"`: a front page is read as a stack of _recency_,
   and an age answers "what is new?" without making the reader subtract. The answer to
-  "when, exactly?" goes in the `title` — the same instant written out **with its time
-  zone**, because an age is measured from the reader's clock and a zoneless date is a
-  number nobody can check. Every date the page prints carries one: the story card
-  (on the `article`, because its headline paints an overlay over the card), the edited
-  row, the health row, the dateline, and the stats line's cache stamp.
+  "when, exactly?" goes in the `title`, in **one** rendering the page uses everywhere:
+  `November 13, 2026 at 2:30 PM +01:00` — the page's language, the reader's clock, and
+  the **offset in the string**, because an age is measured from that clock and a date
+  without an offset is a day in a calendar nobody named. It is also what the line prints
+  once an item passes a month, so the page never has two ways to write a date. Every
+  date the page prints carries one: the story card (on the `article`, because its
+  headline paints an overlay over the card), the edited row, the health row, the
+  dateline, and the stats line's cache clock (`13:58 +01:00`).
 - **An undated story prints the paper's sighting, named as one.** A scraped page often
   declares no date, and a card with no date is a card the reader cannot place, so the
   line prints `"seen 2 minutes ago"` — `firstSeenAt`, per item, on the wire — and the
-  tooltip says `"seen November 13, 2026 at 03:49 PM GMT+01:00"`. The word is the
+  tooltip says `"seen November 13, 2026 at 03:49 PM +01:00"`. The word is the
   honesty: a bare age would read as the publication date the source never gave. The
   source's last fetch is **not** the fallback, tempting as it is: it is one value for
   every item of a source, so a 5-minute cadence would print a two-year-old story as

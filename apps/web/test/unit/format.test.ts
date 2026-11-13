@@ -4,12 +4,12 @@ import { localeFor } from './support/locale.ts';
 
 /**
  * `format.ts` is the paper's two renderings of one instant, and a clock: the
- * **age** the page prints, and the **stamp** its tooltip carries. The decision
- * that matters is **whose clock** — the file takes `now` as an argument, so a
- * test can pin an age to an instant. Every fixture here is built from the
+ * **age** the page prints, and the **absolute** instant its tooltip carries. The
+ * decision that matters is **whose clock** — the file takes `now` as an argument,
+ * so a test can pin an age to an instant. Every fixture here is built from the
  * *injected* `now`, which is what makes the age independent of the machine's
- * date; the stamp does not depend on it at all, and that is asserted too — a
- * tooltip that drifted with the clock would be a lie about a date.
+ * date; the absolute form does not depend on it at all, and that is asserted too —
+ * a tooltip that drifted with the clock would be a lie about a date.
  */
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -36,35 +36,36 @@ const stampAt = (day: Date, hour: number, minute = 0): string => {
 const en = localeFor('en');
 const de = localeFor('de');
 
-describe('stamp', () => {
-  it('names the date, the clock and the zone — the zone is the whole reason it exists', () => {
+describe('absolute', () => {
+  it('names the date, the clock and the offset — the offset is the whole reason it exists', () => {
     const format = formatFor(en, () => NOW);
     const iso = NOW.toISOString();
-    expect(format.stamp(iso)).toContain(String(NOW.getFullYear()));
+    expect(format.absolute(iso)).toContain(String(new Date(iso).getFullYear()));
     // An age is a distance from the reader's clock, so the exact answer has to say
-    // which clock: a date without a zone is a number the reader cannot check.
-    expect(format.stamp(iso)).toMatch(/GMT|UTC/u);
-    expect(format.stamp(iso)).toBe(en.stamp(iso));
+    // which clock: a date without an offset is a day in a calendar nobody named.
+    expect(format.absolute(iso)).toMatch(/[+-]\d{2}:\d{2}/u);
+    expect(format.absolute(iso)).toBe(en.absolute(iso));
   });
 
   it('follows the language of the page, not the machine (D-019)', () => {
     const iso = NOW.toISOString();
-    expect(formatFor(en, () => NOW).stamp(iso)).toBe(en.stamp(iso));
-    expect(formatFor(de, () => NOW).stamp(iso)).toBe(de.stamp(iso));
-    expect(formatFor(de, () => NOW).stamp(iso)).toMatch(/November/u);
-    expect(formatFor(en, () => NOW).stamp(iso)).not.toBe(formatFor(de, () => NOW).stamp(iso));
+    expect(formatFor(en, () => NOW).absolute(iso)).toBe(en.absolute(iso));
+    expect(formatFor(de, () => NOW).absolute(iso)).toBe(de.absolute(iso));
+    expect(formatFor(de, () => NOW).absolute(iso)).toMatch(/November/u);
+    expect(formatFor(en, () => NOW).absolute(iso)).not.toBe(formatFor(de, () => NOW).absolute(iso));
   });
 
   it('prints the same instant under any injected `now`: a tooltip is a date, not an age', () => {
     const iso = stampAt(NOW, 9, 30);
-    expect(formatFor(en, () => NOW).stamp(iso)).toBe(formatFor(en, () => new Date(NOW.getTime() + DAY)).stamp(iso));
-    expect(formatFor(en).stamp(iso)).toBe(formatFor(en, () => NOW).stamp(iso));
+    const atDayBefore = formatFor(en, () => new Date(NOW.getTime() + DAY)).absolute(iso);
+    expect(formatFor(en, () => NOW).absolute(iso)).toBe(atDayBefore);
+    expect(formatFor(en).absolute(iso)).toBe(atDayBefore);
   });
 
   it('is empty for a stamp the paper cannot print, so no tooltip says "Invalid Date"', () => {
     const format = formatFor(en, () => NOW);
     for (const iso of [null, '', 'yesterday', 'not-a-date', '2026-13-40T99:99:99Z']) {
-      expect(format.stamp(iso)).toBe('');
+      expect(format.absolute(iso)).toBe('');
     }
   });
 });
@@ -104,8 +105,8 @@ describe('the format object', () => {
     const second = formatFor(de, () => NOW);
     expect(first).not.toBe(second);
     const iso = new Date(NOW.getTime() - 90 * DAY).toISOString();
-    expect(first.stamp(iso)).toBe(en.stamp(iso));
-    expect(second.stamp(iso)).toBe(de.stamp(iso));
-    expect(first.stamp(iso)).not.toBe(second.stamp(iso));
+    expect(first.absolute(iso)).toBe(en.absolute(iso));
+    expect(second.absolute(iso)).toBe(de.absolute(iso));
+    expect(first.absolute(iso)).not.toBe(second.absolute(iso));
   });
 });

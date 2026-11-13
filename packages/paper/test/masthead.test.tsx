@@ -42,8 +42,8 @@ describe('the words', () => {
 describe('the exact dates, in the tooltip', () => {
   it('names the edition instant the dateline stands for, and the cache write the stats line stands for', () => {
     const { container } = showMasthead({ cachedAt: at('09:30') });
-    expect(one(PART.dateline, container).getAttribute('title')).toBe(`stamp(${THE_MASTHEAD_PROPS.generatedAt})`);
-    expect(one(PART.summary, container).getAttribute('title')).toBe(`stamp(${at('09:30')})`);
+    expect(one(PART.dateline, container).getAttribute('title')).toBe(`absolute(${THE_MASTHEAD_PROPS.generatedAt})`);
+    expect(one(PART.summary, container).getAttribute('title')).toBe(`absolute(${at('09:30')})`);
   });
 
   it('carries no tooltip on the stats line when the answer came off the wire', () => {

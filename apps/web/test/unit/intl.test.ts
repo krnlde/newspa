@@ -1,21 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import {
   cachedLanguageCount,
-  formatCompactCount,
+  formatAbsolute,
   formatCount,
-  formatDate,
-  formatDateTime,
-  formatDayHead,
   formatRelative,
-  formatStamp,
   formatTime,
   formattersFor,
   supportedLanguages,
 } from '../../src/lib/intl.ts';
 
+/**
+ * The app's whole locale surface: four renderings (age, instant, clock, count),
+ * built per language, cached by language. The zone clauses are the load-bearing
+ * ones (D-047): an age is measured from the reader's clock, so every absolute
+ * form has to say which clock it is written on. The offset assertions are
+ * zone-agnostic — `+01:00`, `+00:00`, `-05:00` all pass — so this file does not
+ * depend on the machine's time zone.
+ */
+
 const at = (iso: string): Date => new Date(iso);
 const en = formattersFor('en');
 const de = formattersFor('de');
+const OFFSET = /[+-]\d{2}:\d{2}/u;
 
 describe('formattersFor', () => {
   it('is memoised per language, so a render loop does not rebuild `Intl`', () => {
@@ -35,28 +41,31 @@ describe('formattersFor', () => {
 
   it('formats the same instant differently per language', () => {
     const iso = '2026-11-08T10:30:00.000Z';
-    expect(formatDateTime(iso, en)).not.toBe(formatDateTime(iso, de));
-    expect(formatDate(iso, de)).toMatch(/\./);
+    expect(formatAbsolute(iso, en)).not.toBe(formatAbsolute(iso, de));
   });
 });
 
 describe('formatRelative', () => {
   const now = at('2026-11-08T12:00:00.000Z');
-  const parts = (iso: string | null) => {
-    const parsed = iso === null ? Number.NaN : Date.parse(iso);
-    return { parsed, date: new Date(parsed) };
-  };
 
   it('is empty for an instant that cannot be rendered', () => {
     expect(formatRelative({ unit: null, delta: 0, at: new Date(Number.NaN) }, en, { now: 'just now' })).toBe('');
-    expect(parts(null).parsed).toBe(Number.NaN);
   });
 
-  it('asks for an absolute date when core says the story is no longer recent', () => {
-    const out = formatRelative({ unit: null, delta: 0, at: at('2026-10-01T10:00:00.000Z') }, de, {
-      now: 'gerade eben',
-    });
-    expect(out).toBe(formatDate('2026-10-01T10:00:00.000Z', de));
+  it('falls back to the absolute form when core says the story is no longer recent', () => {
+    // The page has **one** way to write a date (D-047): the month-old fallback is
+    // the same rendering the tooltip carries, so "seen 8 November 2026 …" and the
+    // card's tooltip cannot tell two stories.
+    const iso = '2026-10-01T10:00:00.000Z';
+    expect(formatRelative({ unit: null, delta: 0, at: at(iso) }, de, { now: 'gerade eben' })).toBe(
+      formatAbsolute(iso, de),
+    );
+  });
+
+  it('names the zone even in the visible fallback, so a date is a day somewhere', () => {
+    const out = formatRelative({ unit: null, delta: 0, at: at('2026-10-01T10:00:00.000Z') }, en, { now: 'now' });
+    expect(out).toMatch(OFFSET);
+    expect(out).toContain('2026');
   });
 
   it('renders a zero-minute delta as "just now", because `Intl` says "in 0 minutes"', () => {
@@ -75,38 +84,37 @@ describe('formatRelative', () => {
   });
 });
 
-describe('the instant formatters', () => {
+describe('the absolute instant', () => {
   const iso = '2026-11-08T10:30:00.000Z';
 
-  it('are empty for a missing or unparsable instant, so "Invalid Date" never reaches the paper', () => {
-    for (const format of [formatTime, formatDateTime, formatDate, formatStamp]) {
+  it('writes the date, the clock and the offset: `8 November 2026 at 10:30 AM +01:00`', () => {
+    const out = formatAbsolute(iso, en);
+    expect(out).toContain('2026');
+    expect(out).toMatch(/\d{1,2}:\d{2}/u);
+    expect(out).toMatch(OFFSET);
+  });
+
+  it('drops the `GMT` prefix, and keeps a language that names the zone its own way', () => {
+    // Measured: `Intl` spells `timeZoneName: 'longOffset'` as `GMT+01:00`, and the
+    // page writes `+01:00`. A language that prints `UTC+01:00` (French) is left
+    // alone — that is what that language calls the zone, and rewriting it is the
+    // page overruling the locale.
+    expect(formatAbsolute(iso, en)).not.toContain('GMT');
+    expect(formatAbsolute(iso, de)).not.toContain('GMT');
+    expect(formatTime(iso, en)).not.toContain('GMT');
+  });
+
+  it('names the zone in the clock too, because "13:58" is a time somewhere', () => {
+    expect(formatTime(iso, en)).toMatch(/\d{1,2}:\d{2}/u);
+    expect(formatTime(iso, en)).toMatch(OFFSET);
+  });
+
+  it('is empty for a missing or unparsable instant, so "Invalid Date" never reaches the paper', () => {
+    for (const format of [formatAbsolute, formatTime]) {
       expect(format(null, en)).toBe('');
       expect(format('yesterday', en)).toBe('');
       expect(format('', en)).toBe('');
     }
-    expect(formatDayHead(new Date(Number.NaN), en)).toBe('');
-  });
-
-  it('render a wall clock, a date, and a date with time', () => {
-    expect(formatTime(iso, en)).toMatch(/\d{1,2}:\d{2}/);
-    expect(formatDate(iso, en)).toContain('2026');
-    expect(formatDateTime(iso, en)).toContain('2026');
-  });
-
-  it('write a stamp that names the zone, which is the age’s answer to "when, exactly?"', () => {
-    // The zone is the clause this formatter exists for, and it is the reason the
-    // components are spelled out: **`dateStyle` and `timeZoneName` together throw
-    // a `TypeError`** (measured — ECMA-402 forbids the pair when a style is set),
-    // so `dateStyle: 'full'` cannot be the short way to ask for this.
-    expect(formatStamp(iso, en)).toMatch(/GMT|UTC/u);
-    expect(formatStamp(iso, en)).toMatch(/\d{1,2}:\d{2}/u);
-    expect(formatStamp(iso, en)).toContain('2026');
-    expect(formatStamp(iso, de)).not.toBe(formatStamp(iso, en));
-  });
-
-  it('write a day heading in the reader’s language', () => {
-    expect(formatDayHead(new Date(2026, 10, 8), en)).toMatch(/November/);
-    expect(formatDayHead(new Date(2026, 10, 8), de)).toMatch(/November/);
   });
 });
 
@@ -114,18 +122,5 @@ describe('counts', () => {
   it('use the language’s grouping separators', () => {
     expect(formatCount(1234, en)).toBe('1,234');
     expect(formatCount(1234, de)).toBe('1.234');
-  });
-
-  it('compacts in English, where the badge has to fit', () => {
-    expect(formatCompactCount(12_400, en)).toBe('12.4K');
-    expect(formatCompactCount(1_240_000, en)).toBe('1.2M');
-    // Measured, not assumed: Node 26's ICU does not abbreviate German
-    // thousands — `de` groups them ('12.400') and only compacts from a million
-    // ('1,2 Mio.'). Asserting the English form and "not the English compact"
-    // for German is the part that is stable across ICU versions.
-    expect(formatCompactCount(12_400, de)).not.toBe('12.4K');
-    // CLDR puts a NO-BREAK SPACE (U+00A0) between the number and 'Mio.', so a
-    // literal space in the expectation fails invisibly.
-    expect(formatCompactCount(1_240_000, de)).toBe('1,2\u00a0Mio.');
   });
 });

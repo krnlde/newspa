@@ -11,13 +11,9 @@ const Probe = (): React.JSX.Element => {
   return (
     <div>
       <span data-testid="relative">{locale.relative(STAMP, NOW)}</span>
-      <span data-testid="day">{locale.dayHead(new Date(2026, 10, 8))}</span>
       <span data-testid="count">{locale.count(1234)}</span>
       <span data-testid="time">{locale.time(STAMP)}</span>
-      <span data-testid="date">{locale.date(STAMP)}</span>
-      <span data-testid="stamp">{locale.stamp(STAMP)}</span>
-      <span data-testid="datetime">{locale.dateTime(STAMP)}</span>
-      <span data-testid="compact">{locale.compact(12400)}</span>
+      <span data-testid="absolute">{locale.absolute(STAMP)}</span>
       <span data-testid="language">{locale.language}</span>
       {/* No `now` argument: the clock default, i.e. the way a component calls it. */}
       <span data-testid="live">{locale.relative(new Date().toISOString())}</span>
@@ -32,13 +28,11 @@ describe('useLocale', () => {
     expect(screen.getByTestId('language').textContent).toBe('de');
     expect(screen.getByTestId('relative').textContent).toBe('vor 2 Stunden');
     expect(screen.getByTestId('count').textContent).toBe('1.234');
-    expect(screen.getByTestId('day').textContent).toContain('November');
     expect(screen.getByTestId('time').textContent).toMatch(/\d{1,2}:\d{2}/);
-    expect(screen.getByTestId('date').textContent).toContain('2026');
-    expect(screen.getByTestId('datetime').textContent).toContain('2026');
-    // The tooltip's formatter: the instant, and the zone it is an instant in.
-    expect(screen.getByTestId('stamp').textContent).toMatch(/GMT|UTC/u);
-    expect(screen.getByTestId('compact').textContent).toContain('12');
+    // The absolute form: the instant, in the page's language, offset named (D-047).
+    expect(screen.getByTestId('absolute').textContent).toContain('2026');
+    expect(screen.getByTestId('absolute').textContent).toMatch(/[+-]\d{2}:\d{2}/u);
+    expect(screen.getByTestId('absolute').textContent).toContain('um');
     // A stamp from the live clock is a 0-minute delta in the reader's language.
     expect(screen.getByTestId('live').textContent).toBe('gerade eben');
   });
@@ -53,6 +47,9 @@ describe('useLocale', () => {
     expect(screen.getByTestId('language').textContent).toBe('en');
     expect(screen.getByTestId('relative').textContent).toBe('2 hours ago');
     expect(screen.getByTestId('count').textContent).toBe('1,234');
+    // The absolute form switches with it, so a language change cannot leave a
+    // frozen-language date on the page (D-019).
+    expect(screen.getByTestId('absolute').textContent).toContain('at');
   });
 
   it('says "just now" in the language that is showing, not in English', async () => {
@@ -77,7 +74,7 @@ describe('useLocale', () => {
     const NoStamp = (): React.JSX.Element => {
       const locale = useLocale();
       return (
-        <span data-testid="empty">{`${locale.time(null)}${locale.date('yesterday')}${locale.relative(null, NOW)}`}</span>
+        <span data-testid="empty">{`${locale.time(null)}${locale.absolute('yesterday')}${locale.relative(null, NOW)}`}</span>
       );
     };
     render(<NoStamp />);

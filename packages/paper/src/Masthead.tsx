@@ -44,8 +44,8 @@ export const Masthead = ({
      visible words are the app's; the tooltips are those same instants written
      out with the zone, because "Friday, 13 November" is a day for a reader who
      did not say where they are. */
-  const datelineStamp = format.stamp(generatedAt);
-  const summaryStamp = format.stamp(cachedAt);
+  const datelineTitle = format.absolute(generatedAt);
+  const summaryTitle = format.absolute(cachedAt);
   return (
     <header data-part="masthead" className="pt-3 pb-2 border-t-2 border-t-ink text-center">
       <div
@@ -54,7 +54,7 @@ export const Masthead = ({
       >
         <p
           data-part="dateline"
-          {...(datelineStamp === '' ? {} : { title: datelineStamp })}
+          {...(datelineTitle === '' ? {} : { title: datelineTitle })}
           className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted"
         >
           {dateline}
@@ -128,7 +128,7 @@ export const Masthead = ({
           an age of the cache, so the tooltip is that write, written out. */}
         <p
           data-part="summary"
-          {...(summaryStamp === '' ? {} : { title: summaryStamp })}
+          {...(summaryTitle === '' ? {} : { title: summaryTitle })}
           className="m-0 py-[0.15rem] text-kicker font-bold tracking-kicker uppercase text-muted"
         >
           {summary}

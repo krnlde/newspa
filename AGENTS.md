@@ -110,7 +110,7 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     no cards, no shadow beyond the documented scroll edge, no rounded rectangles,
     no saturated colour, **never `text-align: justify`**, and **every printed date an
     age** — its `title` carries the exact instant, zone named (D-047), and `FormatProps`
-    is `ago` and `stamp` only, formatted by the app (D-019).
+    is `ago` and `absolute` only, formatted by the app (D-019).
 12. **Every behaviour gets a test** in the package that owns it (Vitest, 95%
     coverage gate). Parser changes need a fixture under
     `packages/fetch/test/fixtures/`.
