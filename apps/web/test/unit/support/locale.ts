@@ -5,6 +5,7 @@ import {
   formatDateTime,
   formatDayHead,
   formatRelative,
+  formatStamp,
   formatTime,
   formattersFor,
 } from '../../../src/lib/intl.ts';
@@ -32,6 +33,7 @@ export const localeFor = (language: string): LocaleApi => {
     time: (iso) => formatTime(iso, formatters),
     dateTime: (iso) => formatDateTime(iso, formatters),
     date: (iso) => formatDate(iso, formatters),
+    stamp: (iso) => formatStamp(iso, formatters),
     dayHead: (date) => formatDayHead(date, formatters),
     count: (value) => formatters.number.format(value),
     compact: (value) => formatCompactCount(value, formatters),

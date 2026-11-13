@@ -1,25 +1,22 @@
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import type { ItemView, SourceHealthView } from 'newspa-core';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { PaperProps } from '../src/index.ts';
-import { Onboarding, Paper } from '../src/index.ts';
+import type { SourceHealthView } from 'newspa-core';
+import { afterEach, describe, expect, it } from 'vitest';
+import { Onboarding } from '../src/index.ts';
 import {
   anEdition,
   anItem,
-  aReport,
   aSection,
   aSource,
-  at,
   nthStory,
   one,
   PART,
   partsOf,
   storySlots,
-  THE_FORMAT,
   THE_LABELS,
   THE_MASTHEAD,
   textsOf,
 } from './support.ts';
+import { brokenSource, editedItem, okSource, showPaper } from './support-page.tsx';
 
 /**
  * `Paper.tsx` owns two things and nothing else: **the order the page prints in**
@@ -34,31 +31,6 @@ import {
  */
 
 afterEach(cleanup);
-
-const okSource = aSource({ id: 'tech', state: 'ok' });
-const brokenSource = aSource({ id: 'world', state: 'no-matches', note: 'the selector matched 0 of 14 elements' });
-
-const editedItem = (key: string, over: Partial<ItemView> = {}): ItemView =>
-  anItem({ key, lastEventKind: 'edited', lastReport: aReport(), lastChangedAt: at('09:30'), ...over });
-
-const showPaper = (over: Partial<PaperProps> = {}) => {
-  const props: PaperProps = {
-    masthead: THE_MASTHEAD,
-    edition: anEdition(),
-    sources: [okSource],
-    labels: THE_LABELS,
-    format: THE_FORMAT,
-    theme: 'light',
-    onToggleTheme: vi.fn(),
-    themeLabel: 'Switch to dark',
-    ...over,
-  };
-  const container = render(<Paper {...props} />).container;
-  return { container, props, onToggleTheme: props.onToggleTheme };
-};
-
-/** Every block of the edited strip's row, in the order the row prints. */
-const rowParts = (root: Element): string[] => [...root.children].map((node) => node.getAttribute('data-part') ?? '');
 
 describe('a paper with no sources', () => {
   it('prints the onboarding block: title, lead, the steps in order, and the command', () => {
@@ -186,55 +158,6 @@ describe('the sections', () => {
     expect(container.querySelectorAll('article')).toHaveLength(0);
   });
 });
-
-describe('the edited strip', () => {
-  it('prints one row per story that has a report, with its headline, diff and stamp', () => {
-    const { container } = showPaper({
-      edition: anEdition({
-        edited: [
-          editedItem('world:2', { title: 'Rates held for the third month running' }),
-          editedItem('tech:4', { sourceLabel: 'Example Tech', title: 'A standard body agrees on a wire format' }),
-        ],
-      }),
-    });
-    expect(one(`${PART.edited} ${PART.blockHead}`, container).textContent).toBe(THE_LABELS.editedHeadline);
-    expect(container.querySelectorAll(PART.editedRow)).toHaveLength(2);
-    expect(textsOf(`${PART.editedRow} ${PART.headline} a`, container)).toEqual([
-      'Rates held for the third month running',
-      'A standard body agrees on a wire format',
-    ]);
-    expect(textsOf(`${PART.editedRow} ${PART.source}`, container)).toEqual(['Example World', 'Example Tech']);
-    expect(container.querySelectorAll(`${PART.editedRow} ${PART.diff}`)).toHaveLength(2);
-    const rows = [...container.querySelectorAll<HTMLElement>(PART.editedRow)];
-    const first = rows[0];
-    if (first === undefined) throw new Error('the edited strip printed no row');
-    expect(rowParts(first)).toEqual(['headline', 'diff', 'meta']);
-    const link = one<HTMLAnchorElement>(`${PART.headline} a`, first);
-    expect(link.getAttribute('href')).toBe('https://feeds.example.test/first-story');
-    expect(link.getAttribute('target')).toBe('_blank');
-    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(link.getAttribute('aria-label')).toBe(THE_LABELS.opensInNewTab('Example World'));
-    expect(one(PART.count, first).textContent).toBe('9 added, 5 removed');
-    expect(textsOf(`${PART.editedRow} ${PART.meta}`, container)).toEqual([
-      `pub(${at('09:30')})`,
-      `pub(${at('09:30')})`,
-    ]);
-  });
-
-  it('omits a story whose report is null, and prints no strip when none has one', () => {
-    const { container } = showPaper({ edition: anEdition({ edited: [anItem({ key: 'world:9' })] }) });
-    expect(container.querySelector(PART.edited)).toBeNull();
-    expect(container.querySelectorAll(PART.editedRow)).toHaveLength(0);
-  });
-
-  it('falls back to the publication stamp when a story was changed at no recorded instant', () => {
-    const { container } = showPaper({
-      edition: anEdition({ edited: [editedItem('world:2', { lastChangedAt: null, publishedAt: at('06:00') })] }),
-    });
-    expect(one(`${PART.editedRow} ${PART.meta}`, container).textContent).toBe(`pub(${at('06:00')})`);
-  });
-});
-
 describe('the health strip', () => {
   it('prints the unhealthy sources of the state response, and nothing for the healthy ones', () => {
     const sources: readonly SourceHealthView[] = [okSource, brokenSource];

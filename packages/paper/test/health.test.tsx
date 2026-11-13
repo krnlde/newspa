@@ -3,7 +3,7 @@ import type { HealthState, SourceHealthView } from 'newspa-core';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { HealthProps } from '../src/index.ts';
 import { HealthStrip } from '../src/index.ts';
-import { aSource, one, PART, THE_FORMAT, THE_HEALTH_LABELS, textsOf } from './support.ts';
+import { aSource, at, one, PART, THE_FORMAT, THE_HEALTH_LABELS, textsOf } from './support.ts';
 
 /**
  * Rule 5 made visible. A source that matches nothing, is blocked, is stale, or
@@ -63,6 +63,18 @@ describe('a source that is not reporting', () => {
     ]);
     expect(container.querySelectorAll(rowSelector)).toHaveLength(2);
     expect(textsOf(PART.label, container)).toEqual(['Example World', 'Example Gov']);
+  });
+
+  it('carries the poll the row reports on as an absolute date, in the row', () => {
+    // The row's age is measured from the reader's clock, so the exact instant is the
+    // part a reader cannot derive from what they see: when the poll ran, zone named.
+    const container = showHealth([broken({ id: 'world', lastFetchAt: at('09:30') })]);
+    expect(one(rowSelector, container).getAttribute('title')).toBe(`stamp(${at('09:30')})`);
+  });
+
+  it('carries no tooltip for a source that has never been fetched', () => {
+    const container = showHealth([broken({ id: 'world', lastFetchAt: null })]);
+    expect(one(rowSelector, container).hasAttribute('title')).toBe(false);
   });
 
   it('marks the strip as not-well, so a stylesheet can name the state', () => {

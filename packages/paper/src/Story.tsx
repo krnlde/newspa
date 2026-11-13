@@ -32,6 +32,7 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
         ? labels.goneKicker
         : labels.newKicker;
   const meta = metaOf(item, labels, format);
+  const stamps = stampsOf(item, labels, format);
   const figure =
     showImage && item.image !== null ? (
       <figure data-part="figure" className="mb-[0.6rem] cropmarks">
@@ -47,6 +48,7 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
       data-slot={slot}
       data-key={item.key}
       data-read={item.read ? 'true' : 'false'}
+      {...(stamps === '' ? {} : { title: stamps })}
       className={SLOT_OF[slot]}
     >
       {slot === 'lead' ? null : figure}
@@ -157,7 +159,7 @@ const IMAGE_OF: Record<StorySlot, string> = {
 
 /** Byline and age in one muted uppercase line. Empty parts are absent, not blank. */
 const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
-  const published = format.published(item.publishedAt);
+  const published = item.publishedAt === null ? '' : format.ago(item.publishedAt);
   const changed = item.lastChangedAt === null ? '' : format.ago(item.lastChangedAt);
   const parts = [
     item.author === null ? '' : labels.byline(item.author),
@@ -165,6 +167,23 @@ const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): strin
     changed.length > 0 ? `${labels.changedLabel.toLowerCase()} ${changed}` : '',
   ];
   return parts.filter((part) => part.length > 0).join(' · ');
+};
+
+/**
+ * The same line as **instants**: the ages above are distances from the reader's
+ * clock, and the tooltip is the date they were measured from, zone named. A
+ * story's words are the publisher's; these numbers are the paper's arithmetic,
+ * so they are the app's to format (D-019).
+ *
+ * It goes on the `article`, not on the meta paragraph: the headline's anchor
+ * paints an overlay over the whole card (`after:absolute after:inset-0`), so a
+ * tooltip hung on the meta line is never under the pointer — the card is.
+ */
+const stampsOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
+  const published = format.stamp(item.publishedAt);
+  const changed =
+    item.lastChangedAt === null ? '' : `${labels.changedLabel.toLowerCase()} ${format.stamp(item.lastChangedAt)}`;
+  return [published, changed].filter((part) => part.length > 0).join(' · ');
 };
 
 /**

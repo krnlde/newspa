@@ -81,8 +81,8 @@ const THE_MASTHEAD: MastheadView = {
 };
 
 const THE_FORMAT: FormatProps = {
-  published: (iso: string | null) => (iso === null ? '' : iso),
   ago: (iso: string) => iso,
+  stamp: (iso: string | null) => (iso === null ? '' : iso),
 };
 
 const LABELS: PaperLabels = {

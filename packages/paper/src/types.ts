@@ -41,12 +41,21 @@ export interface StoryLabels {
   readonly editSummary: (added: number, removed: number) => string;
 }
 
-/** A date, an instant, an age — formatted by the app, in the app's language. */
+/**
+ * A date, an age, an instant — formatted by the app, in the app's language.
+ *
+ * Two renderings of one instant, and the page uses both: the **age** is what a
+ * front page is scanned by ("2 hours ago"), and the **stamp** is what the
+ * `title` attribute carries — the same instant written out with its time zone.
+ * An age is a distance from the reader's clock, so the exact answer has to name
+ * the clock it was measured from; a bare date in a tooltip is a number the
+ * reader cannot check.
+ */
 export interface FormatProps {
-  /** `publishedAt` as `"06:40"` today, `"8 Nov"` this year, `"8 Nov 2025"` older. */
-  readonly published: (iso: string | null) => string;
-  /** `lastChangedAt` as an age: `"3 hours ago"`. */
+  /** An age: `"3 hours ago"`, `"just now"`, and an absolute date past a month. */
   readonly ago: (iso: string) => string;
+  /** `"November 13, 2026 at 03:03 PM GMT+01:00"` — empty for no instant. */
+  readonly stamp: (iso: string | null) => string;
 }
 
 export interface StoryProps {
@@ -169,6 +178,12 @@ export interface MastheadProps {
   readonly dateline: string;
   /** One line of the stats strip: `"38 stories · 6 new · 2 edited"`. */
   readonly summary: string;
+  /** The app's formatters, for the two dates this strip prints (D-019). */
+  readonly format: FormatProps;
+  /** The instant the edition was assembled — the dateline's exact date. */
+  readonly generatedAt: string;
+  /** The worker's cache stamp (WP16, D-039): the summary line's exact date, if any. */
+  readonly cachedAt: string | null;
   readonly theme: 'light' | 'dark';
   readonly onToggleTheme: () => void;
   /** The switcher's own words, and its accessible name. */

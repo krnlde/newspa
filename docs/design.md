@@ -244,6 +244,14 @@ A story in the paper is a **teaser**, and the paper never renders full text:
   `enclosure`/`media:content`, the JSON `image` field). Only the lead story and
   section leaders get one; it is forced to monochrome, with an italic caption in
   `--muted`. **No image, no placeholder box** — an empty div is not a photograph.
+- **Every date is an age, and its exact instant is one hover away** (D-047). The page
+  prints `"2 hours ago"`, not `"14:03"`: a front page is read as a stack of _recency_,
+  and an age answers "what is new?" without making the reader subtract. The answer to
+  "when, exactly?" goes in the `title` — the same instant written out **with its time
+  zone**, because an age is measured from the reader's clock and a zoneless date is a
+  number nobody can check. Every date the page prints carries one: the story card
+  (on the `article`, because its headline paints an overlay over the card), the edited
+  row, the health row, the dateline, and the stats line's cache stamp.
 - `ItemView` has no `body` field, so this is structural: the full text is never
   sent to the browser. The edit diff shows changes in the teaser fields only.
 

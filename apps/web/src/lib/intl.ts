@@ -21,6 +21,18 @@ export interface Formatters {
   readonly time: Intl.DateTimeFormat;
   /** "Monday, 9 November" — the heading above a day's items. */
   readonly dayHead: Intl.DateTimeFormat;
+  /**
+   * "November 13, 2026 at 03:03 PM GMT+01:00" — the tooltip's date: the whole
+   * instant **and the zone that produced it**, because a relative label ("2 hours
+   * ago") is an age measured from the reader's clock, and the answer to "so when,
+   * exactly?" has to name the clock.
+   *
+   * The components are spelled out, not `dateStyle: 'full'`: **`dateStyle` and
+   * `timeZoneName` together throw a `TypeError`** (measured, V8/ICU — the option is
+   * forbidden by ECMA-402 when a style is present), and the zone is the one clause
+   * this formatter exists to print.
+   */
+  readonly stamp: Intl.DateTimeFormat;
   /** "November 2026" — the archive grouping. */
   readonly monthHead: Intl.DateTimeFormat;
   /** A poll duration: seconds, no unit drift. */
@@ -55,6 +67,14 @@ export const formattersFor = (language: string): Formatters => {
     dateTime: new Intl.DateTimeFormat(lng, { dateStyle: 'medium', timeStyle: 'short' }),
     time: new Intl.DateTimeFormat(lng, { timeStyle: 'short' }),
     dayHead: new Intl.DateTimeFormat(lng, { weekday: 'long', day: 'numeric', month: 'long' }),
+    stamp: new Intl.DateTimeFormat(lng, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'longOffset',
+    }),
     monthHead: new Intl.DateTimeFormat(lng, { month: 'long', year: 'numeric' }),
     seconds: new Intl.NumberFormat(lng, { maximumFractionDigits: 1 }),
     number: new Intl.NumberFormat(lng),
@@ -105,6 +125,17 @@ export const formatDate = (iso: string | null, formatters: Formatters): string =
   if (iso === null) return '';
   const at = Date.parse(iso);
   return Number.isNaN(at) ? '' : formatters.date.format(at);
+};
+
+/**
+ * The absolute stamp, with the zone: what a `title` attribute carries when the
+ * page's visible date is an age. Empty for a missing or unparseable instant, so
+ * a caller renders no attribute rather than "Invalid Date".
+ */
+export const formatStamp = (iso: string | null, formatters: Formatters): string => {
+  if (iso === null) return '';
+  const at = Date.parse(iso);
+  return Number.isNaN(at) ? '' : formatters.stamp.format(at);
 };
 
 /**

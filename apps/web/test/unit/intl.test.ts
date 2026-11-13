@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatDayHead,
   formatRelative,
+  formatStamp,
   formatTime,
   formattersFor,
   supportedLanguages,
@@ -78,7 +79,7 @@ describe('the instant formatters', () => {
   const iso = '2026-11-08T10:30:00.000Z';
 
   it('are empty for a missing or unparsable instant, so "Invalid Date" never reaches the paper', () => {
-    for (const format of [formatTime, formatDateTime, formatDate]) {
+    for (const format of [formatTime, formatDateTime, formatDate, formatStamp]) {
       expect(format(null, en)).toBe('');
       expect(format('yesterday', en)).toBe('');
       expect(format('', en)).toBe('');
@@ -90,6 +91,17 @@ describe('the instant formatters', () => {
     expect(formatTime(iso, en)).toMatch(/\d{1,2}:\d{2}/);
     expect(formatDate(iso, en)).toContain('2026');
     expect(formatDateTime(iso, en)).toContain('2026');
+  });
+
+  it('write a stamp that names the zone, which is the age’s answer to "when, exactly?"', () => {
+    // The zone is the clause this formatter exists for, and it is the reason the
+    // components are spelled out: **`dateStyle` and `timeZoneName` together throw
+    // a `TypeError`** (measured — ECMA-402 forbids the pair when a style is set),
+    // so `dateStyle: 'full'` cannot be the short way to ask for this.
+    expect(formatStamp(iso, en)).toMatch(/GMT|UTC/u);
+    expect(formatStamp(iso, en)).toMatch(/\d{1,2}:\d{2}/u);
+    expect(formatStamp(iso, en)).toContain('2026');
+    expect(formatStamp(iso, de)).not.toBe(formatStamp(iso, en));
   });
 
   it('write a day heading in the reader’s language', () => {

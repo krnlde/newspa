@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Masthead } from '../src/index.ts';
-import { one, PART, partsOf, THE_MASTHEAD_PROPS } from './support.ts';
+import { at, one, PART, partsOf, THE_MASTHEAD_PROPS } from './support.ts';
 
 /**
  * The masthead prints four finished strings the app composed (the dateline, the
@@ -36,6 +36,20 @@ describe('the words', () => {
     const { container } = showMasthead({ tagline: '', summary: '' });
     expect(one(PART.tagline, container).textContent).toBe('');
     expect(one(PART.summary, container).textContent).toBe('');
+  });
+});
+
+describe('the exact dates, in the tooltip', () => {
+  it('names the edition instant the dateline stands for, and the cache write the stats line stands for', () => {
+    const { container } = showMasthead({ cachedAt: at('09:30') });
+    expect(one(PART.dateline, container).getAttribute('title')).toBe(`stamp(${THE_MASTHEAD_PROPS.generatedAt})`);
+    expect(one(PART.summary, container).getAttribute('title')).toBe(`stamp(${at('09:30')})`);
+  });
+
+  it('carries no tooltip on the stats line when the answer came off the wire', () => {
+    // `cachedAt: null` is the page saying it is live; `title=""` is a tooltip that
+    // says nothing, so the live page prints no attribute.
+    expect(one(PART.summary, showMasthead().container).hasAttribute('title')).toBe(false);
   });
 });
 

@@ -149,8 +149,8 @@ export const THE_LABELS: PaperLabels = {
  * read the instant straight out of the rendered text.
  */
 export const THE_FORMAT: FormatProps = {
-  published: (iso: string | null) => (iso === null ? '' : `pub(${iso})`),
   ago: (iso: string) => `ago(${iso})`,
+  stamp: (iso: string | null) => (iso === null ? '' : `stamp(${iso})`),
 };
 
 export const THE_MASTHEAD_PROPS: MastheadProps = {
@@ -158,6 +158,9 @@ export const THE_MASTHEAD_PROPS: MastheadProps = {
   tagline: THE_MASTHEAD.tagline,
   dateline: anEdition().dateline,
   summary: '4 stories · 2 new · 1 edited',
+  format: THE_FORMAT,
+  generatedAt: anEdition().generatedAt,
+  cachedAt: null,
   theme: 'light',
   onToggleTheme: () => undefined,
   themeLabel: 'Switch to dark',

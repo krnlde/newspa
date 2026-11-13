@@ -126,6 +126,9 @@ export const Paper = ({
       tagline={masthead.tagline}
       dateline={edition.dateline}
       summary={labels.stats(edition.stats, cachedAt)}
+      format={format}
+      generatedAt={edition.generatedAt}
+      cachedAt={cachedAt}
       {...(install === undefined ? {} : { install })}
       theme={theme}
       onToggleTheme={onToggleTheme}

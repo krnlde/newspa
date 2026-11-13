@@ -3,11 +3,13 @@ import { formatFor } from '../../src/format.ts';
 import { localeFor } from './support/locale.ts';
 
 /**
- * `format.ts` is two decisions and a clock: today → wall clock, older → date,
- * and an age from core's relative parts. The decision that matters is **whose
- * clock** — the file takes `now` as an argument, so a test can pin "is this
- * today?" to an instant. Every fixture here is built from the *injected*
- * `now`, which is what makes the test independent of the machine's date.
+ * `format.ts` is the paper's two renderings of one instant, and a clock: the
+ * **age** the page prints, and the **stamp** its tooltip carries. The decision
+ * that matters is **whose clock** — the file takes `now` as an argument, so a
+ * test can pin an age to an instant. Every fixture here is built from the
+ * *injected* `now`, which is what makes the age independent of the machine's
+ * date; the stamp does not depend on it at all, and that is asserted too — a
+ * tooltip that drifted with the clock would be a lie about a date.
  */
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -34,52 +36,36 @@ const stampAt = (day: Date, hour: number, minute = 0): string => {
 const en = localeFor('en');
 const de = localeFor('de');
 
-describe('published', () => {
-  it('shows the clock for an instant on the injected day', () => {
+describe('stamp', () => {
+  it('names the date, the clock and the zone — the zone is the whole reason it exists', () => {
     const format = formatFor(en, () => NOW);
-    const morning = stampAt(NOW, 9, 30);
-    expect(format.published(morning)).toBe(en.time(morning));
-    expect(format.published(morning)).toMatch(/\d{1,2}:\d{2}/);
-    expect(format.published(morning)).not.toContain(String(NOW.getFullYear()));
+    const iso = NOW.toISOString();
+    expect(format.stamp(iso)).toContain(String(NOW.getFullYear()));
+    // An age is a distance from the reader's clock, so the exact answer has to say
+    // which clock: a date without a zone is a number the reader cannot check.
+    expect(format.stamp(iso)).toMatch(/GMT|UTC/u);
+    expect(format.stamp(iso)).toBe(en.stamp(iso));
   });
 
-  it('shows the date for an older instant, in the reader’s calendar', () => {
-    const format = formatFor(en, () => NOW);
-    const older = new Date(NOW.getTime() - 90 * DAY).toISOString();
-    expect(format.published(older)).toBe(en.date(older));
-    expect(format.published(older)).toContain(String(new Date(older).getFullYear()));
-    expect(formatFor(de, () => NOW).published(older)).toMatch(/\d{1,2}\.\d{1,2}\.\d{4}/);
+  it('follows the language of the page, not the machine (D-019)', () => {
+    const iso = NOW.toISOString();
+    expect(formatFor(en, () => NOW).stamp(iso)).toBe(en.stamp(iso));
+    expect(formatFor(de, () => NOW).stamp(iso)).toBe(de.stamp(iso));
+    expect(formatFor(de, () => NOW).stamp(iso)).toMatch(/November/u);
+    expect(formatFor(en, () => NOW).stamp(iso)).not.toBe(formatFor(de, () => NOW).stamp(iso));
   });
 
-  it('is a clock before local midnight and a date after it', () => {
-    const format = formatFor(en, () => NOW);
-    const late = stampAt(NOW, 23, 59);
-    expect(format.published(late)).toBe(en.time(late));
-    const nextDay = new Date(NOW.getTime() + DAY);
-    const justAfterMidnight = stampAt(nextDay, 0, 15);
-    expect(format.published(justAfterMidnight)).toBe(en.date(justAfterMidnight));
-    expect(format.published(justAfterMidnight)).toContain(String(nextDay.getFullYear()));
+  it('prints the same instant under any injected `now`: a tooltip is a date, not an age', () => {
+    const iso = stampAt(NOW, 9, 30);
+    expect(formatFor(en, () => NOW).stamp(iso)).toBe(formatFor(en, () => new Date(NOW.getTime() + DAY)).stamp(iso));
+    expect(formatFor(en).stamp(iso)).toBe(formatFor(en, () => NOW).stamp(iso));
   });
 
-  it('is empty for a stamp the paper cannot print', () => {
+  it('is empty for a stamp the paper cannot print, so no tooltip says "Invalid Date"', () => {
     const format = formatFor(en, () => NOW);
     for (const iso of [null, '', 'yesterday', 'not-a-date', '2026-13-40T99:99:99Z']) {
-      expect(format.published(iso)).toBe('');
+      expect(format.stamp(iso)).toBe('');
     }
-  });
-
-  it('reads the injected `now`, never the wall clock', () => {
-    const format = formatFor(en, () => NOW);
-    const live = new Date().toISOString();
-    // A stamp from the live clock is **not** on the injected day, so it must
-    // print as a date. If it printed as a clock time, `published` is reading
-    // `Date.now()` and a test of "is this today?" would be a coin flip.
-    expect(format.published(live)).toBe(en.date(live));
-    // And the default `now` is the clock, i.e. the way a component calls it.
-    const thisMinute = new Date().toISOString();
-    const asClock = formatFor(en).published(thisMinute);
-    expect(asClock).toBe(en.time(thisMinute));
-    expect(asClock).toMatch(/\d{1,2}:\d{2}/);
   });
 });
 
@@ -118,7 +104,8 @@ describe('the format object', () => {
     const second = formatFor(de, () => NOW);
     expect(first).not.toBe(second);
     const iso = new Date(NOW.getTime() - 90 * DAY).toISOString();
-    expect(first.published(iso)).toBe(en.date(iso));
-    expect(second.published(iso)).toBe(de.date(iso));
+    expect(first.stamp(iso)).toBe(en.stamp(iso));
+    expect(second.stamp(iso)).toBe(de.stamp(iso));
+    expect(first.stamp(iso)).not.toBe(second.stamp(iso));
   });
 });

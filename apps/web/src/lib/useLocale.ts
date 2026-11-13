@@ -8,6 +8,7 @@ import {
   formatDateTime,
   formatDayHead,
   formatRelative,
+  formatStamp,
   formatTime,
   formattersFor,
 } from './intl.ts';
@@ -32,6 +33,8 @@ export interface LocaleApi {
   readonly time: (iso: string | null) => string;
   readonly dateTime: (iso: string | null) => string;
   readonly date: (iso: string | null) => string;
+  /** The instant in full, zone named: what a date's `title` attribute carries. */
+  readonly stamp: (iso: string | null) => string;
   readonly dayHead: (date: Date) => string;
   readonly count: (value: number) => string;
   readonly compact: (value: number) => string;
@@ -60,6 +63,7 @@ export const useLocale = (): LocaleApi => {
       time: (iso) => formatTime(iso, formatters),
       dateTime: (iso) => formatDateTime(iso, formatters),
       date: (iso) => formatDate(iso, formatters),
+      stamp: (iso) => formatStamp(iso, formatters),
       dayHead: (date) => formatDayHead(date, formatters),
       count: (value) => formatters.number.format(value),
       compact: (value) => formatCompactCount(value, formatters),

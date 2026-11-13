@@ -32,35 +32,48 @@ export const EditedStrip = ({
         {labels.editedHeadline}
         <span data-part="rule" className={HEAD_RULE} aria-hidden="true" />
       </h2>
-      {withReport.map((item) => (
-        <article
-          data-part="edited-row"
-          key={item.key}
-          className="py-3 border-b border-b-[length:var(--hair)] border-b-rule break-inside-avoid"
-        >
-          <h3
-            data-part="headline"
-            className="flex flex-wrap items-baseline gap-2 m-0 text-section font-bold leading-display break-after-avoid"
+      {withReport.map((item) => {
+        // The change when there was one, the publication when there was not, and no
+        // instant at all when the publisher never declared one — no date, no tooltip.
+        const at = item.lastChangedAt ?? item.publishedAt;
+        const stamp = format.stamp(at);
+        return (
+          <article
+            data-part="edited-row"
+            key={item.key}
+            className="py-3 border-b border-b-[length:var(--hair)] border-b-rule break-inside-avoid"
           >
-            <a
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={labels.opensInNewTab(item.sourceLabel)}
-              className="underline decoration-[length:var(--hair)] underline-offset-[0.15em]"
+            <h3
+              data-part="headline"
+              className="flex flex-wrap items-baseline gap-2 m-0 text-section font-bold leading-display break-after-avoid"
             >
-              {item.title}
-            </a>
-            <span data-part="source" className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted">
-              {item.sourceLabel}
-            </span>
-          </h3>
-          <EditDiff report={item.lastReport} summary={labels.editSummary} />
-          <p data-part="meta" className="m-0 text-kicker font-normal tracking-kicker uppercase text-muted">
-            {format.published(item.lastChangedAt ?? item.publishedAt)}
-          </p>
-        </article>
-      ))}
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={labels.opensInNewTab(item.sourceLabel)}
+                className="underline decoration-[length:var(--hair)] underline-offset-[0.15em]"
+              >
+                {item.title}
+              </a>
+              <span data-part="source" className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted">
+                {item.sourceLabel}
+              </span>
+            </h3>
+            <EditDiff report={item.lastReport} summary={labels.editSummary} />
+            {/* An age on the page, the instant in the tooltip: this row has no
+                overlay over it (its link is inline), so the date's own element can
+                carry it. */}
+            <p
+              data-part="meta"
+              {...(stamp === '' ? {} : { title: stamp })}
+              className="m-0 text-kicker font-normal tracking-kicker uppercase text-muted"
+            >
+              {at === null ? '' : format.ago(at)}
+            </p>
+          </article>
+        );
+      })}
     </section>
   );
 };

@@ -136,47 +136,66 @@ describe('the deck', () => {
 });
 
 describe('the meta line', () => {
-  it('joins byline, published stamp and the age of the last change with a separator', () => {
+  it('joins byline, the age of the publication and the age of the last change', () => {
     expect(metaOf({ author: 'Ann Example', publishedAt: at('06:00'), lastChangedAt: at('09:30') })).toBe(
-      `By Ann Example · pub(${at('06:00')}) · changed ago(${at('09:30')})`,
+      `By Ann Example · ago(${at('06:00')}) · changed ago(${at('09:30')})`,
     );
   });
 
   it('omits the byline without leaving a separator behind', () => {
     expect(metaOf({ author: null, publishedAt: at('06:00'), lastChangedAt: at('09:30') })).toBe(
-      `pub(${at('06:00')}) · changed ago(${at('09:30')})`,
+      `ago(${at('06:00')}) · changed ago(${at('09:30')})`,
     );
   });
 
   it('omits the change when there never was one', () => {
     expect(metaOf({ author: 'Ann Example', publishedAt: at('06:00'), lastChangedAt: null })).toBe(
-      `By Ann Example · pub(${at('06:00')})`,
+      `By Ann Example · ago(${at('06:00')})`,
     );
   });
 
   it('omits an absent publication stamp, and the formatter is not asked for a null one', () => {
-    const asked: (string | null)[] = [];
+    const asked: string[] = [];
     render(
       <Story
         item={anItem({ author: 'Ann Example', publishedAt: null, lastChangedAt: null })}
         slot="story"
         labels={THE_LABELS}
         format={{
-          published: (iso: string | null) => {
+          ago: (iso: string) => {
             asked.push(iso);
-            return iso === null ? '' : `pub(${iso})`;
+            return `ago(${iso})`;
           },
-          ago: THE_FORMAT.ago,
+          stamp: THE_FORMAT.stamp,
         }}
         showImage={false}
       />,
     );
     expect(one(PART.meta).textContent).toBe('By Ann Example');
-    expect(asked).toEqual([null]);
+    expect(asked).toEqual([]);
   });
 
   it('prints no meta element at all when every part is empty', () => {
     expect(showStory({ author: null, publishedAt: null, lastChangedAt: null }).querySelector(PART.meta)).toBeNull();
+  });
+});
+
+describe('the exact date, in the tooltip', () => {
+  it('carries both dates the line shows, absolute', () => {
+    const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: at('09:30') }));
+    expect(story.getAttribute('title')).toBe(`stamp(${at('06:00')}) · changed stamp(${at('09:30')})`);
+  });
+
+  it('carries only the publication when there was no change', () => {
+    const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: null }));
+    expect(story.getAttribute('title')).toBe(`stamp(${at('06:00')})`);
+  });
+
+  it('prints no title attribute when the story has no instant to name', () => {
+    // A `title=""` is a tooltip that says nothing: the paper knows this publisher
+    // declared no date, and the card says so by carrying no attribute at all.
+    const story = one(PART.story, showStory({ publishedAt: null, lastChangedAt: null }));
+    expect(story.hasAttribute('title')).toBe(false);
   });
 });
 
