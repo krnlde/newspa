@@ -1,7 +1,7 @@
 import { cleanup, render } from '@testing-library/react';
 import type { ItemView } from 'newspa-core';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { StorySlot } from '../src/index.ts';
+import type { FormatProps, StorySlot } from '../src/index.ts';
 import { Story } from '../src/index.ts';
 import { anItem, at, one, PART, THE_FORMAT, THE_LABELS } from './support.ts';
 
@@ -26,6 +26,20 @@ afterEach(cleanup);
 const showStory = (item: Partial<ItemView>, slot: StorySlot = 'story', showImage = false): HTMLElement =>
   render(<Story item={anItem(item)} slot={slot} labels={THE_LABELS} format={THE_FORMAT} showImage={showImage} />)
     .container;
+
+/** An instant past a month — the point where the app's `ago` stops printing an age. */
+const MONTH_OLD = '2026-10-01T06:00:00.000Z';
+
+/**
+ * `THE_FORMAT` **with the app's month rule** (D-047): past a month, `ago` prints the
+ * absolute form, because the page has one way to write a date. The markers cannot
+ * express that shape, and it is the shape the tooltip rule turns on — where the
+ * visible words already **are** the instant, a `title` would only repeat them.
+ */
+const THE_AGED_FORMAT: FormatProps = {
+  ago: (iso: string) => (iso === MONTH_OLD ? THE_AGED_FORMAT.absolute(iso) : `ago(${iso})`),
+  absolute: THE_FORMAT.absolute,
+};
 
 const metaOf = (item: Partial<ItemView>): string | null => {
   const at2 = showStory(item).querySelector(PART.meta);
@@ -175,7 +189,10 @@ describe('the meta line', () => {
       />,
     );
     expect(one(PART.meta).textContent).toBe(`By Ann Example · seen ago(${at('06:05')})`);
-    expect(asked).toEqual([at('06:05')]);
+    // Twice, and both times the **same** instant: the words ask for an age and the
+    // tooltip asks for the instant of that same age. The source's last fetch is
+    // never asked for — one value per source would manufacture recency.
+    expect(asked).toEqual([at('06:05'), at('06:05')]);
   });
 
   it('prints the meta line for an undated, unbylined story: the sighting is a fact the page has', () => {
@@ -185,23 +202,63 @@ describe('the meta line', () => {
   });
 });
 
-describe('the exact date, in the tooltip', () => {
-  it('carries both dates the line shows, absolute', () => {
-    const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: at('09:30') }));
-    expect(story.getAttribute('title')).toBe(`absolute(${at('06:00')}) · changed absolute(${at('09:30')})`);
+describe('the tooltip rides on the age, not the card', () => {
+  const metaParts = (container: Element): HTMLElement[] => [
+    ...container.querySelectorAll<HTMLElement>(`${PART.meta} span`),
+  ];
+
+  it('hangs each instant on the words built from it, and leaves the card bare', () => {
+    // The card is **not** the hover target: its headline paints an overlay over the
+    // whole block, so a `title` on the card is a tooltip for the story, the source,
+    // the image — everything, which is nothing. The reader's question "when,
+    // exactly?" is asked of the date, so the date answers it.
+    const container = showStory({
+      publishedAt: at('06:00'),
+      lastChangedAt: at('09:30'),
+      author: 'Ann Example',
+    });
+    expect(one(PART.story, container).hasAttribute('title')).toBe(false);
+    expect(metaParts(container).map((span) => span.textContent)).toEqual([
+      'By Ann Example',
+      `ago(${at('06:00')})`,
+      `changed ago(${at('09:30')})`,
+    ]);
+    expect(metaParts(container).map((span) => span.getAttribute('title'))).toEqual([
+      null,
+      `absolute(${at('06:00')})`,
+      `absolute(${at('09:30')})`,
+    ]);
   });
 
-  it('carries only the publication when there was no change', () => {
-    const story = one(PART.story, showStory({ publishedAt: at('06:00'), lastChangedAt: null }));
-    expect(story.getAttribute('title')).toBe(`absolute(${at('06:00')})`);
+  it('names a sighting as a sighting in the tooltip too', () => {
+    // The tooltip answers "when, exactly?" for the instant the line was built from,
+    // so the undated story's tooltip cannot read like a publication date either.
+    const container = showStory({ publishedAt: null, lastChangedAt: null, author: null });
+    expect(one(PART.meta, container).textContent).toBe(`seen ago(${at('06:05')})`);
+    expect(one(`${PART.meta} span`, container).getAttribute('title')).toBe(`absolute(${at('06:05')})`);
   });
 
-  it('names the sighting as a sighting in the tooltip too', () => {
-    // The tooltip is where "when, exactly?" is answered, and it answers it for the
-    // instant the line was built from — so the undated story's tooltip cannot read
-    // like a publication date either.
-    const story = one(PART.story, showStory({ publishedAt: null, lastChangedAt: null }));
-    expect(story.getAttribute('title')).toBe(`seen absolute(${at('06:05')})`);
+  it('carries no tooltip once the line prints the date itself', () => {
+    // Past a month `ago` prints the absolute instant, and a tooltip that repeats the
+    // words under it is noise: the attribute is absent, not empty.
+    const container = render(
+      <Story
+        item={anItem({ publishedAt: MONTH_OLD, lastChangedAt: null, author: null })}
+        slot="story"
+        labels={THE_LABELS}
+        format={THE_AGED_FORMAT}
+        showImage={false}
+      />,
+    ).container;
+    expect(one(`${PART.meta} span`, container).textContent).toBe(`absolute(${MONTH_OLD})`);
+    expect(one(`${PART.meta} span`, container).hasAttribute('title')).toBe(false);
+  });
+
+  it('lifts the meta row above the headline overlay, the one cost of a reachable date', () => {
+    // `after:absolute after:inset-0` on the headline covers the card; only a
+    // **positioned** element paints and hit-tests above it. The class is the rule;
+    // apps/web/test/design proves the hit test in a real browser.
+    expect(one(PART.meta, showStory({})).className.split(' ')).toContain('relative');
   });
 });
 

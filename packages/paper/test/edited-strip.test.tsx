@@ -10,15 +10,16 @@ import { editedItem, rowParts, showPaper } from './support-page.tsx';
  * `edition.edited`, the labels and the formatters.
  *
  * The dates are the pair the page uses everywhere (docs/design.md): the **age** is
- * what prints, and the `title` carries the instant, zone named. This row's link is
- * inline, so the tooltip hangs on the date's own element — a story card cannot do
- * that, because its headline paints an overlay over the whole card (`Story.tsx`).
+ * what prints, and the `title` carries the instant, offset named — on the words that
+ * show the age (D-047). This row owns no overlay, so its meta `<p>` is the element
+ * under the pointer; a story card lifts its whole meta row above the headline's
+ * overlay to get the same effect (`Story.tsx`).
  */
 
 afterEach(cleanup);
 
 describe('the edited strip', () => {
-  it('prints one row per story that has a report, with its headline, diff and stamp', () => {
+  it('prints one row per story that has a report, with its headline, diff and age', () => {
     const { container } = showPaper({
       edition: anEdition({
         edited: [

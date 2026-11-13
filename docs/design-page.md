@@ -60,8 +60,12 @@ source file — the reader decides, not a model:
 ## Behaviour
 
 - **Links**: a headline link has **no underline, at rest or on hover**. The block
-  is clickable, the address is in the status bar, and focus is a visible outline —
-  that is the affordance. The only underlines in the paper are the edit diff's
+  is clickable — the anchor paints an overlay over the card, `after:absolute
+  after:inset-0` — the address is in the status bar, and focus is a visible outline;
+  that is the affordance. **The story's meta row is the one thing on the card the
+  pointer cannot click**: it is `relative`, so it paints above that overlay and a
+  date's `title` is reachable (D-047) — the row's own strip of pixels navigates
+  nowhere. The only underlines in the paper are the edit diff's
   inserted text and the edited strip's links, which are underlined permanently,
   because there the underline carries meaning rather than a mouse position.
 - **Theme**: `prefers-color-scheme` is the default; the switcher writes

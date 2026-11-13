@@ -1,7 +1,7 @@
 import type { EditReportView, ItemView } from 'newspa-core';
 import { HEAD_RULE, PANEL_HEAD } from './blockHead.ts';
 import type { PaperLabels } from './Paper.tsx';
-import { EditDiff } from './Story.tsx';
+import { ageTitle, EditDiff } from './Story.tsx';
 import type { FormatProps } from './types.ts';
 
 /* `Array.filter` cannot narrow, so the proof is written down: a row of the
@@ -36,7 +36,7 @@ export const EditedStrip = ({
         // The change when there was one, the publication when there was not, and no
         // instant at all when the publisher never declared one — no date, no tooltip.
         const at = item.lastChangedAt ?? item.publishedAt;
-        const absolute = format.absolute(at);
+        const title = at === null ? '' : ageTitle(at, format);
         return (
           <article
             data-part="edited-row"
@@ -61,12 +61,13 @@ export const EditedStrip = ({
               </span>
             </h3>
             <EditDiff report={item.lastReport} summary={labels.editSummary} />
-            {/* An age on the page, the instant in the tooltip: this row has no
-                overlay over it (its link is inline), so the date's own element can
-                carry it. */}
+            {/* The tooltip rides on the words that show the age (D-047), and this row
+                owns no overlay (its link is inline), so its own element is under the
+                pointer. An old row prints the absolute instant, and a tooltip that
+                repeats the words under it is noise: `ageTitle` says so by returning ''. */}
             <p
               data-part="meta"
-              {...(absolute === '' ? {} : { title: absolute })}
+              {...(title === '' ? {} : { title })}
               className="m-0 text-kicker font-normal tracking-kicker uppercase text-muted"
             >
               {at === null ? '' : format.ago(at)}

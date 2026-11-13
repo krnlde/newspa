@@ -65,16 +65,18 @@ describe('a source that is not reporting', () => {
     expect(textsOf(PART.label, container)).toEqual(['Example World', 'Example Gov']);
   });
 
-  it('carries the poll the row reports on as an absolute date, in the row', () => {
-    // The row's age is measured from the reader's clock, so the exact instant is the
-    // part a reader cannot derive from what they see: when the poll ran, zone named.
+  it('hangs the poll instant on the words that show its age, not on the row', () => {
+    // The row's words are the source, the state and the detail line — the date is
+    // inside the detail ("last poll 4 minutes ago"), so that is the element the
+    // pointer reaches and the element that carries the instant (D-047).
     const container = showHealth([broken({ id: 'world', lastFetchAt: at('09:30') })]);
-    expect(one(rowSelector, container).getAttribute('title')).toBe(`absolute(${at('09:30')})`);
+    expect(one(rowSelector, container).hasAttribute('title')).toBe(false);
+    expect(one(`${rowSelector} ${PART.detail}`, container).getAttribute('title')).toBe(`absolute(${at('09:30')})`);
   });
 
   it('carries no tooltip for a source that has never been fetched', () => {
     const container = showHealth([broken({ id: 'world', lastFetchAt: null })]);
-    expect(one(rowSelector, container).hasAttribute('title')).toBe(false);
+    expect(container.querySelectorAll(`${rowSelector} [title]`)).toHaveLength(0);
   });
 
   it('marks the strip as not-well, so a stylesheet can name the state', () => {

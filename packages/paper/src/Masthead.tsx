@@ -27,9 +27,6 @@ export const Masthead = ({
   tagline,
   dateline,
   summary,
-  format,
-  generatedAt,
-  cachedAt,
   theme,
   onToggleTheme,
   themeLabel,
@@ -39,24 +36,17 @@ export const Masthead = ({
   sources,
   install,
 }: MastheadProps) => {
-  /* The strip prints two dates — the day the edition belongs to, and the line
-     that says what it counted (and, offline, when the cache was written). The
-     visible words are the app's; the tooltips are those same instants written
-     out with the zone, because "Friday, 13 November" is a day for a reader who
-     did not say where they are. */
-  const datelineTitle = format.absolute(generatedAt);
-  const summaryTitle = format.absolute(cachedAt);
+  /* No tooltips on this strip (D-047): the `title` rides on the words that show an
+     **age**, and the two dates here — the day the edition belongs to, and the clock
+     of the line that counted — are already the exact instant, in the page's language,
+     offset named. A tooltip that repeats the words under it is noise. */
   return (
     <header data-part="masthead" className="pt-3 pb-2 border-t-2 border-t-ink text-center">
       <div
         data-part="dateline-strip"
         className="flex items-baseline justify-between gap-4 pb-[0.4rem] border-b border-b-[length:var(--hair)] border-b-rule"
       >
-        <p
-          data-part="dateline"
-          {...(datelineTitle === '' ? {} : { title: datelineTitle })}
-          className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted"
-        >
+        <p data-part="dateline" className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted">
           {dateline}
         </p>
         <div className="flex items-baseline gap-2">
@@ -125,12 +115,9 @@ export const Masthead = ({
       </p>
       <div data-part="summary-strip" className="mt-[0.6rem] pt-[0.35rem] border-t-4 border-t-ink border-b border-b-ink">
         {/* The stats line is where the offline stamp prints (WP16): "cached 13:58" is
-          an age of the cache, so the tooltip is that write, written out. */}
-        <p
-          data-part="summary"
-          {...(summaryTitle === '' ? {} : { title: summaryTitle })}
-          className="m-0 py-[0.15rem] text-kicker font-bold tracking-kicker uppercase text-muted"
-        >
+          a clock, offset named, so it needs no tooltip — the rule is one `title` per
+          **age**, and this is not one. */}
+        <p data-part="summary" className="m-0 py-[0.15rem] text-kicker font-bold tracking-kicker uppercase text-muted">
           {summary}
         </p>
       </div>

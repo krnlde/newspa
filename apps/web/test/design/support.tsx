@@ -4,7 +4,9 @@ import { type FormatProps, Paper, type PaperLabels } from 'newspa-paper';
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
 import { afterEach } from 'vitest';
+import { formatFor } from '../../src/format.ts';
 import { spineSectionsOf, useSpine } from '../../src/spine.ts';
+import { localeFor } from '../unit/support/locale.ts';
 import 'newspa-paper/styles/paper.css';
 
 /**
@@ -80,10 +82,13 @@ const THE_MASTHEAD: MastheadView = {
   generatedAt: at('12:00'),
 };
 
-const THE_FORMAT: FormatProps = {
-  ago: (iso: string) => iso,
-  absolute: (iso: string | null) => (iso === null ? '' : iso),
-};
+/**
+ * The app's real formatters, at a pinned instant (fixture noon): the design suite
+ * measures what the live page paints, so the tooltip's text here is a real `Intl`
+ * string with a real offset (D-047) — a marker stub would let the page pass a
+ * hit-test for a tooltip it never shows. `now` is pinned so an age cannot drift.
+ */
+const THE_FORMAT: FormatProps = formatFor(localeFor('en'), () => new Date(`${DAY}T12:00:00.000Z`));
 
 const LABELS: PaperLabels = {
   newKicker: 'New',

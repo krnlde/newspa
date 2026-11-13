@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Masthead } from '../src/index.ts';
-import { at, one, PART, partsOf, THE_MASTHEAD_PROPS } from './support.ts';
+import { one, PART, partsOf, THE_MASTHEAD_PROPS } from './support.ts';
 
 /**
  * The masthead prints four finished strings the app composed (the dateline, the
@@ -39,17 +39,13 @@ describe('the words', () => {
   });
 });
 
-describe('the exact dates, in the tooltip', () => {
-  it('names the edition instant the dateline stands for, and the cache write the stats line stands for', () => {
-    const { container } = showMasthead({ cachedAt: at('09:30') });
-    expect(one(PART.dateline, container).getAttribute('title')).toBe(`absolute(${THE_MASTHEAD_PROPS.generatedAt})`);
-    expect(one(PART.summary, container).getAttribute('title')).toBe(`absolute(${at('09:30')})`);
-  });
-
-  it('carries no tooltip on the stats line when the answer came off the wire', () => {
-    // `cachedAt: null` is the page saying it is live; `title=""` is a tooltip that
-    // says nothing, so the live page prints no attribute.
-    expect(one(PART.summary, showMasthead().container).hasAttribute('title')).toBe(false);
+describe('the masthead prints no tooltip', () => {
+  it('leaves both dates of the strip unlabelled, because neither is an age', () => {
+    // D-047: the `title` belongs to the words that show an **age**. The dateline is
+    // the day the edition belongs to and the stats line's clock is a time, offset
+    // named — both already the exact answer, so a tooltip would only repeat them.
+    const { container } = showMasthead();
+    expect(container.querySelectorAll('[title]')).toHaveLength(0);
   });
 });
 

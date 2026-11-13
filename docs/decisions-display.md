@@ -240,21 +240,41 @@ reader's clock: moment's `L`/`LLL` family, `Intl`'s components, with the offset 
 - Output at one instant: en-US `November 13, 2026 at 2:30 PM +01:00`, de
   `13. November 2026 um 14:30 +01:00`, ja `2026年11月13日 14:30 +01:00`.
 
-**The card, not the paragraph.** A story's dates sit in the meta line, and the headline's
-anchor paints an overlay across the whole card (`after:absolute after:inset-0`, the
-paper's one-click affordance). A `title` on the meta `<p>` is therefore never under the
-pointer: hit-testing lands on the overlay, whose ancestor chain is the `article`. So the
-story card's tooltip hangs on the `article`, and the elements that own no overlay — the
-edited row's meta, the health row, the dateline, the stats line — carry their own. This
-is pinned per site by a test, because "the tooltip is reachable" is a claim about
-hit-testing, not about markup.
+**The tooltip rides on the age's own words** _(amended the same day: "I want the
+`title=""` to be only set on the relative time… Not the whole card")_. The first cut hung
+the story card's tooltip on the `article`, because the headline's anchor paints an overlay
+across the card (`after:absolute after:inset-0`, the paper's one-click affordance) and a
+`title` on the meta `<p>` is never under the pointer — hit-testing lands on the overlay.
+That is a tooltip for the story, the source, the image and the date, which is a tooltip for
+nothing, and it answers a hover that asked no question. The built rule: **the `title`
+belongs to the words that show an age** — the meta row's age span, its `changed …` span,
+the edited row's date, the health row's detail line. It reaches a pointer because the meta
+row is `relative`, so it paints and hit-tests **above** the overlay. The cost is named in
+`docs/design-page.md`: that row's own strip of pixels no longer navigates; the rest of the
+card, including the deck, still does.
+
+**Two cases print no tooltip, for one reason: a tooltip that repeats the words under it is
+noise.** A month-old line prints the absolute instant as its **visible** text (the page has
+one way to write a date), so `ageTitle` compares the two renderings and returns none when
+they are the same string. And the masthead prints none at all: the dateline is the
+edition's day and the stats line's `13:58 +01:00` is a clock — neither is an age, so
+neither has a "when, exactly?" to answer. `ageTitle` is one exported function used by all
+three sites, because it is one rule about the two renderings, not three rules.
+
+**The proof is a hit test, not a markup scan.** `packages/paper/test/story.test.tsx` pins
+the placement: the card bare, the byline bare, each age span titled, the month-old case
+`hasAttribute('title') === false`. Markup that carries a tooltip nobody can summon is the
+failure `apps/web/test/design/dates.test.tsx` exists for: in real Edge it calls
+`document.elementFromPoint` at the titled span's own centre and demands the **span**, then
+at the deck's centre and demands the link — the overlay lifted, the card still clickable.
 
 **The undated story prints the sighting; the last fetch is refused.** The pushback on the
 first cut was _"we could use the date of our last fetch? Where's the problem"_ — the right
 instinct, the wrong instant. The paper's own `firstSeenAt` is on the wire, non-null and
 **per item**, so an undated story is placeable by when the paper learned it: the line
-prints `"seen 2 days ago"` and the tooltip `"seen November 11, 2026 at 02:24 PM
-+01:00"` (live: the `nodejs-downloads` card is the paper's only undated story). The
+prints `"seen 2 days ago"` and the tooltip on those words is the instant,
+`"November 11, 2026 at 02:24 PM +01:00"` — the words say "seen", so the tooltip needs no
+word of its own (live: the `nodejs-downloads` card is the paper's only undated story). The
 word is the honesty — a bare age would read as the publication date the source never
 gave, which is the page claiming what it does not know, the rule that already refuses to
 print `New` for a door the source closed (D-029). The **source's** last fetch is the

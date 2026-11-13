@@ -1,5 +1,6 @@
 import type { HealthState, SourceHealthView } from 'newspa-core';
 import { HEAD_RULE } from './blockHead.ts';
+import { ageTitle } from './Story.tsx';
 import type { FormatProps } from './types.ts';
 
 /**
@@ -69,25 +70,29 @@ export const HealthStrip = ({ sources, labels, format }: HealthProps) => {
         <span data-part="rule" className={HEAD_RULE} aria-hidden="true" />
       </h2>
       <ul data-part="list" className="m-0 p-0 list-none">
-        {unhealthy.map((source) => (
-          <li
-            key={source.id}
-            data-part="row"
-            data-state={source.state}
-            {...(source.lastFetchAt === null ? {} : { title: format.absolute(source.lastFetchAt) })}
-            className="flex flex-wrap gap-2 py-[0.3rem] border-b border-b-[length:var(--hair)] border-b-rule"
-          >
-            <span data-part="label" className="font-bold text-ink">
-              {source.label}
-            </span>
-            <span data-part="state" className="font-bold tracking-kicker uppercase text-kicker text-ink-2">
-              {labels.state[source.state]}
-            </span>
-            <span data-part="detail" className="text-muted">
-              {detailOf(source, labels, format)}
-            </span>
-          </li>
-        ))}
+        {unhealthy.map((source) => {
+          // The row's date is the "last poll" age inside the detail line, so the
+          // tooltip rides on that line (D-047) — and only while it shows an age.
+          const pollTitle = source.lastFetchAt === null ? '' : ageTitle(source.lastFetchAt, format);
+          return (
+            <li
+              key={source.id}
+              data-part="row"
+              data-state={source.state}
+              className="flex flex-wrap gap-2 py-[0.3rem] border-b border-b-[length:var(--hair)] border-b-rule"
+            >
+              <span data-part="label" className="font-bold text-ink">
+                {source.label}
+              </span>
+              <span data-part="state" className="font-bold tracking-kicker uppercase text-kicker text-ink-2">
+                {labels.state[source.state]}
+              </span>
+              <span data-part="detail" {...(pollTitle === '' ? {} : { title: pollTitle })} className="text-muted">
+                {detailOf(source, labels, format)}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </footer>
   );

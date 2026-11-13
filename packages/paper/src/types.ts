@@ -185,12 +185,6 @@ export interface MastheadProps {
   readonly dateline: string;
   /** One line of the stats strip: `"38 stories · 6 new · 2 edited"`. */
   readonly summary: string;
-  /** The app's formatters, for the two dates this strip prints (D-019). */
-  readonly format: FormatProps;
-  /** The instant the edition was assembled — the dateline's exact date. */
-  readonly generatedAt: string;
-  /** The worker's cache stamp (WP16, D-039): the summary line's exact date, if any. */
-  readonly cachedAt: string | null;
   readonly theme: 'light' | 'dark';
   readonly onToggleTheme: () => void;
   /** The switcher's own words, and its accessible name. */

@@ -239,7 +239,9 @@ A story in the paper is a **teaser**, and the paper never renders full text:
   button — there is nothing more to read _here_.
 - **The headline is the link**: `target="_blank" rel="noopener noreferrer"`, the
   whole story block clickable, middle-click and copy-link working as usual. The
-  publisher keeps the reader.
+  publisher keeps the reader. The **meta row is the one exception**: it is lifted
+  above the headline's overlay so a pointer reaches the date, and its own strip of
+  pixels navigates nowhere (D-047).
 - **Hero image, optional**: picked from the source (`og:image`, RSS
   `enclosure`/`media:content`, the JSON `image` field). Only the lead story and
   section leaders get one; it is forced to monochrome, with an italic caption in
@@ -251,15 +253,20 @@ A story in the paper is a **teaser**, and the paper never renders full text:
   `November 13, 2026 at 2:30 PM +01:00` — the page's language, the reader's clock, and
   the **offset in the string**, because an age is measured from that clock and a date
   without an offset is a day in a calendar nobody named. It is also what the line prints
-  once an item passes a month, so the page never has two ways to write a date. Every
-  date the page prints carries one: the story card (on the `article`, because its
-  headline paints an overlay over the card), the edited row, the health row, the
-  dateline, and the stats line's cache clock (`13:58 +01:00`).
+  once an item passes a month, so the page never has two ways to write a date. The
+  `title` rides on **the words that show the age** — never the card, never the byline:
+  a tooltip on the card is a tooltip for everything, which is nothing. A story's meta
+  row is `relative` so it paints and hit-tests above the headline's overlay (the cost
+  is the Links bullet above); a month-old line prints the instant itself, so it carries
+  no tooltip, because repeating the words under a tooltip is noise. The dateline and
+  the stats line's clock (`13:58 +01:00`) print no tooltip for the same reason: neither
+  is an age.
 - **An undated story prints the paper's sighting, named as one.** A scraped page often
   declares no date, and a card with no date is a card the reader cannot place, so the
   line prints `"seen 2 minutes ago"` — `firstSeenAt`, per item, on the wire — and the
-  tooltip says `"seen November 13, 2026 at 03:49 PM +01:00"`. The word is the
-  honesty: a bare age would read as the publication date the source never gave. The
+  tooltip on those words is the instant. The word is the honesty: a bare age would
+  read as the publication date the source never gave, and the tooltip needs no "seen"
+  of its own, because it hangs on words that already say it. The
   source's last fetch is **not** the fallback, tempting as it is: it is one value for
   every item of a source, so a 5-minute cadence would print a two-year-old story as
   five minutes old, forever, and every card of that source the same age. That is

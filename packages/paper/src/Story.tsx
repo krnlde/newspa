@@ -1,4 +1,5 @@
 import type { DiffOpView, EditReportView, ItemView } from 'newspa-core';
+import { Fragment } from 'react';
 import type { FormatProps, StoryLabels, StoryProps, StorySlot } from './types.ts';
 
 /**
@@ -8,7 +9,9 @@ import type { FormatProps, StoryLabels, StoryProps, StorySlot } from './types.ts
  * clickable — because the paper is an index, not a mirror (D-017): there is
  * nothing more to read here, so there is no "Read more" button, and the
  * publisher keeps the reader. Middle-click and copy-link work, because it is a
- * real `<a href>`.
+ * real `<a href>`. The **meta row is the one exception**: it is lifted above the
+ * overlay so the date's `title` reaches a pointer (D-047), so the row's own
+ * strip of pixels does not navigate.
  *
  * No image, no box: an empty `<div>` is not a photograph.
  *
@@ -31,8 +34,7 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
       : item.lastEventKind === 'gone'
         ? labels.goneKicker
         : labels.newKicker;
-  const meta = metaOf(item, labels, format);
-  const absolutes = absoluteOf(item, labels, format);
+  const meta = partsOf(item, labels, format);
   const figure =
     showImage && item.image !== null ? (
       <figure data-part="figure" className="mb-[0.6rem] cropmarks">
@@ -48,7 +50,6 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
       data-slot={slot}
       data-key={item.key}
       data-read={item.read ? 'true' : 'false'}
-      {...(absolutes === '' ? {} : { title: absolutes })}
       className={SLOT_OF[slot]}
     >
       {slot === 'lead' ? null : figure}
@@ -89,11 +90,25 @@ export const Story = ({ item, slot, labels, format, showImage }: StoryProps) => 
         </p>
       ) : null}
       {slot === 'lead' ? figure : null}
-      {meta.length > 0 ? (
-        <p data-part="meta" className="m-0 text-kicker font-bold tracking-kicker leading-meta uppercase text-muted">
-          {meta}
-        </p>
-      ) : null}
+      {/* The meta row is `relative` on purpose: the headline's anchor paints an
+          overlay over the whole card (`after:absolute after:inset-0`), and a date's
+          `title` is only read by a pointer that reaches the date. Positioned, this row
+          paints and hit-tests above that overlay. The cost is named in
+          docs/design-page.md: the row's own strip of pixels no longer navigates. */}
+      <p
+        data-part="meta"
+        className="relative m-0 text-kicker font-bold tracking-kicker leading-meta uppercase text-muted"
+      >
+        {/* The words are the key: one meta row has one byline, one age, one
+            change, so the text is unique — and stable across a re-render, which an
+            index is not. */}
+        {meta.map((part, index) => (
+          <Fragment key={part.text}>
+            {index === 0 ? null : ' · '}
+            <span {...(part.title === '' ? {} : { title: part.title })}>{part.text}</span>
+          </Fragment>
+        ))}
+      </p>
     </article>
   );
 };
@@ -177,37 +192,46 @@ const IMAGE_OF: Record<StorySlot, string> = {
 const datedBy = (item: ItemView): { readonly at: string; readonly seen: boolean } =>
   item.publishedAt === null ? { at: item.firstSeenAt, seen: true } : { at: item.publishedAt, seen: false };
 
-/** Byline and age in one muted uppercase line. Empty parts are absent, not blank. */
-const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
-  const when = datedBy(item);
-  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${format.ago(when.at)}` : format.ago(when.at);
-  const changed = item.lastChangedAt === null ? '' : format.ago(item.lastChangedAt);
-  const parts = [
-    item.author === null ? '' : labels.byline(item.author),
-    published,
-    changed.length > 0 ? `${labels.changedLabel.toLowerCase()} ${changed}` : '',
-  ];
-  return parts.filter((part) => part.length > 0).join(' · ');
+/**
+ * The exact instant a **visible age** answers, and only when the line shows an age.
+ *
+ * The tooltip belongs to the words that show the age (D-047): "last month" is the
+ * phrase a reader wants the date for, so that is where the `title` rides — not on the
+ * card, and not on the byline. Once a month has passed `ago` prints the absolute
+ * instant itself, and a tooltip that repeats the words it sits on is noise, so there
+ * is none. Shared by the story card, the edited row and the health row, because it is
+ * one rule about the two renderings, not three.
+ */
+export const ageTitle = (at: string, format: FormatProps): string => {
+  const exact = format.absolute(at);
+  return format.ago(at) === exact ? '' : exact;
 };
 
+/** One part of the meta line: its words, and the exact instant behind them (empty = no tooltip). */
+interface MetaPart {
+  readonly text: string;
+  readonly title: string;
+}
+
 /**
- * The same line as **instants**: the ages above are distances from the reader's
- * clock, and the tooltip is the date they were measured from, zone named. A
- * story's words are the publisher's; these numbers are the paper's arithmetic,
- * so they are the app's to format (D-019). The sighting says "seen" here too, so
- * the tooltip names which instant it is, not only when.
- *
- * It goes on the `article`, not on the meta paragraph: the headline's anchor
- * paints an overlay over the whole card (`after:absolute after:inset-0`), so a
- * tooltip hung on the meta line is never under the pointer — the card is.
+ * The meta line, as parts: byline (when there is one), the age of the publication,
+ * the age of the last change (when there was one). Joined with `·`, and each part
+ * carries the instant it is built from.
  */
-const absoluteOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
+const partsOf = (item: ItemView, labels: StoryLabels, format: FormatProps): MetaPart[] => {
   const when = datedBy(item);
-  const exact = format.absolute(when.at);
-  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${exact}` : exact;
-  const changed =
-    item.lastChangedAt === null ? '' : `${labels.changedLabel.toLowerCase()} ${format.absolute(item.lastChangedAt)}`;
-  return [published, changed].filter((part) => part.length > 0).join(' · ');
+  const age = when.seen ? `${labels.seenLabel.toLowerCase()} ${format.ago(when.at)}` : format.ago(when.at);
+  const parts: MetaPart[] = [];
+  if (item.author !== null) parts.push({ text: labels.byline(item.author), title: '' });
+  parts.push({ text: age, title: ageTitle(when.at, format) });
+  const changed = item.lastChangedAt;
+  if (changed !== null) {
+    parts.push({
+      text: `${labels.changedLabel.toLowerCase()} ${format.ago(changed)}`,
+      title: ageTitle(changed, format),
+    });
+  }
+  return parts;
 };
 
 /**
