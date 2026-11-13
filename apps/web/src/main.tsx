@@ -37,6 +37,28 @@ const start = async (): Promise<void> => {
       </QueryClientProvider>
     </StrictMode>,
   );
+  registerWorker();
+};
+
+/**
+ * The worker is registered by the **built app only** (WP16, D-039). A dev server
+ * that installs one is a development trap: `pnpm dev` answers from a fixture seed
+ * and `pnpm ui` proxies live news, and a worker caching either leaves a reader
+ * working on answers that are minutes old with nothing on the page saying so.
+ * `import.meta.env.PROD` is the build's own fact, so the rule costs no config knob.
+ *
+ * A secure context is required and one is what the paper runs on: loopback, or
+ * WP17's TLS on the LAN address. A refusal is **printed** (rule 5): a page that
+ * silently has no worker is a page whose offline promise was never made, and the
+ * reader finds out on a train. Where registration is impossible by design — an
+ * e-ink browser with no service worker, D-039's kiosk case — the paper keeps
+ * working as a page, which is the fallback that decision chose.
+ */
+const registerWorker = (): void => {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((cause: unknown) => {
+    console.warn(`the service worker did not register: ${cause instanceof Error ? cause.message : String(cause)}`);
+  });
 };
 
 void start();

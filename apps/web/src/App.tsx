@@ -6,6 +6,7 @@ import { Onboarding, Paper, SourcesModal, sheetClass } from 'newspa-paper';
 import { fetchState, openEvents } from './api.ts';
 import { useContrast } from './contrast.ts';
 import { formatFor } from './format.ts';
+import { useInstallPrompt } from './install.ts';
 import { paperLabelsOf, sourcesModalLabelsOf } from './labels.ts';
 import { useLocale } from './lib/useLocale.ts';
 import { SourcesSection } from './SourcesSection.tsx';
@@ -82,6 +83,9 @@ export const App = () => {
   // The second axis names its own state, the same way (D-038): the label is what the
   // press gives, never the mode the page is in, so the control reads the same twice.
   const contrastLabel = contrast === 'more' ? t('paper.contrast.toNormal') : t('paper.contrast.toMore');
+  // The install entry (WP16, D-039): the hook knows what this browser offered, and
+  // the words are the app's (D-019), so the control is composed here from the two.
+  const install = useInstallPrompt();
 
   if (state.isPending) {
     return (
@@ -111,7 +115,8 @@ export const App = () => {
     );
   }
 
-  const { masthead, edition, sources } = state.data;
+  const { state: paper, cachedAt } = state.data;
+  const { masthead, edition, sources } = paper;
   return (
     <>
       <Paper
@@ -120,12 +125,23 @@ export const App = () => {
         sources={sources}
         labels={labels}
         format={format}
+        cachedAt={cachedAt}
         theme={theme}
         onToggleTheme={toggle}
         themeLabel={themeLabel}
         contrast={contrast}
         onToggleContrast={toggleContrast}
         contrastLabel={contrastLabel}
+        {...(install.mode === 'none'
+          ? {}
+          : {
+              install: {
+                mode: install.mode,
+                label: t('paper.install.label'),
+                recipe: t('paper.install.recipe'),
+                onInstall: install.ask,
+              },
+            })}
         editor={{
           label: t('sources.open'),
           onOpen: (control: HTMLElement) => {

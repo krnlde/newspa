@@ -61,7 +61,7 @@ Kobo to its harshest rendering). Then the change is one more value in the palett
 block - `--muted: var(--ink)` - and the axis stays two values, because a third
 `data-contrast` value is a ladder of modes, which is the shape this decision refused.
 
-## D-039 - The installable paper, and TLS as its prerequisite  _(decided 2026-11-11, not built: WP16, WP17)_
+## D-039 - The installable paper, and TLS as its prerequisite  _(decided 2026-11-11, **built** 2026-11-13: WP17, WP16)_
 
 _We need to offer to install the web app as a PWA._ For a wall and a phone, "a tab
 I open" is the wrong noun; the product is a **device that shows the paper**. The
@@ -83,6 +83,33 @@ dependency, and TLS.
 worker, which is likely). Then the kiosk URL **is** the product, WP17's TLS serves
 only the phone, and nothing about the paper changes - which is why the offline
 sentence lives in the page's own vocabulary and not in the worker.
+
+**Built (2026-11-13), and what the devices said.** The manifest, the worker and the
+icons are hand-written (`apps/web/public/`), the worker has two named rules (the shell;
+the last edition, **stamped at write time** with `newspa-cached-at`), the stamp reaches
+the dateline strip's stats line as `cached 06:12` / `Stand 06:12`, and the install entry
+is the strip's third control - a button when Chromium hands over `beforeinstallprompt`,
+iOS's own words where it does not, silence on a browser with neither. Two measurements
+built the worker's shape, and both were invisible from the spec: **`Cache.put` honours
+`no-store`** and the server answers `index.html` `no-store`, so the worker writes its own
+body-only copy; and **a page is not controlled by the worker it registers on that same
+load**, so the worker precaches the shell at `install` and primes the edition at
+`activate` - a worker that cached only what it intercepted would cache nothing on the
+visit that installs the app (the records, with the traps, are in
+`docs/roadmap-closed-device.md`).
+
+TLS arrived as WP17 and is now in use on a real machine, and the honest finding is that
+**the install is a trust question, not a scheme question.** With a pair minted by
+`mkcert` and configured as `server.tls` (two paths; the socket is HTTPS only, plain HTTP
+is gone), an Edge that **verifies** the chain - no bypass, no flags - loaded the paper,
+registered the worker, cached the edition with its stamp, and fired
+`beforeinstallprompt`, which the app captured. Where the CA is not in the device's trust
+store the reader can still _read_ the paper over an accepted warning, and that is the arm
+that has no install: Chromium's installability gate wants a valid chain, so the prompt
+never arrives and the offline paper never exists. So the CA is per device - on Windows
+`mkcert -install` writes `Cert:\CurrentUser\Root`, which Edge honours; a phone needs
+`rootCA.pem` installed (Android: a user CA; iOS: a profile, then full trust) - and
+loopback stays the kiosk's address, a secure context with no certificate at all.
 
 **D-040 - A test certificate is minted at test time, and nothing key-shaped is committed (2026-11-11, ruled).**
 

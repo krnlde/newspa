@@ -64,3 +64,47 @@ describe('staticFor', () => {
     expect(await staticFor(await dist(), '/assets/app-0.js')).toBe('not-found');
   });
 });
+
+/**
+ * The install files, and the two rules that make them work (WP16, D-039).
+ *
+ * A **cached service worker is a page that cannot be updated**: the browser
+ * re-reads `/sw.js` byte-by-byte to decide whether to install a new worker, so an
+ * `immutable` on it pins the reader to the old one for a year. The manifest is the
+ * same class of fact — it names the icons and the start url, and a cached one
+ * keeps a device pointing at an app that no longer exists.
+ *
+ * And the SPA fallback must not shadow `/sw.js`: a file the build did not emit has
+ * to be a 404, because serving `index.html` under that name gives the browser an
+ * HTML document where it asked for a worker script — a registration that fails
+ * with a MIME error, on a page that looks fine.
+ */
+describe('the install files', () => {
+  const withInstallFiles = async (): Promise<string> => {
+    const root = await dist();
+    await writeFile(join(root, 'manifest.webmanifest'), '{"name":"The Daily"}\n', 'utf8');
+    await writeFile(join(root, 'sw.js'), 'self.addEventListener("install", () => self.skipWaiting());\n', 'utf8');
+    return root;
+  };
+
+  it('serves the manifest as a manifest, never cached', async () => {
+    const found = await staticFor(await withInstallFiles(), '/manifest.webmanifest');
+    if (found === 'not-found' || found === 'no-build') throw new Error('the manifest must be served');
+    expect(found.type).toBe('application/manifest+json');
+    expect(found.cache).toBe('no-store');
+  });
+
+  it('serves the worker as a script, never cached', async () => {
+    const found = await staticFor(await withInstallFiles(), '/sw.js');
+    if (found === 'not-found' || found === 'no-build') throw new Error('the worker must be served');
+    expect(found.type).toBe('text/javascript; charset=utf-8');
+    expect(found.cache, 'a cached worker is a page that cannot be updated').toBe('no-store');
+  });
+
+  it('404s a missing worker by name, and does not answer it with the page', async () => {
+    // The SPA fallback is for routes. `/sw.js` has an extension, so the fallback
+    // must not reach it: an HTML body named `sw.js` is a registration that dies on
+    // a MIME check, silently, and the reader has no offline paper to show for it.
+    expect(await staticFor(await dist(), '/sw.js')).toBe('not-found');
+  });
+});

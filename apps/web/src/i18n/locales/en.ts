@@ -175,6 +175,10 @@ export const en = {
     theme: { toLight: 'Light', toDark: 'Dark' },
     // The second axis (D-038): the word names the state the press gives, as the theme's does.
     contrast: { toNormal: 'Plain', toMore: 'High contrast' },
+    // The install entry (WP16, D-039): one word on the control, and the recipe for
+    // the browser that has no control to offer. iOS's own words, because a reader
+    // follows them on iOS's own screen.
+    install: { label: 'Install', recipe: 'Share → Add to Home Screen' },
     kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed' },
     byline: 'By {{author}}',
     opensInNewTab: 'Open the {{source}} story in a new tab',
@@ -192,6 +196,10 @@ export const en = {
       sources_other: '{{value}} sources',
       unhealthy_one: '{{value}} unhealthy',
       unhealthy_other: '{{value}} unhealthy',
+      // The worker's stamp (WP16, D-039). The dateline strip's own vocabulary, not a
+      // widget: a cached edition that presents itself as news is rule 5's silent zero
+      // with a masthead on it, so the line says what it is and when it was written.
+      cached: 'cached {{at}}',
     },
     health: {
       headline: 'Sources',

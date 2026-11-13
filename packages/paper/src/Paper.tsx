@@ -4,7 +4,7 @@ import { FrontPage } from './FrontPage.tsx';
 import { type HealthLabels, HealthStrip } from './HealthStrip.tsx';
 import { Masthead } from './Masthead.tsx';
 import { Section } from './Section.tsx';
-import type { Contrast, FormatProps, SourcesControl, StoryLabels } from './types.ts';
+import type { Contrast, FormatProps, InstallControl, SourcesControl, StoryLabels } from './types.ts';
 
 /**
  * The page: masthead, front page, sections, the edited strip, source health.
@@ -42,8 +42,10 @@ export interface PaperLabels extends StoryLabels {
   readonly health: HealthLabels;
   readonly editedHeadline: string;
   readonly onboarding: OnboardingCopy;
-  /** `"38 stories · 6 new · 2 edited"` — the dateline strip's line. */
-  readonly stats: (stats: EditionStats) => string;
+  /** `"38 stories · 6 new · 2 edited"` — the dateline strip's line. `cachedAt`
+   * adds the worker's stamp, and only when it is there (WP16, D-039): a caller
+   * with no worker has nothing to say, and an optional argument says so. */
+  readonly stats: (stats: EditionStats, cachedAt?: string | null) => string;
 }
 
 export interface PaperProps {
@@ -64,6 +66,21 @@ export interface PaperProps {
   readonly contrast?: Contrast | undefined;
   readonly onToggleContrast?: (() => void) | undefined;
   readonly contrastLabel?: string | undefined;
+  /**
+   * The worker's stamp (WP16, D-039): the ISO time the edition on this page was
+   * written into a cache, or `null` when the answer came off the wire. `Paper`
+   * renders no words of its own, so it hands the value to `labels.stats` and the
+   * app decides the sentence — an installed page that shows a stale edition
+   * without saying so is rule 5's silent zero, and this is the line that stops it.
+   */
+  readonly cachedAt?: string | null;
+  /**
+   * The install entry (WP16, D-039): the third control in the strip, omitted when
+   * the app has nothing to offer. Named for what it is, not for the browser's
+   * event: the paper prints an act, and the app decides whether this browser has
+   * one, a recipe, or neither.
+   */
+  readonly install?: InstallControl;
   /**
    * The editor's entry, printed in the dateline strip (WP14). Omitted, and the
    * page is the paper alone. Named `editor`, not `sources`: `sources` is the
@@ -91,6 +108,8 @@ export const Paper = ({
   contrast,
   onToggleContrast,
   contrastLabel,
+  cachedAt = null,
+  install,
   editor,
 }: PaperProps) => (
   <div data-part="sheet" className={sheetClass}>
@@ -98,7 +117,8 @@ export const Paper = ({
       name={masthead.name}
       tagline={masthead.tagline}
       dateline={edition.dateline}
-      summary={labels.stats(edition.stats)}
+      summary={labels.stats(edition.stats, cachedAt)}
+      {...(install === undefined ? {} : { install })}
       theme={theme}
       onToggleTheme={onToggleTheme}
       themeLabel={themeLabel}

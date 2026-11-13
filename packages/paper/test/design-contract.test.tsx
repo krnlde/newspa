@@ -182,6 +182,8 @@ describe('the paper contract, in CSS and in the components', () => {
     for (const part of [
       'theme-switch',
       'contrast-switch',
+      'install',
+      'install-recipe',
       'health',
       'sources',
       'sources-open',

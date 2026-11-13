@@ -75,7 +75,9 @@ and 31 captured fixtures under `test/fixtures/`.
 **server**, the surface, the run verbs and the dev loop: `docs/state-server.md` —
 the poll and the read side as one package, `cli.ts`/`commands.ts`/`start.ts`,
 routes, SSE, the address policy (D-034), the four verbs, and the loop that prints
-the page.
+the page — and its run half, `docs/state-device.md`: the `db_lock` claim (D-041),
+`start` taking no arguments (D-042), TLS as the scheme (D-039), and the installable
+paper (WP16).
 
 **paper**: browser-safe, consumed by the app, fourteen modules. The barrel's public
 surface is eight components (`Paper`, `Masthead`, `Section`, `Story`, `EditDiff`,

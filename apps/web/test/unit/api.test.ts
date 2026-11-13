@@ -34,10 +34,15 @@ const payload: StateResponse = stateResponseSchema.parse({
 
 type FetchMock = Mock<(input: string, init?: RequestInit) => Promise<Response>>;
 
-/** An object shaped like a `Response`, for the parts `api.ts` reads. `Response`
- * has ~30 members; the boundary only uses `ok`, `status` and `json`. */
-const responseOf = (body: unknown, init: { ok: boolean; status: number }): Response =>
-  ({ ok: init.ok, status: init.status, json: async () => body }) as unknown as Response;
+/** An object shaped like a `Response`, for the parts `api.ts` reads: `ok`,
+ * `status`, `json`, and the one header that carries the worker's stamp. */
+const responseOf = (body: unknown, init: { ok: boolean; status: number; headers?: Record<string, string> }): Response =>
+  ({
+    ok: init.ok,
+    status: init.status,
+    headers: new Headers({ 'content-type': 'application/json', ...init.headers }),
+    json: async () => body,
+  }) as unknown as Response;
 
 const stubFetch = (respond: () => Response): FetchMock => {
   const mock = vi.fn(async (_input: string, _init?: RequestInit): Promise<Response> => respond());
@@ -63,10 +68,23 @@ const thrownBy = async (promise: Promise<unknown>): Promise<unknown> =>
 describe('fetchState', () => {
   it('returns the parsed edition, from exactly the endpoint the paper reads', async () => {
     const mock = stubFetch(() => responseOf(payload, { ok: true, status: 200 }));
-    const state = await fetchState();
-    expect(state).toEqual(payload);
-    expect(state.edition.dateline).toBe('November 8, 2026');
+    const answer = await fetchState();
+    expect(answer.state).toEqual(payload);
+    expect(answer.state.edition.dateline).toBe('November 8, 2026');
+    // No stamp, no label: a live answer says nothing about a cache (WP16, D-039).
+    expect(answer.cachedAt).toBeNull();
     expect(mock.mock.calls[0]?.[0]).toBe('/api/state');
+  });
+
+  it("keeps the worker's stamp, because a cached edition has to say so", async () => {
+    // The one fact the body cannot carry: `/api/state` is byte-identical live and
+    // from a cache, so the freshness label rides on this header alone. Drop it in
+    // `api.ts` and the page shows a stale edition as news - rule 5 in the browser.
+    const stamp = '2026-11-08T06:12:00.000Z';
+    stubFetch(() => responseOf(payload, { ok: true, status: 200, headers: { 'newspa-cached-at': stamp } }));
+    const answer = await fetchState();
+    expect(answer.cachedAt).toBe(stamp);
+    expect(answer.state.edition.dateline).toBe('November 8, 2026');
   });
 
   it('forwards the abort signal and asks for JSON', async () => {

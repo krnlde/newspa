@@ -40,13 +40,21 @@ const healthLabelsOf = (t: TFunction, locale: LocaleApi): HealthLabels => ({
     t('paper.health.matches', { seen: locale.count(seen), expected: locale.count(expected) }),
 });
 
-const statsLine = (t: TFunction, locale: LocaleApi, stats: EditionStats): string =>
+/**
+ * The dateline strip's line. `cachedAt` is the worker's stamp (WP16, D-039):
+ * present **only** when the edition on the page was served out of a cache, and the
+ * time it was written. It joins the line the way `unhealthy` does — a segment that
+ * is there when it is true and absent when it is not — because the alternative is
+ * a stale paper that reads like news.
+ */
+const statsLine = (t: TFunction, locale: LocaleApi, stats: EditionStats, cachedAt: string | null): string =>
   join([
     counted(t, locale, 'paper.stats.items', stats.items),
     counted(t, locale, 'paper.stats.new', stats.newItems),
     counted(t, locale, 'paper.stats.edited', stats.editedItems),
     counted(t, locale, 'paper.stats.sources', stats.sourcesFetched),
     stats.sourcesUnhealthy > 0 ? counted(t, locale, 'paper.stats.unhealthy', stats.sourcesUnhealthy) : '',
+    cachedAt === null ? '' : t('paper.stats.cached', { at: locale.time(cachedAt) }),
   ]);
 
 export const paperLabelsOf = (t: TFunction, locale: LocaleApi): PaperLabels => ({
@@ -64,7 +72,7 @@ export const paperLabelsOf = (t: TFunction, locale: LocaleApi): PaperLabels => (
     }),
   editedHeadline: t('paper.edited.headline'),
   health: healthLabelsOf(t, locale),
-  stats: (stats: EditionStats) => statsLine(t, locale, stats),
+  stats: (stats: EditionStats, cachedAt: string | null = null) => statsLine(t, locale, stats, cachedAt),
   onboarding: {
     title: t('paper.onboarding.title'),
     lead: t('paper.onboarding.lead'),

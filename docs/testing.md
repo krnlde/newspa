@@ -133,3 +133,34 @@ block lives in exactly the files that can own each value, and that no component 
 the two passing the prop through mentions the axis — the claim that no `dark:`-style
 variant was born. Print is pinned the same way, and `@media print` gains
 `[data-part='contrast-switch']` beside the theme switch.
+
+## The third browser project: the install, in a browser that is really driven
+
+`pnpm test:design` runs three projects. `apps/web/vitest.design.config.ts` mounts
+components **inside** Edge (Vitest browser mode); `packages/fetch/vitest.browser.config.ts`
+and `packages/server/vitest.browser.config.ts` are **node** projects that _drive_ a browser
+they launch — the claims are about a cursor, a registration, a cache.
+
+The install project (`packages/server/test/browser/offline.test.ts`, 2) is the one that
+cannot be faked: it boots the **built** app on a loopback port, opens it in an ephemeral
+Edge context, closes the server, reloads, and asserts that the dateline strip prints the
+worker's stamp and the sheet prints news, not the failure panel. The second arm empties
+the edition cache and asserts the worker's `503` sentence, and that `/api/sources`
+**fails** offline — the reading list is never served from a cache on a device the machine
+cannot revoke (rule 18).
+
+Two facts the project depends on, both measured:
+
+- **It needs `pnpm build`.** The subject is the built bundle, because the built
+  `index.html` is what registers the worker. When `apps/web/dist` is absent the file
+  **throws and names the command**; a browser project that skips silently is a browser
+  project that tests nothing. So `pnpm check` on a fresh clone asks for a build — said
+  by name, in the failing test's own message.
+- **`testTimeout: 45_000`.** Launching Edge, loading a 450 kB bundle, registering a
+  worker and reloading it offline is seconds of wall clock; Vitest's 5 s default killed
+  the slower arm mid-navigation, and a browser test that fails on its own timeout
+  measures nothing about the paper.
+
+The worker's own `console.warn` lines reach the test's output as
+`page: Failed to load resource…` on stderr. Those lines are the evidence, not a failure:
+they are the offline arms, stated by the browser.

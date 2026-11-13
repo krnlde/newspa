@@ -115,6 +115,24 @@ describe('the counted strings', () => {
     ]);
   });
 
+  it('asks for the worker stamp as a segment, and only when the answer carries one', () => {
+    // WP16, D-039: the offline label is the dateline strip's line, not a widget, and
+    // it is *conditional* — an answer off the wire has nothing to say about a cache.
+    const spy = spyT();
+    const labels = paperLabelsOf(tOf(spy), localeFor('en'));
+    labels.stats(statsOf({}), '2026-11-09T06:12:00.000Z');
+    // The stamp is the last segment of the line, so it is the last key asked for.
+    expect(lastKey(spy)).toBe('paper.stats.cached');
+    const options = lastOptions(spy);
+    expect(typeof options['at']).toBe('string');
+    // The time is `Intl`'s answer, so the assertion is its shape, not its text.
+    expect(String(options['at'])).toMatch(/\d{1,2}:\d{2}/);
+    // And no stamp, no call: a live page prints no sentence about a cache.
+    spy.mockClear();
+    labels.stats(statsOf({}), null);
+    expect(spy.mock.calls.some((call) => String(call[0]) === 'paper.stats.cached')).toBe(false);
+  });
+
   it('formats both numbers of the edit summary, with `count` for the plural', () => {
     const spy = spyT();
     const labels = paperLabelsOf(tOf(spy), localeFor('de'));

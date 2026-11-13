@@ -89,6 +89,35 @@ export interface SourcesControl {
   readonly onOpen: (control: HTMLElement) => void;
 }
 
+export interface InstallControl {
+  readonly mode: InstallMode;
+  readonly label: string;
+  /**
+   * The words for a browser that offers no prompt (iOS Safari, D-039's named
+   * case): printed as the strip's line, because a control that is silently absent
+   * is a feature the reader cannot find.
+   */
+  readonly recipe: string;
+  readonly onInstall: () => void;
+}
+
+/**
+ * The install control (WP16, D-039): the dateline strip's entry, in the page's one
+ * control row — **never a second overlay** (D-035: the sources editor is the page's
+ * one, and the page has exactly one). Three modes, and the app decides which,
+ * because only the app knows what this browser offered:
+ *
+ *  - `prompt`: the browser has an install prompt in hand, so the strip prints a
+ *    control that asks for it;
+ *  - `recipe`: the browser offers nothing (iOS Safari is the named case), so the
+ *    strip prints the words that work **there**;
+ *  - `none`: nothing to print — the app is installed already, or this browser has
+ *    neither prompt nor recipe and inventing one is worse than silence.
+ *
+ * The words are the app's, as everywhere in the paper (D-019).
+ */
+export type InstallMode = 'prompt' | 'recipe' | 'none';
+
 /**
  * The stock's two axes (D-038): `theme` answers "which stock", `contrast` answers
  * "how hard". They are **not** one enum of four modes: the pair composes, the CSS
@@ -107,6 +136,14 @@ export interface MastheadProps {
   readonly onToggleTheme: () => void;
   /** The switcher's own words, and its accessible name. */
   readonly themeLabel: string;
+  /**
+   * The install control (WP16, D-039): the third entry in the strip, in the same
+   * `CONTROL` vocabulary as the other two. Omitted, and the strip prints what it
+   * printed before. The app owns the mode, because only the app knows what this
+   * browser offered: a prompt in hand, the recipe for the browser that has none,
+   * or silence.
+   */
+  readonly install?: InstallControl | undefined;
   /**
    * The contrast axis, omitted when the app has no contrast control to offer. The
    * strip prints the button only when the app asks for it: a control that does

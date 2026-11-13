@@ -117,6 +117,42 @@ describe('the contrast axis (D-038)', () => {
   });
 });
 
+describe('the install entry (WP16, D-039)', () => {
+  const base = { label: 'Install', recipe: 'Share → Add to Home Screen' };
+
+  it('prints a real button when the browser has a prompt in hand, in the strip’s one control row', () => {
+    const onInstall = vi.fn();
+    const { container } = showMasthead({ install: { mode: 'prompt', ...base, onInstall } });
+    const button = one<HTMLButtonElement>(PART.install, container);
+    expect(button.tagName).toBe('BUTTON');
+    expect(button.getAttribute('type')).toBe('button');
+    expect(button.textContent).toBe('Install');
+    // One control row (D-035: the page has exactly one overlay, and the sources
+    // editor is it). The install control joins the strip; it does not add a box.
+    expect(one(PART.datelineStrip, container).contains(button)).toBe(true);
+    fireEvent.click(button);
+    expect(onInstall).toHaveBeenCalledOnce();
+    expect(container.querySelector(PART.installRecipe)).toBeNull();
+  });
+
+  it('prints the recipe as a line, not a dead button, where the browser offers nothing', () => {
+    // iOS Safari has no install event. A control that fires nothing is a lie, and a
+    // control that is silently absent is a feature the reader cannot find, so the
+    // strip prints the words that work on that browser.
+    const { container } = showMasthead({ install: { mode: 'recipe', ...base, onInstall: vi.fn() } });
+    expect(one(PART.installRecipe, container).textContent).toBe('Share → Add to Home Screen');
+    expect(container.querySelector(PART.install)).toBeNull();
+  });
+
+  it('prints nothing when there is nothing to offer, and invents no affordance', () => {
+    for (const mode of ['none', 'no-control'] as const) {
+      const { container } = showMasthead(mode === 'none' ? { install: { mode, ...base, onInstall: vi.fn() } } : {});
+      expect(container.querySelector(PART.install)).toBeNull();
+      expect(container.querySelector(PART.installRecipe)).toBeNull();
+    }
+  });
+});
+
 describe('the masthead block', () => {
   it('is one header that prints the dateline strip, then the name, then the tagline, then the stats', () => {
     const header = one(`header${PART.masthead}`, showMasthead().container);

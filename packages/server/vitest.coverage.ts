@@ -26,6 +26,10 @@ export default defineConfig({
     name: 'server',
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    // Mirrors `vitest.config.ts`, and for the same reason: `test/browser/` drives
+    // real Edge and belongs to `pnpm test:design`, and a CSS/behaviour assertion
+    // raises no line to cover (docs/testing.md).
+    exclude: ['**/browser/**', 'node_modules/**'],
     // Ports and single-instance locks are process-global; forks isolate them.
     pool: 'forks',
     restoreMocks: true,

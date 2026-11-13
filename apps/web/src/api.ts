@@ -32,7 +32,22 @@ export class ApiError extends Error {
   }
 }
 
-export const fetchState = async (signal?: AbortSignal): Promise<StateResponse> => {
+/**
+ * The state, plus the one fact the page cannot get from the body: **was this
+ * edition served from the worker's cache, and when was that cache written?**
+ * `sw.js` stamps `/api/state` with `newspa-cached-at` at write time, and a live
+ * answer carries no stamp — so the label "cached 06:12" appears exactly when it
+ * is true (D-039: rule 5 in the browser; a stale edition that presents itself as
+ * news is a silent zero with a masthead on it).
+ */
+export interface StateAnswer {
+  readonly state: StateResponse;
+  readonly cachedAt: string | null;
+}
+
+const CACHED_AT = 'newspa-cached-at';
+
+export const fetchState = async (signal?: AbortSignal): Promise<StateAnswer> => {
   const accept = { accept: 'application/json' };
   // Built as a whole object, not `{ signal }`: with `exactOptionalPropertyTypes`
   // a `signal: undefined` property is not an absent one, and `RequestInit`
@@ -48,7 +63,7 @@ export const fetchState = async (signal?: AbortSignal): Promise<StateResponse> =
       `/api/state answered something that is not an edition: ${parsed.error.issues[0]?.message ?? 'schema mismatch'}`,
     );
   }
-  return parsed.data;
+  return { state: parsed.data, cachedAt: response.headers.get(CACHED_AT) };
 };
 
 /**

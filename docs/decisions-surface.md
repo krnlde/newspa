@@ -255,4 +255,4 @@ argv is parsed, and what is not parsed is refused by name.**
 **Reverse if:** a flag earns its place — the honest shape is a _named_ setting that
 belongs on a command line (an override of `config.json`'s path, a one-shot
 `--once` that polls once and exits), and each one arrives as a parse, a test, and a
-line in `docs/state-server.md`, not as an ignored token.
+line in `docs/state-device.md`, not as an ignored token.

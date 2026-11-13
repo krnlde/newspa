@@ -89,6 +89,10 @@ And it prints **no editor** (WP14): the theme switch, the sources control, the m
 its close button and the panel inside it are all `display: none` in print. A form spends
 ink on affordances a page cannot use — a textarea, three buttons per source — and it
 prints the absolute path of the watchlist directory, which is the reading list (rule 18).
+The same reasoning removes the **install entry** (WP16: a printed page cannot be
+installed, and the iOS recipe names a Share button that exists on a screen) and the
+**spine** (D-043: a rail pinned to the scrollbar has no scrollbar on paper, and a
+printed page is already its own index).
 `@media print` is not reachable from a screen viewport, so the claim is pinned **as text**
 in `packages/paper/test/design-contract.test.tsx`, which extracts the block's
 `display: none` selectors and demands all six names.

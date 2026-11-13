@@ -51,11 +51,19 @@ export const renderApp = (): { view: ReturnType<typeof render>; client: QueryCli
   return { view, client: fresh };
 };
 
-/** Mount against a state response, and wait until the masthead is on the page. */
+/**
+ * Mount against a state response, and wait until the masthead is on the page.
+ *
+ * `headers` is the worker's seam (WP16, D-039): `newspa-cached-at` is the only
+ * thing that distinguishes an answer off the wire from a cached edition, and the
+ * page's freshness label depends on it, so a mount that cannot set it cannot test
+ * the rule.
+ */
 export const renderPaper = async (
   state: StateResponse = aPaper(),
+  headers: Record<string, string> = {},
 ): Promise<ReturnType<typeof renderApp> & { fetch: FetchMock }> => {
-  const fetch = stubFetch(async () => responseOf(state));
+  const fetch = stubFetch(async () => responseOf(state, headers));
   const mounted = renderApp();
   await screen.findByText(MASTHEAD.name);
   return { ...mounted, fetch };

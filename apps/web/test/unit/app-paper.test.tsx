@@ -1,10 +1,11 @@
-import { fireEvent } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONTRAST_KEY } from '../../src/contrast.ts';
 import { en } from '../../src/i18n/locales/en.ts';
+import { formatTime, formattersFor } from '../../src/lib/intl.ts';
 import { THEME_KEY } from '../../src/theme.ts';
 import { html, one, renderPaper } from './support/render.tsx';
-import { anEmptyPaper, LINKS, MASTHEAD } from './support/wire.ts';
+import { anEmptyPaper, aPaper, LINKS, MASTHEAD } from './support/wire.ts';
 
 /**
  * The paper the app prints: the words the state response puts on the page, the
@@ -133,5 +134,73 @@ describe('the contrast axis (D-038)', () => {
     html().dataset['contrast'] = 'more';
     await renderPaper();
     expect(one("[data-part='contrast-switch']").textContent).toBe(en.paper.contrast.toNormal);
+  });
+});
+
+/**
+ * The worker's stamp, on the page (WP16, D-039).
+ *
+ * `/api/state` is byte-identical live and from a cache, so the one fact that
+ * separates them — *this edition was served from a device's memory, written at
+ * 06:12* — arrives in a header and must reach the dateline strip. A stale paper
+ * that reads as news is rule 5's silent zero with a masthead on it, and the
+ * acceptance D-039 names is that the offline edition is **labelled**.
+ */
+describe('an edition served out of the worker cache', () => {
+  const STAMP = '2026-11-09T06:12:00.000Z';
+  // The line is built from the locale's own string and the app's own formatter,
+  // because `timeStyle: short` is `Intl`'s answer, not the test's.
+  const cachedLine = (): string => en.paper.stats.cached.replace('{{at}}', formatTime(STAMP, formattersFor('en')));
+
+  it('prints the time the cache was written, beside the day’s numbers', async () => {
+    await renderPaper(aPaper(), { 'newspa-cached-at': STAMP });
+    const summary = one<HTMLElement>("[data-part='summary']").textContent ?? '';
+    expect(summary).toContain('4 stories');
+    expect(summary).toContain(cachedLine());
+  });
+
+  it('says nothing about a cache when the answer came off the wire', async () => {
+    await renderPaper();
+    expect(one<HTMLElement>("[data-part='summary']").textContent).not.toContain('cached');
+  });
+});
+
+/**
+ * The install entry, as the app prints it (WP16, D-039): the dateline strip's
+ * third control, in the page's one control row, and never an overlay (D-035).
+ *
+ * The interesting part is which of the three shapes arrives, and that is the
+ * browser's doing, so each arm changes the browser: Chromium's event, iOS's user
+ * agent, and a desktop with neither. The words come from the locale (D-019), so
+ * the test reads them from `en` rather than typing them.
+ */
+describe('the install entry', () => {
+  interface PromptEvent extends Event {
+    prompt: () => Promise<void>;
+  }
+
+  it('prints no control before the browser offers one, then the control, in the strip', async () => {
+    await renderPaper();
+    expect(document.querySelector("[data-part='install']")).toBeNull();
+    const event = new Event('beforeinstallprompt', { cancelable: true }) as PromptEvent;
+    event.prompt = async (): Promise<void> => undefined;
+    act(() => window.dispatchEvent(event));
+    const button = await screen.findByText(en.paper.install.label);
+    expect(button.getAttribute('data-part')).toBe('install');
+    // The one control row: the strip prints it beside the switches, not in a box
+    // of its own, and no dialog is mounted to hold it (D-035).
+    expect(one<HTMLElement>("[data-part='install']").closest("[data-part='dateline-strip']")).not.toBeNull();
+    expect(document.querySelector('dialog')).toBeNull();
+  });
+
+  it('prints the recipe on iOS, where the browser has no event, and no dead button', async () => {
+    Object.defineProperty(globalThis.navigator, 'userAgent', {
+      value:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      configurable: true,
+    });
+    await renderPaper();
+    expect(one<HTMLElement>("[data-part='install-recipe']").textContent).toBe(en.paper.install.recipe);
+    expect(document.querySelector("[data-part='install']")).toBeNull();
   });
 });

@@ -201,7 +201,8 @@ deliberately **not** reimplemented: the pipeline is hard-coded
 ## Layout
 
 ```
-apps/web          Vite + React SPA (the paper). Only build step here.
+apps/web          Vite + React SPA (the paper). Only build step here. `public/` is the
+                  install identity (WP16, D-039): the manifest, the icons, `sw.js`.
 packages/core     Types, record schema, API contract, normalize, diff, score, health, teaser. No I/O.
 packages/paper    React newspaper components + the paper CSS (browser-safe, used by the app)
 packages/config   zod source/app schemas + file loading + watchlist/OPML (sources/*.json is truth)
@@ -234,9 +235,11 @@ config.example.json The shipped app config, validated by `config/test/examples.t
                   it does not have is a first run that cannot boot).
 schemas/          JSON Schema generated from zod; `$schema` in exports points here
 docs/             architecture.md, state.md + state-server.md (the surface, the run
-                  verbs, the dev loop), roadmap.md (what is not built) +
+                  verbs, the dev loop) + state-device.md (the claim, the argv, TLS,
+                  the install), roadmap.md (what is not built) +
                   roadmap-closed.md (the pipeline's records) +
-                  roadmap-closed-surface.md (the picker, the styling, the panel),
+                  roadmap-closed-surface.md (the picker, the styling, the panel) +
+                  roadmap-closed-device.md (TLS, the install, the offline edition),
                   decisions.md + decisions-surface.md (the page, the address, the
                   reading list, the one overlay, the picker) + decisions-display.md
                   (the device: the server's place, the two display axes, install and

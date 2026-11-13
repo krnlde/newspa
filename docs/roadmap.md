@@ -2,7 +2,8 @@
 
 What is **not** built, in the order that unblocks the most. Each package states
 the measured gap, the acceptance test, and the rules it is answerable to.
-`docs/state.md` (and `docs/state-server.md`, for the surface and the verbs) is the
+`docs/state.md` (and `docs/state-server.md`, for the surface and the verbs, with
+`docs/state-device.md` for the claim, the address, TLS and the install) is the
 inventory of what exists; `AGENTS.md` is the law.
 
 The spine `WP2 → WP3 → WP4 → WP5` is closed (see `docs/roadmap-closed.md`): the poll,
@@ -18,14 +19,16 @@ the reader's act. The display axes are built too (D-038: `data-contrast` compose
 `data-theme`, set by URL for a wall device).
 
 What is left is quality of life, not architecture, and the queue is the reader's own
-next sentence: _install it, and put it on a screen that is not a laptop._ So the next
-packages are **WP16 (the installable paper)** and **WP15 (the board)**, the recipe that
-ties them to D-037's topology. WP16's prerequisite is gone: **WP17 (TLS) is built** and
-in the closed records. After them:
+next sentence: _put it on a screen that is not a laptop._ **WP16 (the installable
+paper) is built**, and so is **WP17 (TLS)**, the address it needed: the paper installs,
+the worker keeps the last edition, and the dateline strip says when the page is served
+from a cache. So the next package is **WP15 (the board)**, the recipe that ties them to
+D-037's topology. After it:
 search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
 README (WP13). Closed packages are in `docs/roadmap-closed.md` (the pipeline) and
-`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS) with what each
-measured - WP1, WP2, WP3, WP6, WP12, WP14, WP17; read WP12 before reopening those files.
+`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS, the install)
+with what each
+measured - WP1, WP2, WP3, WP6, WP12, WP14, WP16, WP17; read WP12 before reopening those files.
 (WP4 and WP5 are built and recorded below, where their open halves are named.)
 
 ## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_
@@ -206,35 +209,3 @@ reader can act on.
 URL axes applied at first paint — no flash of the yellowed stock, both switches in the
 state the URL names. A server that stops answering leaves the last edition on the
 screen with its stated age, not a blank page and not a spinner (rule 5).
-
-## WP16 — The installable paper: manifest, worker, and a cache that says it is a cache
-
-**Gap.** _We need to offer to install the web app as a PWA_ (D-039). Today the product
-is a tab: no `manifest.webmanifest`, no icons the browser can use, no service worker —
-so no home screen and no standalone window, and, the real loss for a wall, **nothing on
-the screen when the server is down**.
-
-**Build.** A hand-written `manifest.webmanifest` and a hand-written `sw.js`, no plugin
-and no Workbox (rule 8: a generated precache manifest is a second bundler's opinion
-about the app's cache). Icons are authored as **SVG in the repo** and rasterised to
-192/512 PNG (with the maskable pair) by the Edge the repo already launches —
-`playwright-core` + `channel: 'msedge'`, the `pnpm shots` recipe (D-003) — so no image
-toolchain and no CDN asset (rule 11). The worker's cache is **two rules, named in the
-file**: the shell (hashed assets, immutable) and **the last edition** (the `/api/state`
-answer, kept and **labelled with its cache time**, never presented as live — rule 5
-in the browser). The install control is **inline** in the dateline strip, the page's
-one control row, in the `CONTROL` vocabulary: never a second overlay (D-035); it
-appears when `beforeinstallprompt` fires, and where the browser offers nothing (iOS)
-the line **names the recipe** instead of vanishing. `staticFiles.ts` widens by two
-names: `.webmanifest` → `application/manifest+json`, and `sw.js` is **never**
-`immutable`, with the SPA fallback never shadowing it. WP17's TLS is what makes it
-reachable on a phone's address: a plain-HTTP LAN page is not a secure context and
-cannot register a worker.
-
-**Accept.** The manifest parses and names the icons the build wrote (a test reads the
-generated files, so an icon that is not there fails the build); the worker caches the
-shell and the last edition, and the page prints the cache time it was served with —
-asserted with a real registration in the browser project, not by reading the file as
-text; killing the server leaves a **labelled** edition; the install control renders
-when the prompt event is dispatched, prints the named recipe when it is not, and is
-`display: none` in print; `pnpm check` stays green with no new dependency.

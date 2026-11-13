@@ -142,9 +142,24 @@ export const anEmptyPaper = (): StateResponse =>
     sources: [],
   });
 
-/** `/api/state` shaped like a `Response`: `api.ts` reads `ok`, `status` and `json`, nothing else. */
-export const responseOf = (body: unknown): Response =>
-  ({ ok: true, status: 200, json: async () => body }) as unknown as Response;
+/**
+ * `/api/state` shaped like a `Response`: `api.ts` reads `ok`, `status`, `json`
+ * and the worker's stamp header, nothing else.
+ *
+ * `headers` is the seam the offline label uses (WP16, D-039): `sw.js` stamps a
+ * cached edition with `newspa-cached-at`, and the page prints "cached 06:12"
+ * because of that one header — so a test that cannot set it cannot test the rule.
+ */
+export const responseOf = (body: unknown, headers: Record<string, string> = {}): Response =>
+  ({
+    ok: true,
+    status: 200,
+    headers: new Headers({ 'content-type': 'application/json', ...headers }),
+    json: async () => body,
+  }) as unknown as Response;
+
+/** The same answer, served out of the worker's cache and stamped at `at`. */
+export const aCachedAnswer = (body: unknown, at: string): Response => responseOf(body, { 'newspa-cached-at': at });
 
 export type FetchMock = Mock<(input: string, init?: RequestInit) => Promise<Response>>;
 

@@ -22,6 +22,8 @@ export {
 export { EditDiff, Story } from './Story.tsx';
 export type {
   FormatProps,
+  InstallControl,
+  InstallMode,
   MastheadProps,
   SectionProps,
   SourcesControl,

@@ -34,6 +34,7 @@ export const Masthead = ({
   onToggleContrast,
   contrastLabel,
   sources,
+  install,
 }: MastheadProps) => (
   <header data-part="masthead" className="pt-3 pb-2 border-t-2 border-t-ink text-center">
     <div
@@ -55,6 +56,20 @@ export const Masthead = ({
           >
             {sources.label}
           </button>
+        )}
+        {/* The install entry (WP16, D-039), in the same row and the same
+            vocabulary: the page has **one** control row, and a second overlay is
+            refused by D-035. A browser with no prompt is not answered by an absent
+            control — the line names the recipe that works there, because a feature
+            the reader cannot find is a feature they do not have. */}
+        {install === undefined || install.mode === 'none' ? null : install.mode === 'prompt' ? (
+          <button type="button" data-part="install" className={CONTROL} onClick={install.onInstall}>
+            {install.label}
+          </button>
+        ) : (
+          <p data-part="install-recipe" className="m-0 text-kicker font-bold tracking-kicker uppercase text-muted">
+            {install.recipe}
+          </p>
         )}
         <button
           type="button"

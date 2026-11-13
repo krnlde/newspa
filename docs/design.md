@@ -69,8 +69,9 @@ No cards, no shadows, no rounded rectangles, no chips. Structure is **typographi
 weight and hairlines**:
 
 - Masthead: `2px` rule above, `4px` below with a `1px` partner (the classic thick/thin pair).
-- Dateline strip: uppercase, `0.5px` hairlines above and below.
+- Dateline strip: uppercase, `0.5px` hairlines above and below. Its control row is the page's one control row — the two display switches, the editor's entry, the install entry (WP16, D-039) — all in the same `CONTROL` vocabulary, and its stats line prints the worker's stamp (`cached 06:12` / `Stand 06:12`) **only** when the edition was served from a cache.
 - Section head: uppercase label with a `1px` rule extending to the column edge, **sticky** — see below.
+- **Spine**: the section heads as initials, pinned to the scrollbar rail at the position each header has right now; the word is printed only on hover or keyboard focus, and the initial you are inside is ink, the rest muted. Initials, not labels: a wall display and a phone have no hover, and an initial is a tap target. It is a mark in the gutter, so no box, no card, no shadow, and no words at all (D-043).
 - Story separators inside a column: `0.5px` hairline, `1.25rem` of air.
 - Ornament (`❦`) between the lead and the fold, centred, muted.
 - Drop cap (`::first-letter`, 2-line) on the lead deck only.

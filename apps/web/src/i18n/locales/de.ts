@@ -173,6 +173,8 @@ export const de = {
     theme: { toLight: 'Hell', toDark: 'Dunkel' },
     // Die zweite Achse (D-038): das Wort nennt den Zustand, den das Drücken bringt.
     contrast: { toNormal: 'Normal', toMore: 'Hoher Kontrast' },
+    // D-039's install entry, in the iOS words the reader follows on that screen.
+    install: { label: 'Installieren', recipe: 'Freigeben → Zum Startbildschirm hinzufügen' },
     kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert' },
     byline: 'Von {{author}}',
     opensInNewTab: 'Die {{source}}-Meldung in einem neuen Tab öffnen',
@@ -190,6 +192,9 @@ export const de = {
       sources_other: '{{value}} Quellen',
       unhealthy_one: '{{value}} gestört',
       unhealthy_other: '{{value}} gestört',
+      // D-039's stamp, in the strip's own words: `Stand 06:12` is what a masthead
+      // prints for "this is the state as of", and it is the same fact the English line.
+      cached: 'Stand {{at}}',
     },
     health: {
       headline: 'Quellen',

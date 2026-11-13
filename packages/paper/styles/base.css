@@ -189,9 +189,13 @@
        close control, the box, and the panel inside it. A form spends ink on
        affordances a page cannot use, and prints the absolute path of the
        watchlist directory. The health strip goes for the same reason — both are
-       the machine's report, not the edition. */
+       the machine's report, not the edition. The install entry goes too: a
+       printed page cannot be installed, and the iOS recipe names a Share button
+       that exists on a screen and not on paper (WP16). */
     [data-part='theme-switch'],
     [data-part='contrast-switch'],
+    [data-part='install'],
+    [data-part='install-recipe'],
     [data-part='health'],
     [data-part='sources-open'],
     [data-part='sources-close'],
