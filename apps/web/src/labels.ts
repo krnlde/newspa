@@ -62,6 +62,7 @@ export const paperLabelsOf = (t: TFunction, locale: LocaleApi): PaperLabels => (
   editedKicker: t('paper.kicker.edited'),
   goneKicker: t('paper.kicker.gone'),
   changedLabel: t('paper.kicker.changed'),
+  seenLabel: t('paper.kicker.seen'),
   byline: (author: string) => t('paper.byline', { author }),
   opensInNewTab: (sourceLabel: string) => t('paper.opensInNewTab', { source: sourceLabel }),
   editSummary: (added: number, removed: number) =>

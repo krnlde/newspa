@@ -178,7 +178,7 @@ export const de = {
     // D-043's spine: the rail's accessible name is the app's only word here; every
     // square is an anchor whose text is the section's title.
     spine: { rail: 'Abschnittsschiene' },
-    kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert' },
+    kicker: { new: 'Neu', edited: 'Geändert', gone: 'Archiviert', changed: 'Geändert', seen: 'Gesehen' },
     byline: 'Von {{author}}',
     opensInNewTab: 'Die {{source}}-Meldung in einem neuen Tab öffnen',
     editSummary_one: '{{added}} Zeichen ergänzt, {{removed}} entfernt',

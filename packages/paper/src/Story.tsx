@@ -157,9 +157,30 @@ const IMAGE_OF: Record<StorySlot, string> = {
   brief: `${IMAGE_BOX} h-auto`,
 };
 
+/**
+ * The instant a story's meta line is built from, and whether it is the paper's
+ * own sighting rather than the publisher's date.
+ *
+ * A publisher that declared no date is common — any scraped HTML page — and an
+ * undated story printed with no date at all is a card the reader cannot place.
+ * `firstSeenAt` is on the wire, non-null, per item, so it answers the question
+ * the page is really asking: *when did the paper learn this?* The word "seen" is
+ * not decoration — the line's job is to not read as a publication date the
+ * source never gave.
+ *
+ * The **source's last fetch is not the fallback**, which is the tempting one: it
+ * is one value for every item of a source, so a 5-minute cadence would print a
+ * two-year-old story as five minutes old, forever, and every card of that source
+ * the same age. That is recency manufactured from the poll clock, which is worse
+ * than no date.
+ */
+const datedBy = (item: ItemView): { readonly at: string; readonly seen: boolean } =>
+  item.publishedAt === null ? { at: item.firstSeenAt, seen: true } : { at: item.publishedAt, seen: false };
+
 /** Byline and age in one muted uppercase line. Empty parts are absent, not blank. */
 const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
-  const published = item.publishedAt === null ? '' : format.ago(item.publishedAt);
+  const when = datedBy(item);
+  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${format.ago(when.at)}` : format.ago(when.at);
   const changed = item.lastChangedAt === null ? '' : format.ago(item.lastChangedAt);
   const parts = [
     item.author === null ? '' : labels.byline(item.author),
@@ -173,14 +194,17 @@ const metaOf = (item: ItemView, labels: StoryLabels, format: FormatProps): strin
  * The same line as **instants**: the ages above are distances from the reader's
  * clock, and the tooltip is the date they were measured from, zone named. A
  * story's words are the publisher's; these numbers are the paper's arithmetic,
- * so they are the app's to format (D-019).
+ * so they are the app's to format (D-019). The sighting says "seen" here too, so
+ * the tooltip names which instant it is, not only when.
  *
  * It goes on the `article`, not on the meta paragraph: the headline's anchor
  * paints an overlay over the whole card (`after:absolute after:inset-0`), so a
  * tooltip hung on the meta line is never under the pointer — the card is.
  */
 const stampsOf = (item: ItemView, labels: StoryLabels, format: FormatProps): string => {
-  const published = format.stamp(item.publishedAt);
+  const when = datedBy(item);
+  const stamp = format.stamp(when.at);
+  const published = when.seen ? `${labels.seenLabel.toLowerCase()} ${stamp}` : stamp;
   const changed =
     item.lastChangedAt === null ? '' : `${labels.changedLabel.toLowerCase()} ${format.stamp(item.lastChangedAt)}`;
   return [published, changed].filter((part) => part.length > 0).join(' · ');

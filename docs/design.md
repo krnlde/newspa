@@ -252,6 +252,15 @@ A story in the paper is a **teaser**, and the paper never renders full text:
   number nobody can check. Every date the page prints carries one: the story card
   (on the `article`, because its headline paints an overlay over the card), the edited
   row, the health row, the dateline, and the stats line's cache stamp.
+- **An undated story prints the paper's sighting, named as one.** A scraped page often
+  declares no date, and a card with no date is a card the reader cannot place, so the
+  line prints `"seen 2 minutes ago"` — `firstSeenAt`, per item, on the wire — and the
+  tooltip says `"seen November 13, 2026 at 03:49 PM GMT+01:00"`. The word is the
+  honesty: a bare age would read as the publication date the source never gave. The
+  source's last fetch is **not** the fallback, tempting as it is: it is one value for
+  every item of a source, so a 5-minute cadence would print a two-year-old story as
+  five minutes old, forever, and every card of that source the same age. That is
+  recency manufactured from the poll clock, which is worse than no date.
 - `ItemView` has no `body` field, so this is structural: the full text is never
   sent to the browser. The edit diff shows changes in the teaser fields only.
 

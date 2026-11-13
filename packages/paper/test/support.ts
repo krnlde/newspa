@@ -128,6 +128,7 @@ export const THE_LABELS: PaperLabels = {
   editedKicker: 'EDITED',
   goneKicker: 'ARCHIVED',
   changedLabel: 'Changed',
+  seenLabel: 'Seen',
   byline: (author: string) => `By ${author}`,
   opensInNewTab: (sourceLabel: string) => `Open the ${sourceLabel} story in a new tab`,
   editSummary: (added: number, removed: number) => `${String(added)} added, ${String(removed)} removed`,

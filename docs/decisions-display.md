@@ -229,10 +229,22 @@ edited row's meta, the health row, the dateline, the stats line — carry their 
 is pinned per site by a test, because "the tooltip is reachable" is a claim about
 hit-testing, not about markup.
 
-**No instant, no attribute.** A publisher that declared no date gets no `title`, and
-never `title=""`: an empty tooltip is a control that does nothing, which is the same rule
-that refuses a silent absence elsewhere in the paper (rule 5, and the install entry's
-"no control, no lie").
+**The undated story prints the sighting; the last fetch is refused.** The pushback on the
+first cut was _"we could use the date of our last fetch? Where's the problem"_ — the right
+instinct, the wrong instant. The paper's own `firstSeenAt` is on the wire, non-null and
+**per item**, so an undated story is placeable by when the paper learned it: the line
+prints `"seen 2 days ago"` and the tooltip `"seen November 11, 2026 at 01:24 PM
+GMT+01:00"` (live: the `nodejs-downloads` card is the paper's only undated story). The
+word is the honesty — a bare age would read as the publication date the source never
+gave, which is the page claiming what it does not know, the rule that already refuses to
+print `New` for a door the source closed (D-029). The **source's** last fetch is the
+tempting fallback and the bad one: it is one value shared by every item of that source,
+so a 5-minute cadence prints a two-year-old story as five minutes old, forever, and every
+card of the source the same age. That is recency manufactured from the poll clock, which
+is worse than no date at all. Where there is genuinely no instant, the element carries no
+`title`, and never `title=""`: an empty tooltip is a control that does nothing — the same
+rule that refuses a silent absence elsewhere in the paper (rule 5, and the install
+entry's "no control, no lie").
 
 **Not built, on purpose:** no custom tooltip, no `aria-describedby`, no hover panel.
 `title` is the ask, it is the platform's, and a styled tooltip is a second overlay where

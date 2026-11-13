@@ -241,6 +241,9 @@ describe('the strings the reader sees', () => {
     expect(de.goneKicker).toBe('Archiviert');
     expect(de.editedHeadline).toBe('Geändert');
     expect(de.byline('Ann Example')).toBe('Von Ann Example');
+    // The meta's word for the paper's own sighting (D-047): an undated story is
+    // placeable by when the paper saw it, and the word keeps the line honest.
+    expect(de.seenLabel).toBe('Gesehen');
     expect(de.opensInNewTab('BBC')).toBe('Die BBC-Meldung in einem neuen Tab öffnen');
     expect(de.onboarding.command).toContain('pnpm pick');
     const en = await labelsIn('en');
@@ -249,6 +252,7 @@ describe('the strings the reader sees', () => {
     expect(en.editedKicker).toBe('Edited');
     expect(en.goneKicker).toBe('Archived');
     expect(en.byline('Ann Example')).toBe('By Ann Example');
+    expect(en.seenLabel).toBe('Seen');
   });
 
   it('has three onboarding steps, with a title, a lead and the command', async () => {

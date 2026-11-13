@@ -183,7 +183,7 @@ export const en = {
     // Every square is an anchor whose text is the section's title, so a screen
     // reader hears the section's own word, and there is no menu to name.
     spine: { rail: 'Section rail' },
-    kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed' },
+    kicker: { new: 'New', edited: 'Edited', gone: 'Archived', changed: 'Changed', seen: 'Seen' },
     byline: 'By {{author}}',
     opensInNewTab: 'Open the {{source}} story in a new tab',
     editSummary_one: '{{added}} characters added, {{removed}} removed',

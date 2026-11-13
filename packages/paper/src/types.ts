@@ -33,6 +33,13 @@ export interface StoryLabels {
   readonly goneKicker: string;
   /** The meta line's word for a later change: `"changed 3 hours ago"`. */
   readonly changedLabel: string;
+  /**
+   * The meta line's word for the instant the **paper** first saw a story whose
+   * publisher declared no date: `"seen 2 minutes ago"`. It is a sighting, not a
+   * publication, and the word is what keeps the line honest — a bare age would
+   * read as the story's own date.
+   */
+  readonly seenLabel: string;
   /** `"By Ann Example"` — the app composes it with its own word order. */
   readonly byline: (author: string) => string;
   /** The accessible name of the link: `"Open the BBC story in a new tab"`. */

@@ -100,7 +100,7 @@ describe('the stories', () => {
     });
     const second = nthStory(container, 1);
     expect(one(PART.kicker, second).textContent).toContain(THE_LABELS.editedKicker);
-    expect(one(PART.meta, second).textContent).toBe('By Ann Example');
+    expect(one(PART.meta, second).textContent).toBe(`By Ann Example · seen ago(${at('06:05')})`);
     expect(nthStory(container, 0).querySelector(PART.meta)?.textContent).toBe(`ago(${at('06:00')})`);
   });
 

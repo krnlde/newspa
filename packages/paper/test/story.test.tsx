@@ -154,7 +154,10 @@ describe('the meta line', () => {
     );
   });
 
-  it('omits an absent publication stamp, and the formatter is not asked for a null one', () => {
+  it('names the sighting when the publisher declared no date, and says so', () => {
+    // `firstSeenAt` is on the wire and non-null, so an undated story is placeable
+    // by the paper's own knowledge. The word is the point: a bare age would read
+    // as the story's publication date, which is the one thing the source never said.
     const asked: string[] = [];
     render(
       <Story
@@ -171,12 +174,14 @@ describe('the meta line', () => {
         showImage={false}
       />,
     );
-    expect(one(PART.meta).textContent).toBe('By Ann Example');
-    expect(asked).toEqual([]);
+    expect(one(PART.meta).textContent).toBe(`By Ann Example · seen ago(${at('06:05')})`);
+    expect(asked).toEqual([at('06:05')]);
   });
 
-  it('prints no meta element at all when every part is empty', () => {
-    expect(showStory({ author: null, publishedAt: null, lastChangedAt: null }).querySelector(PART.meta)).toBeNull();
+  it('prints the meta line for an undated, unbylined story: the sighting is a fact the page has', () => {
+    expect(
+      showStory({ author: null, publishedAt: null, lastChangedAt: null }).querySelector(PART.meta)?.textContent,
+    ).toBe(`seen ago(${at('06:05')})`);
   });
 });
 
@@ -191,11 +196,12 @@ describe('the exact date, in the tooltip', () => {
     expect(story.getAttribute('title')).toBe(`stamp(${at('06:00')})`);
   });
 
-  it('prints no title attribute when the story has no instant to name', () => {
-    // A `title=""` is a tooltip that says nothing: the paper knows this publisher
-    // declared no date, and the card says so by carrying no attribute at all.
+  it('names the sighting as a sighting in the tooltip too', () => {
+    // The tooltip is where "when, exactly?" is answered, and it answers it for the
+    // instant the line was built from — so the undated story's tooltip cannot read
+    // like a publication date either.
     const story = one(PART.story, showStory({ publishedAt: null, lastChangedAt: null }));
-    expect(story.hasAttribute('title')).toBe(false);
+    expect(story.getAttribute('title')).toBe(`seen stamp(${at('06:05')})`);
   });
 });
 
