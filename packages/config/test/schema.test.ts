@@ -154,7 +154,6 @@ describe('appConfigSchema', () => {
     expect(config.scoring.watchwords).toEqual([]);
     expect(config.burst.newRatioThreshold).toBe(0.4);
     expect(config.retention.snapshotsPerSource).toBe(10);
-    expect(config.notify.toastTitle).toBe('newspa');
   });
 
   it('has no editions section: the page is the product, not a generated file', () => {
@@ -162,12 +161,31 @@ describe('appConfigSchema', () => {
     expect(Object.keys(appConfigSchema.shape)).not.toContain('editions');
   });
 
+  it('has no notify section: the reader retired notifications (D-010, D-045)', () => {
+    // Five knobs (`toasts`, `toastTitle`, `minScoreForToast`, `maxToastsPerCycle`,
+    // `quietHours`) that no code ever read. An ignored flag in the machine's own file
+    // reads as a setting believed changed (D-042), so the block is gone rather than
+    // documented as unused. The published `schemas/appconfig.schema.json` is what
+    // tells a clone whose `config.json` still carries it.
+    expect(Object.keys(appConfigSchema.shape)).not.toContain('notify');
+    expect(appConfigSchema.parse({})).not.toHaveProperty('notify');
+  });
+
   it('applies nested defaults when a section is partially present', () => {
-    const config = appConfigSchema.parse({ server: { port: 9000 }, notify: { toasts: false } });
+    const config = appConfigSchema.parse({ server: { port: 9000 }, retention: { snapshotsPerSource: 3 } });
     expect(config.server.port).toBe(9000);
     expect(config.server.host).toBe('127.0.0.1');
-    expect(config.notify.toasts).toBe(false);
-    expect(config.notify.maxToastsPerCycle).toBe(3);
+    expect(config.retention.snapshotsPerSource).toBe(3);
+    expect(config.retention.editsPerItem).toBe(20);
+  });
+
+  it('logs at `info` by default, and takes any pino level, including silence (D-046)', () => {
+    // `info` is one line per poll; `debug` adds the plan. A knob nothing reads is
+    // the D-042 sin, so the words are pino's own and `start.ts` sets them at boot.
+    expect(appConfigSchema.parse({}).server.logLevel).toBe('info');
+    expect(appConfigSchema.parse({ server: { logLevel: 'debug' } }).server.logLevel).toBe('debug');
+    expect(appConfigSchema.parse({ server: { logLevel: 'silent' } }).server.logLevel).toBe('silent');
+    expect(appConfigSchema.safeParse({ server: { logLevel: 'loud' } }).success).toBe(false);
   });
 
   it('keeps TLS off by default, and takes a pair as two paths (D-039)', () => {
@@ -214,17 +232,16 @@ describe('appConfigSchema', () => {
     expect(appConfigSchema.safeParse({ burst: { newRatioThreshold: 0.01 } }).success).toBe(false);
     expect(appConfigSchema.safeParse({ retention: { historyDays: 0 } }).success).toBe(false);
     expect(appConfigSchema.safeParse({ retention: { historyDays: 2_001 } }).success).toBe(false);
-    expect(appConfigSchema.safeParse({ notify: { maxToastsPerCycle: 11 } }).success).toBe(false);
+    expect(appConfigSchema.safeParse({ retention: { editsPerItem: 0 } }).success).toBe(false);
     expect(appConfigSchema.safeParse({ scheduler: { staleAfterMinutes: 30 } }).success).toBe(false);
   });
 
-  it('accepts a notify quiet window and a masthead name within limits', () => {
+  it('accepts a masthead name and tagline within limits', () => {
     const config = appConfigSchema.parse({
       masthead: { name: 'Kai’s Daily', tagline: 'printed at home' },
-      notify: { quietHours: { startHour: 22, endHour: 7 } },
     });
     expect(config.masthead.name).toBe('Kai’s Daily');
-    expect(config.notify.quietHours).toEqual({ startHour: 22, endHour: 7 });
+    expect(config.masthead.tagline).toBe('printed at home');
   });
 
   it('defaultAppConfig is the same as parsing {}', () => {

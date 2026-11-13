@@ -193,9 +193,9 @@ down (D-024):
 
 ## Measured defects, open
 
-1. `AGENTS.md` claims `packages/db` ships "FTS5 search": there is **no**
-   `fts5` in `packages/db/src`. The claim is the plan, not the state
-   (roadmap WP7).
+1. No open defect in this section. The last one — `AGENTS.md` claiming `packages/db`
+   ships "FTS5 search" when `grep -i fts5 packages/db/src` answers nothing — closed
+   2026-11-13 by deleting the claim, with the package it planned (D-045).
 
 Closed by the styling commits, all named by measurement rather than guessed at:
 

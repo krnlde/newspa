@@ -51,6 +51,19 @@
           "default": true,
           "type": "boolean"
         },
+        "logLevel": {
+          "default": "info",
+          "type": "string",
+          "enum": [
+            "fatal",
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace",
+            "silent"
+          ]
+        },
         "tls": {
           "default": null,
           "anyOf": [
@@ -189,52 +202,6 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 2000
-        }
-      }
-    },
-    "notify": {
-      "default": {},
-      "type": "object",
-      "properties": {
-        "toasts": {
-          "default": true,
-          "type": "boolean"
-        },
-        "toastTitle": {
-          "default": "newspa",
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 60
-        },
-        "minScoreForToast": {
-          "default": 6,
-          "type": "number",
-          "minimum": 0
-        },
-        "maxToastsPerCycle": {
-          "default": 3,
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 10
-        },
-        "quietHours": {
-          "type": "object",
-          "properties": {
-            "startHour": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 23
-            },
-            "endHour": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 23
-            }
-          },
-          "required": [
-            "startHour",
-            "endHour"
-          ]
         }
       }
     }

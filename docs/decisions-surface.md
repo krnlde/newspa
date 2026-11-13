@@ -35,7 +35,8 @@ What survives from the reasoning, because it was never about the file:
   data layer and a crash surface to the one process that must survive 3am.
 - **A record must exist**, because stealth-edit detection is meaningless without
   what the page said at the time. It does: `items`, `item_events` with the word
-  diff, and `snapshots` (one row per poll, 304s included). `pnpm search` reaches it.
+  diff, and `snapshots` (one row per poll, 304s included). `pnpm search` is a named
+  refusal: the page is an index, not a search engine (D-045).
 - **`@media print` stays** in the paper CSS (3 columns, masthead preserved, hairlines
   kept): browser Print → Save as PDF on the live page is 80% of the print value for
   free, and it is honest about which state it prints — the one you are looking at.
@@ -257,3 +258,34 @@ argv is parsed, and what is not parsed is refused by name.**
 belongs on a command line (an override of `config.json`'s path, a one-shot
 `--once` that polls once and exits), and each one arrives as a parse, a test, and a
 line in `docs/state-device.md`, not as an ignored token.
+
+## D-045 — The page indexes the edition: no search box, no notifications (retires WP7 and WP10)
+
+The reader's ruling, 2026-11-13: _"We don't need toasts (WP10), we don't need search
+(WP7)."_ Neither was ever built, and the page has not suffered for the absence: what
+arrived is announced by the SSE flash and the health strip's own words, and where the
+reader is is now the spine's answer (D-043).
+
+- **No search box, no `/api/search`, no FTS5 table.** The paper is an index of what the
+  feeds published — rule 7, the page is an index and not a mirror. A query box turns a
+  reader's interest into a request line, and on the LAN, where the address is the whole
+  access control (D-034), a query string from a peer is reading-list material
+  (rule 18): a search route is not a free read route. `pnpm search` keeps its named
+  refusal, and so do `GET /api/items` and `/api/search` in the API index.
+- **No notifications, and no `notify` config block** — D-010 is retired with them. The
+  block's five knobs (`toasts`, `toastTitle`, `minScoreForToast`, `maxToastsPerCycle`,
+  `quietHours`) were parsed, defaulted, bounded, published in
+  `schemas/appconfig.schema.json` — and read by nothing. A setting that does nothing is
+  the D-042 sin inside a file: a reader changes it and believes the paper changed. It is
+  deleted, not documented as unused. The **source** schema keeps its own `quietHours`,
+  which the scheduler reads (`schedulePlan.ts`) — never part of this block.
+- **What a clone with an old `config.json` gets:** the app schema is zod's default,
+  _strip_, so the dead block is ignored rather than refused — measured, no `.strict()`
+  in `packages/config/src`. The published `schemas/appconfig.schema.json`, the file the
+  example's `$schema` points at, is what names the key, and
+  `docs/roadmap-closed-surface.md` records the removal.
+
+**Reverse if:** the reader asks for a query over the corpus in words, and accepts its
+price — a migration, external-content triggers, a route whose terms are reader data, and
+a field that obeys the i18n boundary (D-019). The FTS5 capability of Node's SQLite
+stays a measured fact in `docs/tooling.md`; using it is not decided here.

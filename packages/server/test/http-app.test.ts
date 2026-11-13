@@ -52,7 +52,7 @@ describe('the API the app calls', () => {
       expect(answer.body['api']).toMatchObject({
         state: '/api/state',
         sources: expect.stringContaining('loopback-only'),
-        search: expect.stringContaining('FTS5'),
+        search: expect.stringContaining('D-045'),
       });
     });
   });

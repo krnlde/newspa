@@ -6,7 +6,7 @@ import { z } from 'zod';
  * Split out of `schema.ts` at the 300-line cap (rule 1), and the cut is the one this
  * repo already uses everywhere: a **source** is a page in the reader's reading list,
  * one file per source under `sources/`; the **app config** is the machine — the
- * address, the scheduler, the scoring, the retention, the notifications, TLS. They
+ * address, the scheduler, the scoring, the retention, TLS. They
  * are validated by the same loader discipline, and a source file can never say
  * anything about the server, and the server can never say anything about a source.
  *
@@ -31,6 +31,18 @@ export const appConfigSchema = z.object({
       host: z.string().default('127.0.0.1'),
       port: z.int().min(1).max(65_535).default(8787),
       openBrowser: z.boolean().default(true),
+      /**
+       * The log's loudness, in pino's levels (D-046), and honoured at boot: every
+       * line carries a clock, and `info` prints **one line per poll** — the source,
+       * the HTTP status, the `snapshots.outcome` word, what it counted, the bytes,
+       * the milliseconds. `debug` adds the plan line for every source at every tick.
+       *
+       * It is a knob with a reader because rule 6 asks for the record: a ladder rung
+       * that never fires is invisible, and a poll that prints nothing is a fetch the
+       * reader cannot see. A setting nothing reads is the D-042 sin — `notify` died of
+       * it — so this one is wired in `start.ts` and its words are the database's.
+       */
+      logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
       /**
        * TLS as **paths, never PEM bytes** (D-039). A key inside `config.json` rides
        * into every `pnpm export --bundle` — the file that says who may read the
@@ -87,20 +99,12 @@ export const appConfigSchema = z.object({
       historyDays: z.int().min(1).max(2_000).default(120),
     })
     .prefault({}),
-  notify: z
-    .object({
-      toasts: z.boolean().default(true),
-      toastTitle: z.string().min(1).max(60).default('newspa'),
-      minScoreForToast: z.number().min(0).default(6),
-      maxToastsPerCycle: z.int().min(0).max(10).default(3),
-      quietHours: z
-        .object({
-          startHour: z.int().min(0).max(23),
-          endHour: z.int().min(0).max(23),
-        })
-        .optional(),
-    })
-    .prefault({}),
+  // **No `notify` block.** It was the plan for a Windows toast (D-010): `toasts`,
+  // `toastTitle`, `minScoreForToast`, `maxToastsPerCycle`, `quietHours` — five
+  // settings no code ever read. The reader retired notifications (D-045), and a
+  // setting that does nothing is worse than no setting: an ignored flag reads as a
+  // setting believed changed (D-042). The source schema keeps its own `quietHours`,
+  // which the scheduler does read (`schedulePlan.ts`).
 });
 
 export type AppConfig = z.infer<typeof appConfigSchema>;

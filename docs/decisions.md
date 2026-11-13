@@ -25,8 +25,8 @@ Huginn's power is a configurable graph of agents; its cost is Rails + MySQL +
 Redis + Sidekiq + Compose and a mental model of scenarios. We fix the graph in
 code: `fetch → parse → normalize → diff → score → publish`, six stages, one typed
 record between them. Huginn vocabulary is kept where it is cheap: WebsiteAgent →
-`html` source, RSSAgent → `rss`, DataOutputAgent → the paper, PostingsAgent →
-toasts, EventFormatter → the record schema, Scenario export → `sources/*.json`.
+`html` source, RSSAgent → `rss`, DataOutputAgent → the paper,
+EventFormatter → the record schema, Scenario export → `sources/*.json`.
 **Reverse if:** a source needs a transformation that cannot be expressed by the
 three parsers plus `fields`/`strip`/`itemsPath`. Then add a stage, not a graph.
 
@@ -103,11 +103,18 @@ no network, no key: the same input must print the same front page at 3am and on
 a train. **Reverse if:** 400 items/day makes keyword scoring insufficient — then
 an optional local (Ollama/OpenAI-compatible) scorer, off by default.
 
-## D-010 — Notifications: local Windows toast
+## D-010 — Notifications: local Windows toast _(retired 2026-11-13 by D-045)_
 
 One `node:child_process` call to PowerShell's toast API; no third party, no
 account, no keys. Remote push (ntfy) is the obvious next notifier and is
 deliberately deferred rather than half-built.
+
+**Retired by the reader, with roadmap WP10 and the `notify` config block that carried
+its five knobs** (D-045). The page answers "what arrived" in its own body — the SSE
+flash, the health strip, the spine — and a paper that taps the reader for every publish
+is a second product. Nothing emitted a toast in any release, so the retirement deletes
+a schema, a config example, a published-schema file and a comment; no behaviour is
+removed.
 
 ## D-011 — Sources in files, state in SQLite, one-way
 
@@ -185,3 +192,45 @@ for diagnosis), the document-tag list, and the DB state it requires - is
 
 **Reverse if:** the counters show a rung earns nothing on the sources you watch,
 then delete that rung. The order is the contract, the rungs are not.
+
+## D-046 — The log is pino: a clock, levels from config, one line per poll
+
+The reader's question was "is there debug output showing when it fetches what?", and the
+honest answer was no: the scheduler printed one line per source naming the rule that
+**planned** the next run, a successful fetch printed nothing, and `cli.ts`'s `log` was
+`console.log(line)` with no clock. Rule 6 already demands the record — "every poll's
+`outcome` … is recorded, because an optimization that never fires is invisible" — and the
+record lived only in the `snapshots` rows, which no command reads (`pnpm status` is a cut
+command, WP5).
+
+**The library.** `pino` (10.4.0; 11 pure-JS deps, **0 install scripts**, 0 native; the
+whole store re-measured at 836 packages with 0 install scripts). Chosen for the three
+things a prefix cannot buy: levels the reader dials, a JSON line for a pipe and for the
+board (WP15), and a clock that both `jq` and a human read. Refused: `winston` (~10
+packages of transports for one stdout), `debug` (namespaced toggling, no levels, no
+structured line), and **`pino-pretty`** (10 deps of its own, worker threads) — the TTY
+line is ten lines of ours, the same reasoning that hand-writes `sw.js` and refuses
+Workbox.
+
+**The shape.** `14:33:08 info strata-releases 200 changed · 10 items, +2 new · 60.3 KB ·
+412 ms`, and `14:33:08 info bbc-world 304 not-modified · 38 ms` for a rung that counted
+nothing (D-006: `itemCount: null` is an absence, so it prints no item clause, while
+`0 items` is a claim and prints one). The words are `snapshots.outcome`'s, so the terminal
+and the row cannot tell two stories. The plan line moves to `debug`, so the level a reader
+sees is **fetches**, not schedules, and `server.logLevel` dials it (`silent` included) — a
+setting in `config.json`, honoured at boot, which is D-042's rule.
+
+**Measured on pino 10.4.0, and it changed the code.**
+
+- `options.stream` is **accepted and ignored**: the record goes to stdout anyway, so a
+  formatter attached to it never runs. `pino(options, destination)` honours the stream,
+  synchronously. The first cut used the option, and the tests went red on an empty bag —
+  rule 5's silent zero in a library's clothes, caught by a test and not by reading docs.
+- `base: undefined` is the documented way to drop `pid`/`hostname`, and
+  `exactOptionalPropertyTypes` rejects it; `base: {}` drops them (measured).
+- `formatters.level` is what makes the JSON line say `info` and not `30`: a board's log
+  file should not require knowing pino's table.
+
+**Reverse if:** the terminal needs more shape than one line per poll. The seam is
+`logger.ts`: the scheduler, the routes and the boot only ever hold `(line: string) => void`
+and its `debug` twin, so the engine behind them is replaceable by a print.

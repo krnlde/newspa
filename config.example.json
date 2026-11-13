@@ -9,7 +9,8 @@
   "server": {
     "host": "127.0.0.1",
     "port": 8787,
-    "openBrowser": true
+    "openBrowser": true,
+    "logLevel": "info"
   },
   "scoring": {
     "watchwords": ["iran", "rail strike"],
@@ -22,11 +23,5 @@
     "backoffMaxMs": 3600000,
     "maxFailuresBeforePause": 6,
     "staleAfterMinutes": 2880
-  },
-  "notify": {
-    "toasts": true,
-    "minScoreForToast": 6,
-    "maxToastsPerCycle": 3,
-    "quietHours": { "startHour": 23, "endHour": 7 }
   }
 }

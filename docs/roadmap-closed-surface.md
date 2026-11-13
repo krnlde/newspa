@@ -232,3 +232,40 @@ cluster's y is the section head's y, squares side by side 7px apart, the cluster
 columns' left edge is identical, the title's click area is its text). The `boxes.test`
 claim now asserts the **absence** of a field on rails, "edited" and health, and that
 each keeps its ring and its `--spacing-box` padding.
+
+## WP7 and WP10 — retired: no search box, no notifications (2026-11-13)
+
+**The ruling.** _"We don't need toasts (WP10), we don't need search (WP7)"_ (D-045).
+Neither was ever built, so no behaviour is removed. What is removed is **what the repo
+claimed about itself**, which is the part that rots silently.
+
+- **The FTS5 claim was false, in six places.** `AGENTS.md`'s layout, `architecture.md`
+  (three lines), `packages/db/vitest.config.ts`, the `pnpm search` refusal and the API
+  index's `/api/search` line all said FTS5 exists in `packages/db`;
+  `grep -i fts5 packages/db/src` answers nothing. `docs/state.md` carried that as an
+  open named mismatch, and this entry closes it. Node's SQLite **does** have FTS5
+  (`docs/tooling.md`, measured from `pragma_compile_options`) — the package never used
+  it, and nothing is lost by the deletion except a claim.
+- **`notify` was a schema for a feature that never emitted anything.** Five knobs —
+  `toasts`, `toastTitle`, `minScoreForToast`, `maxToastsPerCycle`, `quietHours` — parsed,
+  bounded, published in `schemas/appconfig.schema.json` and `schemas/bundle.schema.json`,
+  and read by no code; `config.example.json` shipped them, so **every clone copied a
+  setting that does nothing** (D-042's sin, in a file). Deleted with its assertions: the
+  two cases that tested it now test sections that exist — `retention` for the nested
+  default, `masthead` for the limits. The **source** schema keeps its own `quietHours`,
+  which the scheduler reads (`schedulePlan.ts`); it was never part of this block.
+- **A refusal that points at a table that does not exist is a dead end.** `pnpm search`
+  and the 404's `/api/search` line now name the decision (D-045) and the retired package,
+  not FTS5. The guard that made the old string legal is the repo's own:
+  `commands.test.ts` matches every refusal against "points somewhere" — and `FTS5` was
+  in that regex's alternation, so the false claim was **pinned by a test**. It is out of
+  the alternation now.
+- **The app schema strips, it does not refuse** (measured: no `.strict()` in
+  `packages/config/src`). A clone whose `config.json` still carries `notify` gets the
+  block ignored, not refused; the published schema, which the example's `$schema` names,
+  is what tells them.
+
+**Accept.** config 119, server 349, `schemas:gen` → `schemas:check` agree on the pair
+with the block gone, typecheck clean. `examples.test.ts` now asserts that the shipped
+example omits a whole section (`retention`) and the parse still fills it — the
+`.prefault` rule, proven by a section that exists.

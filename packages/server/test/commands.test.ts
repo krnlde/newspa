@@ -73,7 +73,7 @@ describe('the cut commands', () => {
 
   it('every refusal names where the answer lives, not just that it is missing', () => {
     for (const [name, line] of Object.entries(CUT)) {
-      expect(line, name).toMatch(/roadmap WP\d+|rule \d+|D-\d{3}|\/api\/state|sources\/|FTS5|bundle/);
+      expect(line, name).toMatch(/roadmap WP\d+|rule \d+|D-\d{3}|\/api\/state|sources\/|bundle/);
     }
   });
 

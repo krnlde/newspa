@@ -12,7 +12,7 @@ newspa (one node process)
 │                  cron (at zero failures) → cadence, render floor + quiet hours on top.
 │                  Boot is the catch-up: a `null next_run_at` leads every batch
 ├── pipeline       fetch → parse → normalize → diff → score → publish
-├── db             node:sqlite, WAL, FTS5  (synchronous: bounded queries only)
+├── db             node:sqlite, WAL  (synchronous: bounded queries only)
 ├── http           node:http; host and port from config.json (default 127.0.0.1:8787;
 │                  `0.0.0.0` opens it to the LAN, and the boot says what that means, D-034)
 │                  built:  GET /api/state · GET /api/events (SSE) · /api/sources (GET the
@@ -27,7 +27,7 @@ newspa (one node process)
 │                  LAN peer gets the 403 sentence, which the page prints
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
-child processes: Edge (scrape/pick), PowerShell (toast). Nothing else.
+child processes: Edge (scrape/pick). Nothing else.
 ```
 
 `pnpm dev` is two processes (Vite dev server + `node --watch`), dev only.
@@ -116,7 +116,7 @@ sources is not, which is why the JS tier is deliberately capped in the config.
    its count. A `Retry-After` on a 429 replaces the exponential backoff for that
    poll, capped by `backoffMaxMs`.
 10. Publish: SSE `item:new` / `item:edited` / `source:health` / `cycle:complete`;
-    toast for high-score new items. **Nothing is written to disk as a report**: the
+    the page re-renders from the DB. **Nothing is written to disk as a report**: the
     page in the browser is the paper, re-rendered from the DB as events arrive
     (D-002 reversed).
 
@@ -143,10 +143,10 @@ that ever stops being true.
 | `newspa-core`   | record schema, wire contract, normalize, diff, score, health, the day clock | import `node:*` (the web app imports it) |
 | `newspa-config` | zod schemas for sources + app config, file loading, watchlist, OPML         | touch the DB                             |
 | `newspa-paper`  | the newspaper components and the paper CSS                                  | import `node:*`, do layout math in JS    |
-| `newspa-db`     | schema, migrations, repositories, FTS5                                      | know about HTTP                          |
+| `newspa-db`     | schema, migrations, repositories, retention                                 | know about HTTP                          |
 | `newspa-fetch`  | transport (fetch/Edge), sniffing, 3 parsers, picker                         | read config files (it receives specs)    |
-| `newspa-server` | CLI, scheduler, pipeline, routes, SSE, toasts                               | implement parsing                        |
-| `apps/web`      | the paper, sources UI, health strip, search, i18n, picker preview           | import node builtins                     |
+| `newspa-server` | CLI, scheduler, pipeline, routes, SSE                                       | implement parsing                        |
+| `apps/web`      | the paper, sources UI, health strip, i18n, picker preview                   | import node builtins                     |
 
 ## CLI (the API is the CLI)
 
@@ -156,5 +156,5 @@ pnpm pick -- <url>      headed Edge, click-to-pick, prints + writes a source fil
 pnpm login -- <url>     headed Edge with a persistent profile, log in by hand once
 pnpm edition [id]       print today's/past edition to stdout, or open the static file
 pnpm status             per-source health table
-pnpm search -- <q>      FTS5 search over the corpus
+pnpm search -- <q>      refuses by name: no search box, and none planned (D-045)
 ```

@@ -17,7 +17,7 @@ export const CUT: Readonly<Record<string, string>> = {
   status:
     'not built: the paper prints its own health strip. GET /api/state, or open the page — the strip is rule 5 in print.',
   search:
-    'not built: the paper has no search box yet. FTS5 exists in `packages/db`; the route and the box are roadmap WP7.',
+    'not built: the paper has no search box, and none is planned (D-045) — the page is an index, not a search engine. The route and the box were roadmap WP7, retired 2026-11-13.',
   login:
     'not built: nothing in this repo authenticates anything to anyone (rule 17), and the Edge profile is roadmap WP8. Sources that need it are refused by name, not fetched anonymously.',
   import:

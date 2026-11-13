@@ -220,6 +220,6 @@ export type SourceKindOf<K extends SourceSpec['kind']> = Extract<SourceSpec, { k
 
 /**
  * The app config — `config.json`, the machine's knobs (masthead, server, scheduler,
- * scoring, burst, retention, notify) — is in `appSchema.ts`. The cut is the repo's
+ * scoring, burst, retention) - is in `appSchema.ts`. The cut is the repo's
  * own: a source file is a page in the reading list; the app config is the machine.
  */

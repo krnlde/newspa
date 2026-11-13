@@ -216,7 +216,7 @@ apps/web          Vite + React SPA (the paper). Only build step here. `public/` 
 packages/core     Types, record schema, API contract, normalize, diff, score, health, teaser. No I/O.
 packages/paper    React newspaper components + the paper CSS (browser-safe, used by the app)
 packages/config   zod source/app schemas + file loading + watchlist/OPML (sources/*.json is truth)
-packages/db       node:sqlite, schema, migrations, repositories, FTS5 search
+packages/db       node:sqlite, schema, migrations, repositories, retention
 packages/fetch    http, rss, html, json, fixtures. `pick` is built (WP6, D-036):
                   launch (msedge) + the injected inspector + the derivation, proved
                   against the raw bytes. The polling `render` tier (WP6b) is not:
@@ -224,14 +224,15 @@ packages/fetch    http, rss, html, json, fixtures. `pick` is built (WP6, D-036):
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
                   routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE and
                   `/api/pick` POST/GET — all loopback-only, rules 18 and 20), the built
-                  page, the SSE hub, the address policy (D-034), the TLS pair
+                  page, the SSE hub, the pino log (`logger.ts`, D-046: a clock on every
+                  line, `server.logLevel`, one line per poll), the address policy (D-034), the TLS pair
                   (`tls.ts`: paths, parsed at boot, no silent HTTP fallback, D-039),
                   the db open (`bootDb.ts`, D-041), the pick job
                   (`pickApi`/`pickHttp`/`pickCli`/`pickTransport`), `export --bundle`
                   (rule 18's backup). `sourcesApi.ts` is the **only** writer of
                   `sources/*.json` (pinned in `boundary.test.ts`) — a pick fills, never
-                  writes. Cut commands answer by name (`commands.ts`); toasts (WP10)
-                  and `import` are not built.
+                  writes. Cut commands answer by name (`commands.ts`); notifications
+                  are retired (D-045), and `import` is not built.
 sources.example/  Example source definitions (public). `sources/` is your reading
                   list: local, gitignored, not version-controlled; the backup is
                   `pnpm export --bundle` (built — take a copy off this machine, since

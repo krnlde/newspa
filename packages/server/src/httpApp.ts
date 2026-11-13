@@ -50,7 +50,7 @@ const API_INDEX = {
   sources: '/api/sources (GET) · POST writes sources/<id>.json · DELETE ?id=… — writes are loopback-only (D-034)',
   pick: '/api/pick (POST {"id": "…"} opens a pick window · GET ?id=… reports the job) — loopback-only (rule 20)',
   items: 'not built: the app has no items page in the MVP',
-  search: 'not built: FTS5 exists in `packages/db`; the route and the box are WP7',
+  search: 'not built: the page is an index, not a search engine (D-045); WP7, retired 2026-11-13',
 } as const;
 
 /** The sources route: the list, a write of raw file text, a removal by id. */

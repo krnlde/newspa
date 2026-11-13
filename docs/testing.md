@@ -28,9 +28,9 @@ environment; coverage is the separate per-package root config described above.
 | -------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | `core`   | node      | pure logic: normalize, diff, score, health, sections. Densest coverage: this is the code that decides what is news. |
 | `config` | node      | zod schemas + file loading; every invalid source file must produce an issue, not a crash.                           |
-| `db`     | node      | `node:sqlite` in `:memory:`; schema, migrations, the single-instance claim, repositories. No file DB, no FTS5 yet.  |
+| `db`     | node      | `node:sqlite` in `:memory:`; schema, migrations, the single-instance claim, repositories. No FTS5: retired (D-045). |
 | `fetch`  | node      | parsers against fixtures (never the live web), fetch policy against a local `node:http` stub.                       |
-| `server` | node      | scheduler, pipeline, routes over an ephemeral port, SSE stream, toast command building.                             |
+| `server` | node      | scheduler, pipeline, routes over an ephemeral port, SSE stream.                                                     |
 | `web`    | happy-dom | components + hooks + `lib/` helpers; React plugin enabled.                                                          |
 
 Measured for the next slice (`db`): **FTS5 is compiled into Node 26's SQLite** —

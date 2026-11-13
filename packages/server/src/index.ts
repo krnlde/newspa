@@ -2,7 +2,7 @@
  * `newspa-server`: the process that fetches, scores and serves the paper.
  *
  * This slice is the read side — database rows to the `StateResponse` the paper
- * already consumes. The pipeline, scheduler, routes, SSE and toasts land here as
+ * already consumes. The pipeline, scheduler, routes and SSE land here as
  * they are built, and each one enters through this barrel: `package.json`'s
  * `exports` names `./src/index.ts`, so a module that is not re-exported here is
  * not part of the package.

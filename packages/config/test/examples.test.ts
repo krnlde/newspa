@@ -35,7 +35,11 @@ describe('config.example.json', () => {
     expect(config.masthead.tagline).toBe(defaultAppConfig().masthead.tagline);
     expect(config.server.port).toBe(8787);
     expect(config.scheduler.maxFailuresBeforePause).toBe(6);
-    expect(config.notify.quietHours).toEqual({ startHour: 23, endHour: 7 });
+    expect(config.scheduler.staleAfterMinutes).toBe(2880);
+    expect(config.server.logLevel).toBe('info');
+    // The example prints no `retention` block, and the parse still fills it: an
+    // omitted section is the loader's default, not an empty object (`.prefault`).
+    expect(config.retention.historyDays).toBe(defaultAppConfig().retention.historyDays);
   });
 
   it("binds loopback, because the LAN is the reader's line to write (D-034)", async () => {

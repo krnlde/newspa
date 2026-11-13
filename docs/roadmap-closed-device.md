@@ -153,5 +153,5 @@ is untrusted — the paper reads, the install does not come).
 warnings, schemas match zod, `check:secrets` clean with the PNGs tracked (binaries
 exempt).
 
-**Cut, as D-039 ruled, and unbuilt.** No push (WP10's own toast line is the paper's), no
+**Cut, as D-039 ruled, and unbuilt.** No push (notifications are retired, D-045), no
 background sync, no offline mutation, no app shell that hides the offline sentence.

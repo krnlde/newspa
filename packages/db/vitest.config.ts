@@ -1,6 +1,6 @@
 import { defineProject } from 'vitest/config';
 
-/** `node:sqlite` in `:memory:`: schema, migrations, FTS5 search, retention. */
+/** `node:sqlite` in `:memory:`: schema, migrations, repositories, retention. */
 export default defineProject({
   test: {
     name: 'db',

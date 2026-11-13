@@ -25,14 +25,14 @@ the worker keeps the last edition, and the dateline strip says when the page is 
 from a cache. The page has a way to navigate a long edition now: **WP18 (the spine)** is
 built, the rail of squares over the scrollbar, and it brought **D-044** with it — no
 mark behind words. So the next package is **WP15 (the board)**, the recipe that ties them to
-D-037's topology. After it:
-search (WP7), toasts (WP10), the watchlist knobs (WP9), export/import (WP11), the
-README (WP13). Closed packages are in `docs/roadmap-closed.md` (the pipeline) and
-`docs/roadmap-closed-surface.md` (the picker, the styling, the panel, TLS, the install,
-the spine)
-with what each
-measured - WP1, WP2, WP3, WP6, WP12, WP14, WP16, WP17, WP18; read WP12 before reopening those files.
-(WP4 and WP5 are built and recorded below, where their open halves are named.)
+D-037's topology. After it: the watchlist knobs (WP9), export/import (WP11), the
+README (WP13). **Search (WP7) and notifications (WP10) are retired** (D-045), and with
+them the `notify` config block that planned for toasts. Closed packages are in
+`docs/roadmap-closed.md` (the pipeline) and `docs/roadmap-closed-surface.md` (the picker,
+the styling, the panel, TLS, the install, the spine, and what is retired) with what each
+measured - WP1, WP2, WP3, WP6, WP12, WP14, WP16, WP17, WP18; read WP12 before reopening
+those files. (WP4 and WP5 are built and recorded below, where their open halves are
+named.)
 
 ## WP4 - The HTTP surface  _(built for the MVP 2026-11-11; the rest named)_
 
@@ -46,10 +46,9 @@ that the API is up (rule 5: a blank page and a 404 in a log is the silent zero i
 server's clothes). `net.ts` is the address policy (D-034): the LAN reads, writes are
 loopback-only, refused on the address **before** routing.
 
-**Named as not built, in the body of the 404:** `/api/items`, `/api/editions`,
-`/api/search` (FTS5 exists in `packages/db`; the box is WP7) and
-`POST /api/sources` (the file writer, D-025). Every 4xx is a line with the reason;
-no answer is a stack.
+**Named as not built, in the body of the 404:** `/api/items` (the app has no items page)
+and `/api/search` (retired: the page is an index, not a search engine, D-045). Every 4xx
+is a line with the reason; no answer is a stack.
 
 **Accept - met.** Contract tests parse what the routes answer with **core's own
 schemas** (`stateResponseSchema` on `/api/state`, `serverEventSchema` on the frames),
@@ -86,23 +85,6 @@ the plan is in the row, and the tally's count equals the wire's.
 (complete-or-refuse, byte-stable, gitignored itself) are WP11's, below. `import` is
 still open, and refuses by name, pointing at the schema to restore by hand.
 
-## WP7 — Search
-
-**Gap.** `AGENTS.md` claims FTS5 in `packages/db`; `grep -i fts5 packages/db/src`
-is empty. `ItemsQuery` exists in the contract and has no server.
-
-**Build.** A migration adding an FTS5 content table over the item
-title/teaser/source, kept in sync by triggers, a `search` method on
-`itemsRepository` with BM25 ordering, `GET /api/items` (WP4), and the search
-field in the app — chrome strings through i18n, results rendered as story rows
-(the styling migration is finished, so a new row type is utilities on the
-element, per rule 11).
-
-**Accept.** A fixture db of ~200 items returns the expected order for a
-two-word query, respects the section filter and the limit, and a prefix query
-matches. The migration is tested forward **and** the FTS table is verified to
-survive a reopen.
-
 ## WP8 — `login`: the browser profile is the credential
 
 **Gap.** `pnpm login -- <url>` names a command that does not exist (rule 17
@@ -133,18 +115,6 @@ it back.
 slots in `editionOf`; the export → import round trip is byte-stable for the
 same input; an imported file that violates the schema fails with the zod issue
 and writes nothing (D-014).
-
-## WP10 — Notifications
-
-**Gap.** D-010 promises a local Windows toast on a publish; nothing emits one.
-
-**Build.** `packages/server/src/toasts.ts`: on a publish, raise a Windows toast
-(a PowerShell call, no new dependency), suppressed when the paper is being read
-(the SSE stream has a client) and by a flag.
-
-**Accept.** A publish with no connected client calls the notifier once with the
-edition summary; with a connected client it does not; a notifier failure is a
-log line, never a failed poll.
 
 ## WP11 - Export and import formats  _(half built 2026-11-11: `export --bundle`)_
 

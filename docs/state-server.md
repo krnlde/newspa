@@ -54,8 +54,9 @@ fifth published schema), and the command is **complete or refuses** — any sour
 that failed to parse is a `BundleRefusedError` with every issue line and **no file
 written**, because rule 18 makes this the reading list's only copy and a backup that
 silently dropped a source is a backup that lies. What is still absent: the items and
-search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, toasts
-(WP10) and the polling render tier (WP6b).
+search routes, `POST /api/sources`, `import` and the watchlist/OPML exports, and the
+polling render tier (WP6b). The items and search routes are not coming: the page is an
+index, not a search engine (D-045).
 
 **The pick is built** (WP6, D-036), and it is the one route that **launches a program**.
 `POST /api/pick` with `{"id": "…"}` opens a headed Edge window **on the machine that
@@ -152,6 +153,36 @@ failed request or page error. Its selectors are `data-part` hooks, never classes
 (rule 11): a layout claim that queries a styling class is a claim about the
 styling. The in-app browser is ~620 px wide and
 always shows the phone stack, so `pnpm shots` is the only desktop truth.
+
+## What the server prints (D-046)
+
+pino is the engine (`packages/server/src/logger.ts`); the **words are the repo's**. A
+terminal gets a clock, the level and the line; a pipe gets one JSON object per line
+(`{level:"info",time:"…",msg:"…"}`, no `pid`, no `hostname`):
+
+```
+14:33:07 info strata-releases 200 changed · 10 items, +2 new · 60.3 KB · 412 ms
+14:33:08 info bbc-world 304 not-modified · 38 ms
+14:33:08 debug bbc-world: cadence → 2026-11-13T15:33:08.656Z (+60 min)
+```
+
+One line per poll, at `info`, in `snapshots.outcome`'s vocabulary — the same word the
+database row stores, so the terminal and the row cannot tell two stories. A `304` prints
+with **no item clause**, because it counted nothing (D-006); a parse that found nothing
+prints `0 items`, because that is a claim (rule 5). A poll that is not `ok` names its state
+and its note, which is the pair the health strip shows. The plan line is `debug`, so the
+level a reader sees answers "what did it fetch, when, with what result, how slow" and not
+"when does it plan to next".
+
+`config.json`'s `server.logLevel` dials it: `info` is the default, `debug` adds the
+schedule, `silent` is silence, and `start.ts` sets it **before** the config's own line, so
+the file that asks for quiet gets it from its first line. A detached server is watched with
+`Get-Content $env:TEMP\newspa-boot.log -Wait`; `pnpm start > paper.log` writes JSON lines.
+
+Two pino behaviours are written into `logger.ts` because both were measured the hard way:
+`options.stream` is accepted and **ignored** (the record goes to stdout; the destination is
+the second argument), and `base: {}`, not `base: undefined`, is what drops `pid`/`hostname`
+under `exactOptionalPropertyTypes`.
 
 **The verbs, run and measured (2026-11-11).** `pnpm ui` starts Vite with
 `--mode server` (the argv arrives as `vite --port 5173 --strictPort --mode server`, and

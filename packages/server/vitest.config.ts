@@ -1,8 +1,8 @@
 import { defineProject } from 'vitest/config';
 
 /**
- * Scheduler, pipeline, routes on an ephemeral port, SSE, toast command
- * building. No network, no Edge: both are behind interfaces the tests fake,
+ * Scheduler, pipeline, routes on an ephemeral port, SSE.
+ * No network, no Edge: both are behind interfaces the tests fake,
  * which is the point of splitting them out.
  */
 export default defineProject({
