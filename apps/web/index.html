@@ -16,6 +16,19 @@
       type="image/svg+xml"
       href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%23f4ecd8'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='20'%20text-anchor='middle'%20fill='%231f1b16'%3E%E2%9D%A6%3C/text%3E%3C/svg%3E"
     />
+    <!-- The install manifest (WP16, D-039): hand-written, in `public/`, so Vite
+         copies it to the bundle's root and the server serves it as
+         `application/manifest+json`. `display: standalone` is the point — the
+         product is a device that shows the paper, not a tab. `name` is the
+         product's, not `masthead.name`: the manifest is a static file and the
+         masthead is config, and a reader who renames the paper renames this line
+         too (`test/unit/manifest.test.ts` pins the colours, the icons and the
+         scope; it cannot pin a config value into a static file). The iOS link is
+         the same PNG: iOS ignores the manifest's icons, and the install control
+         on that browser names the Share recipe instead of offering a prompt. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/newspa-192.png" />
+    <meta name="theme-color" content="#f4ecd8" />
     <script>
       // Both display axes are applied **before first paint** (D-002, D-038): a
       // dark-theme device, or an e-ink wall, must not flash the yellowed stock.
