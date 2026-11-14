@@ -20,14 +20,15 @@ translate to:
 
 Companion hardening that costs nothing here:
 
-| Setting                                             | Why                                                                                                                                                                                  |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `minimumReleaseAgeStrict: true`                     | Explicit config makes strict the default; stated so the intent survives copy-paste. A range with nothing old enough fails resolution loudly instead of installing a day-old release. |
-| `blockExoticSubdeps: true`                          | Transitive dependencies may not come from git URLs or direct tarballs.                                                                                                               |
-| `verifyDepsBeforeRun: install`                      | `pnpm start` self-heals a stale `node_modules` after a `git pull` — this is what makes "start it yourself" survivable.                                                               |
-| `enablePrePostScripts: false`                       | `pnpm build` is one command, no `prebuild`/`postbuild` surprises.                                                                                                                    |
-| `sharedWorkspaceLockfile: true`                     | One lockfile, one resolution across `core/db/fetch/server/web`.                                                                                                                      |
-| `linkWorkspacePackages` + `preferWorkspacePackages` | Workspace packages always resolve to local source, never to a registry copy.                                                                                                         |
+| Setting                                             | Why                                                                                                                                                                                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `minimumReleaseAgeStrict: true`                     | Explicit config makes strict the default; stated so the intent survives copy-paste. A range with nothing old enough fails resolution loudly instead of installing a day-old release.                                        |
+| `blockExoticSubdeps: true`                          | Transitive dependencies may not come from git URLs or direct tarballs.                                                                                                                                                      |
+| `skills.dirs: []`                                   | A dependency's agent skills are **never** linked in: an installed `skills/<name>/SKILL.md` is instructions the repo's agent reads, and `pnpm permissions list` is empty here, so the feature is off, not merely unapproved. |
+| `verifyDepsBeforeRun: install`                      | `pnpm start` self-heals a stale `node_modules` after a `git pull` — this is what makes "start it yourself" survivable.                                                                                                      |
+| `enablePrePostScripts: false`                       | `pnpm build` is one command, no `prebuild`/`postbuild` surprises.                                                                                                                                                           |
+| `sharedWorkspaceLockfile: true`                     | One lockfile, one resolution across `core/db/fetch/server/web`.                                                                                                                                                             |
+| `linkWorkspacePackages` + `preferWorkspacePackages` | Workspace packages always resolve to local source, never to a registry copy.                                                                                                                                                |
 
 ## Why `ignore-scripts` is free for this project
 

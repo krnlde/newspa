@@ -10,6 +10,14 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# One store, outside AppData. The sandboxed agent apps on this machine redirect
+# `%LOCALAPPDATA%`, so a store written there is a junction a plain shell cannot
+# follow: `node_modules` links then point at a path other programs do not see, and
+# an install run by the agent looks corrupt to the human. Measured the hard way on
+# v12.18: a **nested** default (`${USERPROFILE-${HOME}}`) is not expanded — pnpm
+# makes a directory named `${USERPROFILE-}` relative to the cwd. One variable only.
+storeDir: ${USERPROFILE}/.pnpm-store
+
 # -----------------------------------------------------------------------------
 # Supply-chain rules (translated from the user's npm .npmrc)
 # -----------------------------------------------------------------------------
@@ -46,6 +54,17 @@ allowBuilds: {}
 
 # Refuse transitive deps resolved from git/tarball URLs.
 blockExoticSubdeps: true
+
+# Agent skills (pnpm 12.11+): a dependency may ship `skills/<name>/SKILL.md`, and
+# pnpm links approved ones into the repo's agent skill directories — instructions
+# this repo's agent then loads in every session, arriving in a tarball. Nothing here
+# needs one: `pnpm permissions list` answers "No packages have been approved,
+# denied, or are awaiting approval" — pnpm's own scan of the direct dependencies,
+# which is the authority on what ships a skill. The empty list turns the feature off,
+# so a future dependency cannot put words in the agent's mouth by being installed;
+# pnpm also prunes any link it had made.
+skills:
+  dirs: []
 
 # `pnpm start` self-heals a stale node_modules instead of crashing on import.
 # This is what makes "start it yourself" survivable after a `git pull`.
