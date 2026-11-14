@@ -215,7 +215,7 @@ deliberately **not** reimplemented: the pipeline is hard-coded
 ```
 apps/web          Vite + React SPA (the paper). Only build step here. `public/` is the
                   install identity (WP16, D-039): the manifest, the icons, `sw.js`.
-packages/core     Types, record schema, API contract, normalize, diff, score, health, teaser. No I/O.
+packages/core     Types, record schema, API contract, normalize, edition (the D-048 freshness law), diff, score, health, teaser. No I/O.
 packages/paper    React newspaper components + the paper CSS (browser-safe, used by the app)
 packages/config   zod source/app schemas + file loading + watchlist/OPML (sources/*.json is truth)
 packages/db       node:sqlite, schema, migrations, repositories, retention
@@ -258,8 +258,8 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
                   reading list, the one overlay, the picker) + decisions-surface-nav.md (the spine, and no mark behind
                    copy) + decisions-display.md + decisions-display-dates.md (D-047, the dates)
                   (the device: the server's place, the two display axes, install and
-                  TLS), decisions-tooling.md + decisions-styling.md (the CSS law,
-                  split at the cap),
+                  TLS), decisions-tooling.md + decisions-styling.md (the CSS law, split
+                  at the cap), decisions-surface-news.md (D-048, the title page's news),
                   decisions-detection.md (selectors, the ladder, `gone`, measured
                   cost), fetching.md, design.md + design-page.md (the design law,
                   split at the 300-line cap), testing.md, tooling.md

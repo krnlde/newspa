@@ -76,6 +76,9 @@ const aSection = (id: string, title: string, items: readonly ItemView[]): Editio
   // `EditionSection.items` is mutable on the wire (zod infers arrays as mutable),
   // so the fixture copies rather than shares the caller's array.
   items: [...items],
+  // The fixture's rail prints what the section printed; the gate is core's law,
+  // and `normalize.test.ts` probes it there (D-048).
+  rail: [...items],
 });
 
 const aSource = (id: string, state: HealthState, over: Partial<SourceHealthView> = {}): SourceHealthView => ({

@@ -76,6 +76,12 @@ export const editionSectionSchema = z.object({
   title: z.string(),
   blurb: z.string().nullable(),
   items: z.array(itemViewSchema),
+  /**
+   * The section's fresh items — the material the title page's rail prints from
+   * (D-048). The gate lives in core, not in the paper: the page has no clock, and
+   * a rail that filtered by age itself would be a second copy of the law.
+   */
+  rail: z.array(itemViewSchema),
 });
 
 export const editionStatsSchema = z.object({

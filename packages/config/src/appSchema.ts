@@ -83,6 +83,15 @@ export const appConfigSchema = z.object({
       recencyHalfLifeHours: z.number().min(1).max(336).default(24),
     })
     .prefault({}),
+  /** The title-page freshness law (D-048): decay is `scoring.recencyHalfLifeHours`. */
+  paper: z
+    .object({
+      /** The lead and rails print only items at most this many hours old. */
+      titlePageMaxAgeHours: z.number().min(1).max(168).default(36),
+      /** A section prints at most this many items: an index of the day, not an archive. */
+      sectionMaxItems: z.int().min(4).max(50).default(12),
+    })
+    .prefault({}),
   burst: z
     .object({
       /** Above this fraction of new items, publish "source restructured" instead of a paper. */

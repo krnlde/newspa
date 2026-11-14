@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ItemView } from '../src/api.ts';
-import { buildEdition, emptyStats } from '../src/normalize.ts';
+import { buildEdition, emptyStats } from '../src/edition.ts';
 import { SECTION_IDS, sectionFor, sectionIdFor, sectionOf, sectionTitleFor } from '../src/sections.ts';
 import { aView } from './views.ts';
 

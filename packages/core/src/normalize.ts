@@ -1,5 +1,8 @@
-import type { Edition, EditionSection, EditionStats, ItemView } from './api.ts';
-import { sectionFor, sectionOf, sectionTitleFor } from './sections.ts';
+/**
+ * Identity and text normalization: what an item **is** (its key, its canonical
+ * link) and the whitespace form it is compared in. The paper's assembly — the
+ * section, the order, the age — is `edition.ts`.
+ */
 
 /** Deterministic FNV-1a, 32-bit, hex-encoded. Browser-safe, no node:crypto. */
 export const hashKey = (text: string): string => {
@@ -211,73 +214,4 @@ export const resolveLink = (href: string, documentUrl: string): string => {
   } catch {
     return href;
   }
-};
-
-export const emptyStats = (): EditionStats => ({
-  items: 0,
-  newItems: 0,
-  editedItems: 0,
-  sourcesFetched: 0,
-  sourcesUnhealthy: 0,
-  cycles: 0,
-});
-
-/**
- * The section a story prints in. **The source's own words win**; the keyword
- * ladder is the fallback, because the author of a source knows what it is, and
- * the ladder is what makes the 40 sources nobody labelled readable.
- */
-const headingOf = (
-  item: ItemView,
-  declared: ReadonlyMap<string, string>,
-): { readonly id: string; readonly title: string } => {
-  const label = declared.get(item.sourceId);
-  if (label !== undefined) return sectionOf(label);
-  const id = sectionFor(`${item.title} ${item.teaser} ${item.sourceLabel}`);
-  return { id, title: sectionTitleFor(id) };
-};
-
-export const buildEdition = (
-  id: string,
-  generatedAt: string,
-  dateline: string,
-  items: readonly ItemView[],
-  stats: EditionStats,
-  declared: ReadonlyMap<string, string> = new Map(),
-): Edition => {
-  const sorted = [...items].sort((a, b) => b.score - a.score || compareIso(b.publishedAt, a.publishedAt));
-  const lead = sorted[0] ?? null;
-  const buckets = new Map<string, { readonly id: string; readonly title: string; readonly items: ItemView[] }>();
-  for (const item of sorted) {
-    const heading = headingOf(item, declared);
-    const bucket = buckets.get(heading.id);
-    if (bucket === undefined) buckets.set(heading.id, { ...heading, items: [item] });
-    else bucket.items.push(item);
-  }
-  const sections: EditionSection[] = [...buckets.values()]
-    .map((bucket) => ({
-      id: bucket.id,
-      title: bucket.title,
-      blurb: bucket.items[0]?.teaser ?? null,
-      items: bucket.items,
-    }))
-    .sort((a, b) => b.items.reduce((sum, i) => sum + i.score, 0) - a.items.reduce((sum, i) => sum + i.score, 0));
-
-  return {
-    id,
-    generatedAt,
-    dateline,
-    lead,
-    sections,
-    edited: sorted.filter((i) => i.editCount > 0),
-    stats,
-  };
-};
-
-/** ISO strings sort lexically, which keeps this cheap and stable. */
-export const compareIso = (a: string | null, b: string | null): number => {
-  const x = a ?? '';
-  const y = b ?? '';
-  if (x === y) return 0;
-  return x < y ? -1 : 1;
 };

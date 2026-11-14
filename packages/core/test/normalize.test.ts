@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { compareIso } from '../src/edition.ts';
 import {
   canonicalizeUrl,
-  compareIso,
   hashKey,
   itemId,
   normalizeText,

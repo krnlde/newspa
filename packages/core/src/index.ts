@@ -82,6 +82,14 @@ export {
   parseCron,
 } from './cadenceCron.ts';
 export { editReport, renderDiffText, tokenize, wordDiff } from './diff.ts';
+export {
+  buildEdition,
+  compareIso,
+  defaultFreshness,
+  type EditionFreshness,
+  emptyStats,
+  rankOf,
+} from './edition.ts';
 export { GONE_AFTER_POLLS, type GoneVerdict, goneVerdicts, type StoredKey } from './gone.ts';
 export {
   CHALLENGE_MARKERS,
@@ -94,11 +102,8 @@ export {
 } from './health.ts';
 export { formatHttpDate, parseHttpDate } from './httpDate.ts';
 export {
-  buildEdition,
   type CanonicalizeOptions,
   canonicalizeUrl,
-  compareIso,
-  emptyStats,
   hashKey,
   itemId,
   normalizeText,

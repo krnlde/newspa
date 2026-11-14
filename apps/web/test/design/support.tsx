@@ -139,12 +139,14 @@ const THE_EDITION: Edition = {
       title: 'World',
       blurb: 'Border, elections, weather',
       items: [anItem('world:1'), anItem('world:2'), anItem('world:3')],
+      rail: [anItem('world:1'), anItem('world:2'), anItem('world:3')],
     },
     {
       id: 'tech',
       title: 'Technology',
       blurb: 'What the wires filed',
       items: [anItem('tech:1', { sourceLabel: 'Example Tech' }), anItem('tech:2', { sourceLabel: 'Example Tech' })],
+      rail: [anItem('tech:1', { sourceLabel: 'Example Tech' }), anItem('tech:2', { sourceLabel: 'Example Tech' })],
     },
   ],
   edited: [

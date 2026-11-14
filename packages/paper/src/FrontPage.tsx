@@ -99,7 +99,10 @@ const Rail = ({
   readonly format: FormatProps;
 }) => {
   if (section === undefined) return null;
-  const items = section.items.filter((item) => item.key !== skipKey).slice(0, RAIL_ITEMS);
+  // The items arrive as the section's **news** (D-048): core gates them by age, so
+  // the title page cannot print an old story — the page has no clock, and a filter
+  // here would be a second copy of the law.
+  const items = section.rail.filter((item) => item.key !== skipKey).slice(0, RAIL_ITEMS);
   if (items.length === 0) return null;
   return (
     <section data-part="rail" data-side={side} aria-label={section.title} className={RAIL_PLACEMENT[side]}>

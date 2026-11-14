@@ -6,10 +6,10 @@ control (D-034) and the page’s one overlay (D-035).
 
 Numbering is shared across the decision files: pipeline, identity, diff, scoring
 and detection in `decisions.md`; tooling, dependencies and testing in
-`decisions-tooling.md`; selectors, the ladder, `gone` and the measured cost of the
-browser in `decisions-detection.md`; the **device** - where the server sits, the
-display axes, install and TLS - in `decisions-display.md` (D-037, D-038, D-039); the
-page's **navigation and its marks** in `decisions-surface-nav.md` (D-043, D-044).
+`decisions-tooling.md`; selectors, the ladder, `gone` and the browser's cost in
+`decisions-detection.md`; the **device** in `decisions-display.md` (D-037–D-039);
+the page's **navigation and marks** in `decisions-surface-nav.md` (D-043, D-044);
+the **title page's news** in `decisions-surface-news.md` (D-048).
 
 ## D-002 — The page is the product; no static edition, no SSR (**reversed from the first cut**)
 

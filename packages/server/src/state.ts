@@ -15,7 +15,7 @@
  * `bodyOf` is never called (D-017): the stored scrape has no door onto the wire.
  */
 import type { MastheadConfig } from 'newspa-config';
-import type { StateResponse } from 'newspa-core';
+import type { EditionFreshness, StateResponse } from 'newspa-core';
 import {
   DEFAULT_ITEM_LIMIT,
   type ItemEventsRepository,
@@ -47,6 +47,8 @@ export interface StateDeps {
   readonly dateline?: (now: Date) => string;
   readonly itemLimit?: number;
   readonly eventLimit?: number;
+  /** The freshness law for the title page (D-048), from the config's `paper` block. */
+  readonly freshness?: EditionFreshness;
 }
 
 /**
@@ -94,5 +96,6 @@ export const stateOf = (deps: StateDeps): StateResponse => {
     itemCounts: deps.items.countBySource(),
     snapshots: newestSnapshots(deps.snapshots, sources),
     cycles: deps.snapshots.count(),
+    ...(deps.freshness === undefined ? {} : { freshness: deps.freshness }),
   });
 };

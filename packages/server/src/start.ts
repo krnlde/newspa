@@ -127,9 +127,7 @@ const idleScheduler = (db: Database): Scheduler => ({
 const issueLine = (issue: SourceIssue): string =>
   `  refused: ${issue.file} [${issue.reason}]: ${issue.messages.join('; ')}`;
 
-/**
- * The watchlist, as boot lines: the count, every issue, and what an empty list means.
- */
+/** The watchlist, as boot lines: the count, every issue, and what an empty list means. */
 const reportWatchlist = (
   log: (line: string) => void,
   dir: string,
@@ -245,6 +243,13 @@ export const boot = async (deps: BootDeps): Promise<Running> => {
         itemEvents: db.itemEvents,
         snapshots: db.snapshots,
         masthead: config.masthead,
+        // The title-page freshness law (D-048): the config's `paper` block, over the
+        // scoring half-life. The law itself lives in `normalize.ts`; this is the knob.
+        freshness: {
+          maxAgeHours: config.paper.titlePageMaxAgeHours,
+          halfLifeHours: config.scoring.recencyHalfLifeHours,
+          sectionMaxItems: config.paper.sectionMaxItems,
+        },
         now,
       }),
     hub,

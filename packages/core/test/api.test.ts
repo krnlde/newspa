@@ -17,7 +17,7 @@ import {
   stateResponseSchema,
   storyTierSchema,
 } from '../src/api.ts';
-import { buildEdition, emptyStats } from '../src/normalize.ts';
+import { buildEdition, emptyStats } from '../src/edition.ts';
 import { aView } from './views.ts';
 
 describe('itemViewSchema', () => {

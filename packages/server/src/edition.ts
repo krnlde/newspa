@@ -11,19 +11,16 @@
  * moment it happened to execute. Hence `now` and `dateline` are inputs.
  */
 import type { MastheadConfig } from 'newspa-config';
-import {
-  buildEdition,
-  type EditionStats,
-  editionIdFor,
-  type ItemEventRecord,
-  type ItemRecord,
-  type ItemView,
-  isBoilerplateTeaser,
-  type SourceHealthView,
-  type StateResponse,
-  teaserFor,
-  tierFor,
+import type {
+  EditionFreshness,
+  EditionStats,
+  ItemEventRecord,
+  ItemRecord,
+  ItemView,
+  SourceHealthView,
+  StateResponse,
 } from 'newspa-core';
+import { buildEdition, defaultFreshness, editionIdFor, isBoilerplateTeaser, teaserFor, tierFor } from 'newspa-core';
 import type { PollSnapshot, SnapshotRow, SourceCount, StoredSource } from 'newspa-db';
 
 /** Everything the assembler needs, already read. Pure input: `readonly` throughout. */
@@ -43,6 +40,12 @@ export interface EditionInput {
   /** One snapshot per source, the newest the caller has. */
   readonly snapshots: readonly SnapshotRow[];
   readonly cycles: number;
+  /**
+   * The title-page freshness law (D-048): decay, the gate, the section cap.
+   * Absent means core's default — the law has one owner (`normalize.ts`), and the
+   * config's `paper` block is what overrides it in a real boot.
+   */
+  readonly freshness?: EditionFreshness;
 }
 
 /**
@@ -198,6 +201,7 @@ const statsOf = (
 /** Rows → the wire shape. `buildEdition` does all the sorting; this does not re-sort. */
 export const editionOf = (input: EditionInput): StateResponse => {
   const { masthead, now, dateline, sources, items, events, itemCounts, snapshots, cycles } = input;
+  const freshness = input.freshness ?? defaultFreshness();
   const labels = labelMapOf(sources);
   const eventsByItem = eventMapOf(events);
   const views = items.map((item) =>
@@ -229,6 +233,7 @@ export const editionOf = (input: EditionInput): StateResponse => {
       views,
       statsOf(items, sources, health, cycles),
       declaredMapOf(sources),
+      freshness,
     ),
     sources: health,
   };

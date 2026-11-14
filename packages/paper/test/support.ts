@@ -83,6 +83,9 @@ export const aSection = (over: Partial<EditionSection> = {}): EditionSection => 
   blurb: 'What World sent today',
   items: [],
   ...over,
+  // Fixture convention: the rail prints what the section printed, unless a test
+  // names its own rail to probe the freshness gate (D-048 is core's law).
+  rail: over.rail ?? over.items ?? [],
 });
 
 export const anEdition = (over: Partial<Edition> = {}): Edition => ({

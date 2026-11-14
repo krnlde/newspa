@@ -8,7 +8,7 @@
  * the `fetch` is injected, so nothing here reaches the network.
  */
 
-import { scoreItem } from 'newspa-core';
+import { defaultFreshness, scoreItem } from 'newspa-core';
 import type { Database } from 'newspa-db';
 import { describe, expect, it } from 'vitest';
 import { pollOne } from '../src/poll.ts';
@@ -138,7 +138,7 @@ describe('one poll of a real feed, written through the repositories', () => {
     expect(aged.scoreRealtime).toBeLessThan(seen.scoreRealtime);
   });
 
-  it('publishes the paper: the read side prints the stories the poll wrote', async () => {
+  it('publishes the paper: the read side prints the stories the poll wrote, capped per section', async () => {
     const h = frontPage();
     const result = await h.poll();
     const state = stateOfDb(h.db);
@@ -152,7 +152,10 @@ describe('one poll of a real feed, written through the repositories', () => {
     expect(lead).toBeTruthy();
     expect(lead?.title.length).toBeGreaterThan(10);
     const wire = wireItems(state);
-    expect(wire).toHaveLength(count);
+    // D-048: a section is an index of the day, not an archive. The stats count the
+    // whole poll; the page prints the cap's worth, newest-ranked first.
+    expect(wire.length).toBe(Math.min(count, defaultFreshness().sectionMaxItems));
+    expect(count).toBeGreaterThan(defaultFreshness().sectionMaxItems);
     // D-017: the stored scrape has no door onto the wire.
     expect(wire.every((item) => !('body' in item))).toBe(true);
   });

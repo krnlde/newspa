@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { EditionStats } from '../src/api.ts';
-import { buildEdition, emptyStats } from '../src/normalize.ts';
+import { buildEdition, emptyStats } from '../src/edition.ts';
 import { sectionFor, sectionTitleFor } from '../src/sections.ts';
 import { aView } from './views.ts';
 
 const stats = (over: Partial<EditionStats> = {}): EditionStats => ({ ...emptyStats(), ...over });
 
-const build = (items: readonly ReturnType<typeof aView>[], statsInput: EditionStats = emptyStats()) =>
-  buildEdition('2026-11-09', '2026-11-09T07:00:00Z', 'Monday, November 9, 2026', items, statsInput);
+const build = (
+  items: readonly ReturnType<typeof aView>[],
+  statsInput: EditionStats = emptyStats(),
+  fresh?: Parameters<typeof buildEdition>[6],
+) =>
+  buildEdition('2026-11-09', '2026-11-09T07:00:00Z', 'Monday, November 9, 2026', items, statsInput, new Map(), fresh);
 
 describe('emptyStats', () => {
   it('is all zeros, not undefined', () => {
@@ -86,15 +90,17 @@ describe('buildEdition', () => {
     expect(edition.sections[1]?.items.map((item) => item.key)).toEqual(['from-teaser', 'from-label']);
   });
 
-  it('orders sections by the summed score of their items', () => {
+  it('orders sections by the rank of their strongest story, not by a summed score', () => {
+    // Summing let a pile of mid stories outrank one strong one (the archive effect
+    // D-048 removes); the section that leads the page is the one with the best news.
     const edition = build([
       aView({ key: 'big', title: 'Market report for the week', score: 5 }),
       aView({ key: 'bigger', title: 'Market open higher', score: 6 }),
       aView({ key: 'single', title: 'Election results declared', score: 9 }),
     ]);
     expect(edition.sections.map((section) => `${section.id}:${section.items.length}`)).toEqual([
-      'business:2',
       'politics:1',
+      'business:2',
     ]);
   });
 
@@ -142,5 +148,109 @@ describe('buildEdition', () => {
     expect(edition.sections).toEqual([]);
     expect(edition.edited).toEqual([]);
     expect(edition.stats).toEqual(emptyStats());
+  });
+});
+
+/**
+ * D-048, measured on the live paper (2026-11-14): the title page printed
+ * 5-day-old stories and a month-old page-sighting, because the score's age term
+ * (max 4, additive) lost to source weights worth 6 and 10, and a section printed
+ * its whole archive (102 items). The law: age **multiplies** the score, the lead
+ * and the rails print only fresh items, and a section prints a cap's worth.
+ */
+describe('buildEdition — the freshness law (D-048)', () => {
+  const old = (over: Parameters<typeof aView>[0]): ReturnType<typeof aView> =>
+    aView({ publishedAt: '2026-11-04T07:00:00Z', ...over }); // 120 h before generatedAt
+
+  it('gives the lead to the fresher story when age multiplies the score', () => {
+    // The measured case: a 12-point story from five days ago against a 6-point
+    // story from an hour ago. Old law: the old one leads. New law: the news leads.
+    const edition = build([
+      old({ key: 'stale', title: 'A tariff story, five days on', score: 12 }),
+      aView({ key: 'fresh', title: 'The market closes higher', score: 6 }),
+    ]);
+    expect(edition.lead?.key).toBe('fresh');
+  });
+
+  it('a page-mode sighting from last month cannot lead, and leaves the rail', () => {
+    // The Ubuntu Blog case from the screenshot: one item per page, its "date" is
+    // the sighting, and the card read `BY CANONICAL · LAST MONTH` **above the fold**.
+    const edition = build([
+      aView({
+        key: 'ubuntu:page',
+        title: 'Canonical releases Ubuntu 26.10',
+        score: 14,
+        publishedAt: null,
+        firstSeenAt: '2026-10-09T07:00:00Z',
+      }),
+      aView({ key: 'today', title: 'Election results declared', score: 5 }),
+    ]);
+    expect(edition.lead?.key).toBe('today');
+    const world = edition.sections.find((section) => section.items.some((item) => item.key === 'ubuntu:page'));
+    expect(world?.rail.map((item) => item.key)).not.toContain('ubuntu:page');
+    expect(world?.items.map((item) => item.key)).toContain('ubuntu:page');
+    expect(world?.items.at(-1)?.key).toBe('ubuntu:page');
+  });
+
+  it('prints the freshest of the stale when nothing is fresh — never an empty front page', () => {
+    // Rule 5: a page of nothing is a silent zero. The age on the card says the truth.
+    const edition = build([
+      old({ key: 'stale-much', title: 'Election results declared', score: 14, publishedAt: '2026-11-01T07:00:00Z' }),
+      old({ key: 'stale-less', title: 'Market report for the week', score: 4 }),
+    ]);
+    expect(edition.lead?.key).toBe('stale-less');
+    const rails = edition.sections.flatMap((section) => section.rail);
+    expect(rails).toEqual([]);
+  });
+
+  it('gates the rail at the knob, and keeps the older items in the section', () => {
+    const edition = build(
+      [
+        aView({ key: 'fresh', title: 'Election results declared', score: 9 }),
+        aView({ key: 'mid', title: 'Election results audited', score: 8, publishedAt: '2026-11-08T07:00:00Z' }),
+        old({ key: 'stale', title: 'Election results archived', score: 7 }),
+      ],
+      emptyStats(),
+      { maxAgeHours: 36, halfLifeHours: 24, sectionMaxItems: 12 },
+    );
+    const politics = edition.sections[0];
+    expect(politics?.rail.map((item) => item.key)).toEqual(['fresh', 'mid']);
+    expect(politics?.items.map((item) => item.key)).toEqual(['fresh', 'mid', 'stale']);
+  });
+
+  it('caps a section at the knob, newest-ranked first', () => {
+    const many = Array.from({ length: 20 }, (_unused, index) =>
+      aView({
+        key: `m${String(index)}`,
+        title: 'Market report for the week',
+        score: 12,
+        publishedAt: `2026-11-09T0${String(6 - Math.floor(index / 4))}:0${String(index % 10)}:00Z`,
+      }),
+    );
+    const edition = build(many, emptyStats(), { maxAgeHours: 36, halfLifeHours: 24, sectionMaxItems: 12 });
+    const business = edition.sections[0];
+    expect(business?.items).toHaveLength(12);
+    const ages = business?.items.map((item) => Date.parse(item.publishedAt ?? '')) ?? [];
+    expect([...ages].sort((a, b) => b - a)).toEqual(ages);
+    // The rail is **gated**, not capped: all 20 are fresh, and the page owns the
+    // count (`RAIL_ITEMS` in `FrontPage.tsx`); core owns only the age law.
+    expect(business?.rail).toHaveLength(20);
+  });
+
+  it('leaves the tier of the stored score alone: only placement decays', () => {
+    const edition = build([old({ key: 'stale', title: 'A tariff story, five days on', score: 12 })]);
+    expect(edition.lead?.tier).toBe('lead'); // its standing on the row
+    expect(edition.lead?.score).toBe(12); // the stored score, undecayed
+    // Its placement is the decayed story: it is the lead only because nothing is fresh.
+  });
+
+  it('defaults the knobs: 36 h gate, 24 h half-life, 12 items', () => {
+    const edition = build([
+      aView({ key: 'gate', title: 'Election results declared', score: 20, publishedAt: '2026-11-09T06:00:00Z' }),
+      // 37 h: one hour past the default gate, and out of the title page.
+      aView({ key: 'past', title: 'Election results audited', score: 20, publishedAt: '2026-11-07T18:00:00Z' }),
+    ]);
+    expect(edition.lead?.key).toBe('gate');
+    expect(edition.sections[0]?.rail.map((item) => item.key)).toEqual(['gate']);
   });
 });

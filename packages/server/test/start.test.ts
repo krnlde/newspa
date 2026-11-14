@@ -16,7 +16,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SourceSpec } from 'newspa-config';
-import { stateResponseSchema } from 'newspa-core';
+import { defaultFreshness, stateResponseSchema } from 'newspa-core';
 import { DatabaseLockedError } from 'newspa-db';
 import { describe, expect, it } from 'vitest';
 import { boot } from '../src/start.ts';
@@ -172,7 +172,11 @@ describe('the boot', () => {
       expect(items.length).toBeGreaterThan(0);
       expect(state.sources[0]).toMatchObject({ id: 'bbc', state: 'ok' });
       expect(logs.join('\n')).toContain('bbc: cadence →');
-      expect(running.tally().newItems).toBe(items.length);
+      // D-048 caps a section at `sectionMaxItems`, so the page is not the whole
+      // poll: the tally counts the rows, the paper prints the newest of them.
+      const written = running.db.items.countBySource().find((row) => row.sourceId === 'bbc')?.count ?? 0;
+      expect(running.tally().newItems).toBe(written);
+      expect(items.length).toBe(Math.min(written, defaultFreshness().sectionMaxItems));
     } finally {
       await running.close();
     }

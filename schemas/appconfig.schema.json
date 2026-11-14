@@ -169,6 +169,24 @@
         }
       }
     },
+    "paper": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "titlePageMaxAgeHours": {
+          "default": 36,
+          "type": "number",
+          "minimum": 1,
+          "maximum": 168
+        },
+        "sectionMaxItems": {
+          "default": 12,
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 50
+        }
+      }
+    },
     "burst": {
       "default": {},
       "type": "object",

@@ -218,3 +218,37 @@ describe('read markers', () => {
     db.close();
   });
 });
+
+/**
+ * D-048: the freshness law lives in core (`normalize.ts`); the server's job is to
+ * read the rows and hand it the config's knobs. Measured on the live paper: the
+ * lead was a five-day-old story and a month-old page-sighting printed above the
+ * fold, because the score's age term (max 4, additive) lost to source weights.
+ */
+describe('the title-page freshness law (D-048)', () => {
+  // 120 h old, a big score; and today's story with a small one.
+  const stale = anItemRecord({ key: 'bbc:stale', publishedAt: '2026-11-04T10:00:00Z', scoreRealtime: 20 });
+  const fresh = anItemRecord({
+    key: 'bbc:fresh',
+    title: 'Election results declared',
+    publishedAt: '2026-11-09T09:00:00Z',
+    scoreRealtime: 3,
+  });
+
+  it('leads with the fresh story and keeps the old one in the section, off the rail', () => {
+    const db = seeded([anRssSpec()], [stale, fresh]);
+    const state = build(rowsOf(db));
+    expect(state.edition.lead?.key).toBe('bbc:fresh');
+    const section = state.edition.sections.find((s) => s.items.some((i) => i.key === 'bbc:stale'));
+    expect(section?.items.map((i) => i.key)).toContain('bbc:stale');
+    expect(section?.rail.map((i) => i.key)).not.toContain('bbc:stale');
+    db.close();
+  });
+
+  it('the knob moves the gate: a wider `maxAgeHours` lets the old story lead again', () => {
+    const db = seeded([anRssSpec()], [stale, fresh]);
+    const state = build(rowsOf(db, { freshness: { maxAgeHours: 168, halfLifeHours: 1_000, sectionMaxItems: 12 } }));
+    expect(state.edition.lead?.key).toBe('bbc:stale');
+    db.close();
+  });
+});

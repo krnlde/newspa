@@ -97,6 +97,27 @@ describe('the front page', () => {
     expect(railKeys(container).filter((key) => key.startsWith('a:'))).toHaveLength(4);
   });
 
+  it('prints only the section rail it is given, so an old story stays below the fold', () => {
+    // D-048 is core's law, and the page has no clock: the gate arrives as data.
+    // The section's list holds the old story too; its rail holds only its news.
+    const fresh = anItem({ key: 'a:2' });
+    const { container } = show({
+      edition: anEdition({
+        lead: anItem({ key: 'lead:1' }),
+        sections: [
+          aSection({
+            id: 'a',
+            title: 'World',
+            items: [anItem({ key: 'a:1' }), fresh, anItem({ key: 'a:3' })],
+            rail: [fresh],
+          }),
+          aSection({ id: 'b', items: [anItem({ key: 'b:1' })] }),
+        ],
+      }),
+    });
+    expect(railKeys(container).filter((key) => key.startsWith('a:'))).toEqual(['a:2']);
+  });
+
   it('sets rail stories to the quietest slot, with no figure', () => {
     const { container } = show({
       edition: anEdition({
