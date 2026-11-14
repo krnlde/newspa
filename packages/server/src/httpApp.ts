@@ -18,8 +18,8 @@
  * and the boundary.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { StateResponse } from 'newspa-core';
-import { mutationAllowed, type PeerDecision, readingListAllowed } from './net.ts';
+import type { SourcesScope, StateResponse } from 'newspa-core';
+import { mutationAllowed, readingListAllowed, sourcesAllowed } from './net.ts';
 import type { PickRoutes } from './pickApi.ts';
 import { pickRoute } from './pickHttp.ts';
 import { BodyError, readJsonBody } from './requestBody.ts';
@@ -47,35 +47,37 @@ export interface HttpDeps {
 const API_INDEX = {
   state: '/api/state',
   events: '/api/events (text/event-stream)',
-  sources: '/api/sources (GET) · POST writes sources/<id>.json · DELETE ?id=… — writes are loopback-only (D-034)',
+  sources:
+    '/api/sources (GET: desk files, or household switches) · POST (desk: file text · household: {"id":…,"patch":{…}} or {"create":{…}}) · DELETE ?id=… — desk verbs are loopback-only (D-034, W4)',
   pick: '/api/pick (POST {"id": "…"} opens a pick window · GET ?id=… reports the job) — loopback-only (rule 20)',
   items: 'not built: the app has no items page in the MVP',
   search: 'not built: the page is an index, not a search engine (D-045); WP7, retired 2026-11-13',
 } as const;
 
-/** The sources route: the list, a write of raw file text, a removal by id. */
+/** The sources route: the list, a write, a removal — each in the peer's scope (D-034, W4). */
 const sourcesRoute = async (
   deps: HttpDeps,
   req: IncomingMessage,
   res: ServerResponse,
   method: string,
-  list: PeerDecision,
+  address: string | undefined,
 ): Promise<void> => {
-  if (list.allowed === false) {
-    // The reading list is the reader's file set (rule 18), so this route is refused
-    // for every verb from a non-loopback peer — the phone gets the paper, not the
-    // watchwords. Logged, because a refusal the reader cannot find is a silent zero.
-    deps.log(`refused ${method} /api/sources: ${list.reason}`);
-    sendJson(res, 403, { error: list.reason });
+  const peer = sourcesAllowed(method, address);
+  if (peer.allowed === false) {
+    // The file itself — its watchwords, notes, headers — is the desk's (rule 18), and
+    // so is a deletion, which removes those words with the file. Logged, because a
+    // refusal the reader cannot find is a silent zero.
+    deps.log(`refused ${method} /api/sources: ${peer.reason}`);
+    sendJson(res, 403, { error: peer.reason });
     return;
   }
   if (method === 'GET') {
-    const answer = await deps.sources.list(true);
+    const answer = await deps.sources.list(peer.scope);
     sendJson(res, answer.status, answer.body);
     return;
   }
   if (method === 'POST') {
-    await sourcesWrite(deps, req, res);
+    await sourcesWrite(deps, req, res, peer.scope);
     return;
   }
   if (method === 'DELETE') {
@@ -84,14 +86,21 @@ const sourcesRoute = async (
     sendJson(res, answer.status, answer.body);
     return;
   }
-  sendJson(res, 405, { error: '/api/sources is GET, POST (write a source file) and DELETE ?id=…' });
+  sendJson(res, 405, {
+    error: '/api/sources is GET, POST (write a source file, or a household patch) and DELETE ?id=…',
+  });
 };
 
 /** A POST: read the body with a ceiling, then let the route decide. */
-const sourcesWrite = async (deps: HttpDeps, req: IncomingMessage, res: ServerResponse): Promise<void> => {
+const sourcesWrite = async (
+  deps: HttpDeps,
+  req: IncomingMessage,
+  res: ServerResponse,
+  scope: SourcesScope,
+): Promise<void> => {
   try {
     const raw = await readJsonBody(req, MAX_SOURCE_BODY_BYTES);
-    const answer = await deps.sources.write(raw);
+    const answer = await deps.sources.write(raw, scope);
     sendJson(res, answer.status, answer.body);
   } catch (cause) {
     // A body that cannot be read is the same shape as a write that cannot land:
@@ -120,17 +129,17 @@ const apiRoute = async (
   res: ServerResponse,
   method: string,
   path: string,
-  list: PeerDecision,
+  address: string | undefined,
 ): Promise<void> => {
   if (path === '/api/sources') {
-    await sourcesRoute(deps, req, res, method, list);
+    await sourcesRoute(deps, req, res, method, address);
     return;
   }
   if (path === '/api/pick') {
     // The decision is computed **for this route**, not reused from `/api/sources`:
     // the reason names the route it refused, and a refusal that points at another
     // route's URL is a dead end for the reader (rule 5).
-    await pickRoute(deps, req, res, method, readingListAllowed(method, deps.addressOf(req), 'pick'));
+    await pickRoute(deps, req, res, method, readingListAllowed(method, address, 'pick'));
     return;
   }
   if (path === '/api/events') {
@@ -179,9 +188,9 @@ const route = (
   res: ServerResponse,
   method: string,
   path: string,
-  list: PeerDecision,
+  address: string | undefined,
 ): Promise<void> => {
-  if (path.startsWith('/api/')) return apiRoute(deps, req, res, method, path, list);
+  if (path.startsWith('/api/')) return apiRoute(deps, req, res, method, path, address);
   if (method !== 'GET' && method !== 'HEAD') {
     sendJson(res, 405, { error: `${method} is not supported on ${path}` });
     return Promise.resolve();
@@ -215,16 +224,18 @@ export const handleRequest =
     const path = pathOf(req);
     try {
       const address = deps.addressOf(req);
-      const guard = mutationAllowed(method, address);
+      const guard = mutationAllowed(method, address, path);
       if (guard.allowed === false) {
         deps.log(`refused ${method} ${path}: ${guard.reason}`);
         sendJson(res, 403, { error: guard.reason });
         return;
       }
-      // The reading-list rule (rule 18): the route answers to loopback only, and the
-      // same fact is what a form on a phone is told, so it can say "this is a
-      // machine-local editor" instead of offering a button that must fail (D-034).
-      await route(deps, req, res, method, path, readingListAllowed(method, address));
+      // The peer's address travels to the routes, and each route answers the scope
+      // **its own** rule defines (D-034, W4): `/api/sources` splits desk from household,
+      // `/api/pick` is refused to every non-loopback peer, each reason naming its own
+      // route. The reading list's privacy (rule 18) is now carried by the household
+      // scope — no file text on that wire — not by refusing the read outright.
+      await route(deps, req, res, method, path, address);
     } catch (cause) {
       fail(deps, res, method, path, cause);
     }

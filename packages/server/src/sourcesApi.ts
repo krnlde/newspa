@@ -1,31 +1,43 @@
 /**
  * The sources routes (WP14): the reading list, as files, over HTTP.
  *
- * Three rules decide every answer here, and all three come from the repo's own law:
+ * Four rules decide every answer here, and all four are the repo's own law:
  *
  *  - **the file is the truth** (D-011, D-025). A write is `writeSource(dir, spec)` and
  *    the answer names the path. Nothing is stored in SQLite that the files do not
  *    agree with; the row is a runnable copy, upserted exactly as boot upserts it.
- *  - **the schema is the validator** (D-014). The request is raw file *text* — core's
- *    `addSourceRequestSchema` — and `parseSourceJson` (the loader's own) is what says
- *    yes or no. The browser carries no second copy of the source schema, so it cannot
- *    drift, and an invalid body is answered with the zod issues and **writes nothing**.
+ *  - **the schema is the validator** (D-014). A desk write is raw file *text* and
+ *    `parseSourceJson` (the loader's own) says yes or no; a household write is a
+ *    **patch of knobs**, validated by core's household schema and merged by config's
+ *    `applyHouseholdPatch`. The browser carries no second copy of the source schema,
+ *    so it cannot drift, and an invalid body is answered with the zod issues and
+ *    **writes nothing**.
  *  - **a deletion is stated, not performed silently.** `DELETE` removes the file and
  *    **disables the row**: the poll stops, the strip says so, and the items survive —
  *    a story's history outlives the source that carried it.
+ *  - **the peer's scope decides what is sent** (D-034, the W4 ruling). The desk sees the
+ *    file text; a household device sees the **switches** — and so the private fields
+ *    (`watchwords`, `blockwords`, `notes`, `headers`) never travel, are never in that
+ *    browser, and cannot be posted back. Rule 18's reading list stays the desk's.
  *
- * The address is the access control (D-034): `httpApp.ts` refuses every write from a
- * non-loopback peer **before routing**, so nothing here authenticates, and rule 20
- * forbids adding a token to make a LAN write "safe". `writable` in the list answer is
- * not a permission check — it is the same fact, told to a reader on a phone so the
- * form can say "editing is from this machine only" instead of offering a Save button
- * that is guaranteed to fail.
+ * The address is the access control: `net.ts` decides the scope **before routing**, and
+ * rule 20 forbids a token, cookie or shared secret as the substitute. `writable` in the
+ * list answer is not a permission check — it is the same fact, told to a form so it
+ * never offers a control the server would refuse.
  */
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseSourceJson, removeSource, type SourceSpec, writeSource } from 'newspa-config';
-import { addSourceRequestSchema, type SourcesResponse, sourceIdSchema } from 'newspa-core';
+import {
+  addSourceRequestSchema,
+  type HouseholdSourceView,
+  type SourceFileView,
+  type SourcesResponse,
+  type SourcesScope,
+  sourceIdSchema,
+} from 'newspa-core';
 import type { Database } from 'newspa-db';
+import { answered, renderNote, writeHousehold } from './sourcesHousehold.ts';
 
 /** A body over this size is a mistake or an attack, and 413 says which. */
 export const MAX_SOURCE_BODY_BYTES = 64 * 1024;
@@ -49,31 +61,30 @@ export interface ApiAnswer {
  * adds nothing to them). `start.ts` builds this from an open db and the directory.
  */
 export interface SourcesRoutes {
-  /** The list, with the peer's `writable` fact (D-034). */
-  readonly list: (writable: boolean) => Promise<ApiAnswer>;
-  /** A write of raw file text. Never partially applied. */
-  readonly write: (raw: unknown) => Promise<ApiAnswer>;
-  /** A removal by id: the file goes, the row is disabled. */
+  /** The list, in the peer's scope (D-034, W4): file text for the desk, switches for the household. */
+  readonly list: (scope: SourcesScope) => Promise<ApiAnswer>;
+  /** A write. The desk posts file text; a household device posts a patch or a create (W4). */
+  readonly write: (raw: unknown, scope: SourcesScope) => Promise<ApiAnswer>;
+  /** A removal by id: the file goes, the row is disabled. Loopback-only (rule 20). */
   readonly remove: (id: string) => Promise<ApiAnswer>;
 }
 
-const answered = (status: number, ok: boolean, file: string | null, messages: readonly string[]): ApiAnswer => ({
-  status,
-  body: { ok, file, messages: [...messages] },
-});
+/** One file on disk, read and parsed once, for whichever scope will render it. */
+interface ParsedFile {
+  readonly name: string;
+  readonly text: string;
+  /** The parsed spec, or `null` with the loader's issues: a broken file is listed, not hidden (rule 5). */
+  readonly spec: SourceSpec | null;
+  readonly issues: readonly string[];
+  /** The id, but only when the file declares the id its filename names (D-011). */
+  readonly id: string | null;
+}
 
-/** The reason a source stops being polled, printed in the answer that disables it. */
-const renderNote = (spec: SourceSpec): string[] =>
-  spec.render === true
-    ? [
-        'this source asks for `render: true`, which the transport refuses by name until the browser tier exists (roadmap WP6, D-033)',
-      ]
-    : [];
+type SourceRow = NonNullable<ReturnType<Database['sources']['get']>>;
 
 /**
- * The list: every `*.json` in the directory, its text, and the verdict of the same
- * parser the loader uses (`parseSourceJson`, so the editor cannot disagree with the
- * poll).
+ * Every `*.json` in the directory, with the verdict of the same parser the loader uses
+ * (`parseSourceJson`, so the editor cannot disagree with the poll).
  *
  * Two refusals are visible here, because both are things a reader can only fix by
  * looking: a file that does not parse (**rule 5** — the editor is where a broken
@@ -81,46 +92,101 @@ const renderNote = (spec: SourceSpec): string[] =>
  * file whose `id` is not its own name, which D-011 forbids: the directory listing is
  * the source list, and a file that lies about its id makes that listing a fiction.
  */
-export const listSources = async (deps: SourcesApiDeps, writable: boolean): Promise<ApiAnswer> => {
-  const names = await readdir(deps.dir, { withFileTypes: true })
+const readSourceFiles = async (dir: string): Promise<ParsedFile[]> => {
+  const names = await readdir(dir, { withFileTypes: true })
     .then((entries) =>
       entries.filter((entry) => entry.isFile() && entry.name.endsWith('.json')).map((entry) => entry.name),
     )
     .catch(() => [] as never[]);
-
-  const view: SourcesResponse['files'] = [];
+  const files: ParsedFile[] = [];
   for (const name of names.sort()) {
-    const text = await readFile(join(deps.dir, name), 'utf8').catch(() => '');
+    const text = await readFile(join(dir, name), 'utf8').catch(() => '');
     const parsed = parseSourceJson(text, name);
-    const issues: string[] = [];
-    let id: string | null = null;
-    let kind: string | null = null;
-    let label: string | null = null;
     if (parsed.ok === true) {
       if (`${parsed.spec.id}.json` === name) {
-        id = parsed.spec.id;
-        kind = parsed.spec.kind;
-        label = parsed.spec.label;
+        files.push({ name, text, spec: parsed.spec, issues: [], id: parsed.spec.id });
       } else {
-        issues.push(`"${name}" declares id "${parsed.spec.id}": the filename is the id (D-011)`);
+        files.push({
+          name,
+          text,
+          spec: parsed.spec,
+          id: null,
+          issues: [`"${name}" declares id "${parsed.spec.id}": the filename is the id (D-011)`],
+        });
       }
     } else {
-      issues.push(...parsed.issue.messages.map((message) => `[${parsed.issue.reason}] ${message}`));
+      files.push({
+        name,
+        text,
+        spec: null,
+        id: null,
+        issues: parsed.issue.messages.map((message) => `[${parsed.issue.reason}] ${message}`),
+      });
     }
-    const row = id === null ? undefined : deps.db.sources.get(id);
-    view.push({
-      file: name,
-      id,
-      kind,
-      label,
-      text,
-      issues,
-      enabled: row?.spec.enabled ?? id !== null,
-      state: row?.health ?? null,
-    });
   }
-  if (names.length === 0) deps.log('sources: the directory is empty');
-  return { status: 200, body: { dir: deps.dir, files: view, writable } satisfies SourcesResponse };
+  return files;
+};
+
+/** The desk's view: the file's own bytes, which is what its editor edits and posts back. */
+const fullViewOf = (file: ParsedFile, row: SourceRow | undefined): SourceFileView => ({
+  file: file.name,
+  id: file.id,
+  kind: file.spec?.kind ?? null,
+  label: file.spec?.label ?? null,
+  text: file.text,
+  issues: [...file.issues],
+  enabled: row?.spec.enabled ?? file.spec !== null,
+  state: row?.health ?? null,
+});
+
+/**
+ * The household view: the switches, and nothing else. No `text`, so the file's
+ * `watchwords`, `blockwords`, `notes` and `headers` never reach this peer (rule 18).
+ * `weight` and `cadenceMinutes` are absent for a file that did not parse: the view says
+ * what is known, and the issues say why the rest is not.
+ */
+const householdViewOf = (file: ParsedFile, row: SourceRow | undefined): HouseholdSourceView => ({
+  file: file.name,
+  id: file.id,
+  kind: file.spec?.kind ?? null,
+  label: file.spec?.label ?? null,
+  url: file.spec?.url ?? null,
+  section: file.spec?.section ?? null,
+  group: file.spec?.group ?? null,
+  ...(file.spec === null ? {} : { weight: file.spec.weight, cadenceMinutes: file.spec.cadenceMinutes }),
+  issues: [...file.issues],
+  enabled: row?.spec.enabled ?? file.spec !== null,
+  state: row?.health ?? null,
+});
+
+/**
+ * The list, in the peer's scope (D-034, W4): `full` is the desk's editor, `household`
+ * is the switches a device on the network reads and moves.
+ */
+export const listSources = async (deps: SourcesApiDeps, scope: SourcesScope): Promise<ApiAnswer> => {
+  const files = await readSourceFiles(deps.dir);
+  const rowOf = (file: ParsedFile): SourceRow | undefined =>
+    file.id === null ? undefined : deps.db.sources.get(file.id);
+  if (files.length === 0) deps.log('sources: the directory is empty');
+  if (scope === 'household') {
+    return {
+      status: 200,
+      body: {
+        scope,
+        files: files.map((file) => householdViewOf(file, rowOf(file))),
+        writable: true,
+      } satisfies SourcesResponse,
+    };
+  }
+  return {
+    status: 200,
+    body: {
+      scope: 'full',
+      dir: deps.dir,
+      files: files.map((file) => fullViewOf(file, rowOf(file))),
+      writable: true,
+    } satisfies SourcesResponse,
+  };
 };
 
 /**
@@ -170,8 +236,8 @@ export const writeSourceText = async (deps: SourcesApiDeps, raw: unknown): Promi
 
 /** The route bag, from the deps: what `start.ts` hands `httpApp.ts`. */
 export const sourcesRoutesOf = (deps: SourcesApiDeps): SourcesRoutes => ({
-  list: (writable) => listSources(deps, writable),
-  write: (raw) => writeSourceText(deps, raw),
+  list: (scope) => listSources(deps, scope),
+  write: (raw, scope) => (scope === 'household' ? writeHousehold(deps, raw) : writeSourceText(deps, raw)),
   remove: (id) => deleteSource(deps, id),
 });
 

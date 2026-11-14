@@ -136,7 +136,27 @@ export const de = {
     picking: 'Pickt …',
     newSource: 'Neue Quelle',
     readOnly:
-      'Nur Lesen von dieser Adresse: Dieser Server hat keine Anmeldung, deshalb liefert und schreibt er die Leseliste — jede URL, jedes Überwachungswort und jede Notiz in deinen Quelldateien — nur an einen Peer auf diesem Rechner (Regel 18, D-034). Die Zeitung selbst ist von überall lesbar, wohin sie gebunden ist.',
+      'Nur Lesen von dieser Adresse: Dieser Server hat keine Anmeldung, deshalb liefert und schreibt er den Desk-Editor — den Dateitext mit seinen Überwachungswörtern, Notizen und Selektoren — nur an einen Peer auf diesem Rechner (Regel 18, D-034). Die Zeitung selbst ist von überall lesbar, wohin sie gebunden ist.',
+    // Der Household-Umfang (D-034, W4): die Schalter, die ein Gerät im Netz bewegen darf.
+    // Der Vorsatz ist die Regel in der Sprache der Leserin — das Fehlen der
+    // Überwachungswörter braucht einen Grund auf der Seite, nicht nur im Schema.
+    household: {
+      preamble:
+        'Die Schalter aller Quellen. Die Datei selbst — ihre Überwachungswörter, Notizen und Selektoren — bleibt auf dem Rechner, der den Server betreibt.',
+      polling: 'Abrufen',
+      section: 'Ressort',
+      sectionPlaceholder: 'die Stichwörter entscheiden',
+      weight: 'Gewicht',
+      cadence: 'Alle (Min.)',
+      apply: 'Anwenden',
+      applying: 'Anwenden …',
+      addTitle: 'Quelle hinzufügen',
+      label: 'Name',
+      url: 'Adresse',
+      kind: 'Art',
+      add: 'Hinzufügen',
+      adding: 'Hinzufügen …',
+    },
     kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
     templates: { rss: 'Ein RSS-Feed', json: 'Ein JSON-Endpunkt', html: 'Eine HTML-Seite' },
     htmlNote:

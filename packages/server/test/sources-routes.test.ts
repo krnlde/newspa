@@ -5,21 +5,31 @@
  * SQLite are the facts there. This file is about what a browser sees: the verbs, the
  * body limits, the answer shape, and the rule that makes a write route safe to have at
  * all: **the address** (D-034). A non-GET from a LAN peer is refused **before
- * routing**, so `/api/sources` has no authentication of its own, and rule 20 forbids
- * inventing one; a test pins that ordering, because a route that checked the peer
- * itself is how a second, weaker policy gets born.
+ * routing**, with one narrowed room (W4): `POST /api/sources` is forwarded in the
+ * **household scope**, where the body schema, not the socket, is what keeps the file's
+ * private words out. `/api/sources` has no authentication of its own, and rule 20
+ * forbids inventing one; a test pins that ordering, because a route that checked the
+ * peer itself is how a second, weaker policy gets born.
  */
+
+import type { SourcesScope } from 'newspa-core';
 import { describe, expect, it } from 'vitest';
 import type { HttpDeps } from '../src/httpApp.ts';
 import { builtDist, depsFor, getJson, serve } from './httpSupport.ts';
 
 /** A routes bag that echoes what it was asked for, so the test sees the forwarding. */
-const echoing = (removed: string[] = []): HttpDeps['sources'] => ({
-  list: async (writable: boolean) => ({ status: 200, body: { dir: 'sources', files: [], writable } }),
-  write: async (raw: unknown) => ({
-    status: 200,
-    body: { ok: true, file: 'sources/x.json', messages: [JSON.stringify(raw).slice(0, 40)] },
-  }),
+const echoing = (seen: string[], removed: string[] = []): HttpDeps['sources'] => ({
+  list: async (scope: SourcesScope) => {
+    seen.push(`list:${scope}`);
+    return { status: 200, body: { scope, ...(scope === 'full' ? { dir: 'sources' } : {}), files: [], writable: true } };
+  },
+  write: async (raw: unknown, scope: SourcesScope) => {
+    seen.push(scope);
+    return {
+      status: 200,
+      body: { ok: true, file: 'sources/x.json', messages: [JSON.stringify(raw).slice(0, 40)] },
+    };
+  },
   remove: async (id: string) => {
     removed.push(id);
     return { status: 200, body: { ok: true, file: `sources/${id}.json`, messages: [] } };
@@ -31,7 +41,7 @@ describe('the sources routes, as a browser sees them', () => {
     await serve(await builtDist(), async (base) => {
       const listed = await getJson(base, '/api/sources');
       expect(listed.status).toBe(200);
-      expect(listed.body).toMatchObject({ dir: 'sources', writable: true });
+      expect(listed.body).toMatchObject({ scope: 'full', dir: 'sources', writable: true });
 
       const written = await getJson(base, '/api/sources', { method: 'POST', body: '{"text":"{}"}' });
       expect(written.status).toBe(200);
@@ -48,7 +58,7 @@ describe('the sources routes, as a browser sees them', () => {
         expect(answer.status).toBe(200);
         expect(answer.body).toMatchObject({ ok: true, file: 'sources/bbc.json' });
       },
-      (deps) => ({ ...deps, sources: echoing(removed) }),
+      (deps) => ({ ...deps, sources: echoing([], removed) }),
     );
     expect(removed).toEqual(['bbc']);
   });
@@ -62,7 +72,7 @@ describe('the sources routes, as a browser sees them', () => {
         expect(answer.status).toBe(200);
         expect(JSON.stringify(answer.body)).toContain('sources/.json');
       },
-      (deps) => ({ ...deps, sources: echoing(removed) }),
+      (deps) => ({ ...deps, sources: echoing([], removed) }),
     );
     expect(removed).toEqual(['']);
   });
@@ -94,39 +104,44 @@ describe('the sources routes, as a browser sees them', () => {
   });
 });
 
-describe('the write boundary (D-034)', () => {
-  it('refuses a LAN write before routing, and never reaches the route', async () => {
+describe('the write boundary (D-034), with the household room (W4)', () => {
+  it('forwards a LAN POST to the route, in household scope — the one narrowed room', async () => {
+    const seen: string[] = [];
     const removed: string[] = [];
     await serve(
       await builtDist(),
-      async (base, h) => {
-        const answer = await getJson(base, '/api/sources', { method: 'POST', body: '{"text":"{}"}' });
-        expect(answer.status).toBe(403);
-        expect(JSON.stringify(answer.body)).toContain('D-034');
-        expect(h.logs.join('\n')).toContain('refused POST /api/sources');
+      async (base) => {
+        const answer = await getJson(base, '/api/sources', {
+          method: 'POST',
+          body: '{"id":"bbc","patch":{"enabled":false}}',
+        });
+        expect(answer.status).toBe(200);
+        // The route is reached, and the scope it is reached with is the fact: the
+        // household write is a patch, and the desk's file-text write is not on this wire.
+        expect(seen).toEqual(['household']);
         expect(removed).toEqual([]);
       },
-      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(removed) }),
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(seen, removed) }),
     );
   });
 
-  it('refuses a LAN read of the list, and says the paper is still readable (rule 18)', async () => {
-    const removed: string[] = [];
+  it('answers a LAN read in household scope: no dir, no text — the files stay on the desk (rule 18)', async () => {
+    const seen: string[] = [];
     await serve(
       await builtDist(),
-      async (base, h) => {
+      async (base) => {
         const answer = await getJson(base, '/api/sources');
-        expect(answer.status).toBe(403);
-        expect(JSON.stringify(answer.body)).toContain('rule 18');
-        expect(JSON.stringify(answer.body)).toContain('the paper itself is readable');
-        expect(h.logs.join('\n')).toContain('refused GET /api/sources');
-        expect(removed).toEqual([]);
+        expect(answer.status).toBe(200);
+        expect(answer.body).toMatchObject({ scope: 'household', writable: true });
+        expect(Object.keys(answer.body)).not.toContain('dir');
+        expect(seen).toEqual(['list:household']);
       },
-      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(removed) }),
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(seen) }),
     );
   });
 
   it('refuses a LAN DELETE before routing, and never reaches the route', async () => {
+    const seen: string[] = [];
     const removed: string[] = [];
     await serve(
       await builtDist(),
@@ -136,8 +151,9 @@ describe('the write boundary (D-034)', () => {
         expect(JSON.stringify(answer.body)).toContain('D-034');
         expect(h.logs.join('\n')).toContain('refused DELETE /api/sources');
         expect(removed).toEqual([]);
+        expect(seen).toEqual([]);
       },
-      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(removed) }),
+      (deps) => ({ ...deps, addressOf: () => '192.168.1.42', sources: echoing(seen, removed) }),
     );
   });
 

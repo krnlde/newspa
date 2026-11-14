@@ -41,8 +41,9 @@ starts the scheduler publishing its cycles to the SSE hub, and serves. `httpApp.
 the router (`GET /api/state`, `GET /api/events`, the sources routes, the page from
 `apps/web/dist`, and a 404 that names what is not built), `sse.ts` the fan-out,
 `staticFiles.ts` the cache rules (`index.html` never cached, a hashed asset forever, a
-missing build answered with `pnpm build`), `net.ts` the address policy (D-034: reads
-for the LAN, writes loopback-only, the reach line with the typeable URLs and the
+missing build answered with `pnpm build`), `net.ts` the address policy (D-034, with the
+W4 amendment: reads for the LAN, writes loopback-only **except** the household scope of
+`/api/sources`, the reach line with the typeable URLs and the
 firewall command), `tls.ts` the pair `server.tls` names (WP17, D-039: paths, parsed
 before the first socket, no fallback to plain HTTP) and `bootDb.ts` the db open in the
 boot's words (the `data/` directory, the refusal of a second server, the takeover of a
@@ -95,11 +96,13 @@ measured, `req.destroy()` on overflow kills the connection and the client sees
 `TypeError: fetch failed` instead of the 413, so the answer goes first, the request is
 paused, and the 413 says `connection: close` (the body was never consumed, so the
 socket is not reusable). Nothing in these routes authenticates anything, and none of
-them needs it: `readingListAllowed` refuses **every verb** of `/api/sources` from a
-non-loopback peer, because the answer **is the files** and the files are the reading
-list (rule 18) - the phone gets the paper, the editor stays machine-local, a test's spy
-proves the guard runs **before routing**, and rule 20 forbids inventing a token to make
-a LAN write safe.
+them needs it: the peer's **scope** decides the answer (`sourcesAllowed`) — the desk in
+`full` scope gets the files' text, a LAN peer in `household` scope gets the **switches**
+and a patch merged through the whitelist, and the file's private words (`watchwords`,
+`notes`, `headers`) never travel on the household wire, which is rule 18 enforced by the
+schema, not by a hidden button (the W4 amendment, 2026-11-14). `DELETE` is refused from
+the LAN **before routing**, a test's spy proves the ordering, and rule 20 forbids
+inventing a token to make a LAN write safe.
 
 The panel is the paper's half (`SourcesPanel`, `SourceRow`, `SourceEditor`,
 `sourceStyle.ts`): a row per file with `data-part="source-row"` +

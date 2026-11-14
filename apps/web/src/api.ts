@@ -195,6 +195,21 @@ export const postSourceText = async (
   return answerOf(body, response.status);
 };
 
+/**
+ * A **household** write (D-034, W4): `{id, patch}` for a source's switches, or
+ * `{create}` for a new source by URL. The same route and the same answer shape as
+ * the desk's text write — the scope is the server's decision about the peer, not a
+ * second endpoint — so the body is `unknown` and zod rules it on the server.
+ */
+export const postSourceBody = async (body: unknown, signal?: AbortSignal): Promise<AddSourceResponse> => {
+  const response = await fetch('/api/sources', initOf(signal, 'POST', JSON.stringify(body)));
+  const parsed = await bodyOf(response);
+  if (response.status >= 500) {
+    throw new ApiError(response.status, linesOf(parsed, response.status).join(' · '));
+  }
+  return answerOf(parsed, response.status);
+};
+
 /** A removal by id: the file goes, the row is disabled, and the answer says so. */
 export const deleteSourceById = async (id: string, signal?: AbortSignal): Promise<AddSourceResponse> => {
   const response = await fetch(`/api/sources?id=${encodeURIComponent(id)}`, initOf(signal, 'DELETE', undefined));

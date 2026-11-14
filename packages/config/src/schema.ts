@@ -1,3 +1,4 @@
+import type { HouseholdCreate, HouseholdPatch } from 'newspa-core';
 import { z } from 'zod';
 
 /**
@@ -209,6 +210,36 @@ export const jsonSourceSchema = z.object({
 });
 
 export const sourceSchema = z.discriminatedUnion('kind', [rssSourceSchema, htmlSourceSchema, jsonSourceSchema]);
+
+/**
+ * The household field set lives in `newspa-core` (`api.ts`): the same shapes build a
+ * household device's form and validate its write, so the ranges cannot drift from each
+ * other. This package owns what a write **becomes**: a source file, through
+ * `sourceSchema` (D-014: the schema is the validator, and it has one owner).
+ */
+export { type HouseholdCreate, type HouseholdPatch, householdCreateSchema, householdPatchSchema } from 'newspa-core';
+
+/**
+ * Merge a household patch into a parsed spec. The merge is the whitelist: the keys are
+ * core's shape's, so a body cannot reach a field the schema did not name — the private
+ * fields (`watchwords`, `notes`, `headers`, the selectors) travel through a write
+ * untouched, because the write never saw them. The result is re-parsed by
+ * `sourceSchema`, so one validator rules over a write from any peer.
+ */
+export const applyHouseholdPatch = (spec: SourceSpec, patch: HouseholdPatch): SourceSpec => {
+  // Three states, because the body has three: a value sets, `null` unsets, and an
+  // absent key says nothing. Collapsing them is how "the ladder decides again"
+  // (section removed) would become "keep the section you already had".
+  const merged: Record<string, unknown> = { ...spec };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) delete merged[key];
+    else if (value !== undefined) merged[key] = value;
+  }
+  return sourceSchema.parse(merged);
+};
+
+/** A create body, as a complete spec: the union fills the rest with its defaults. */
+export const specOfHouseholdCreate = (create: HouseholdCreate): SourceSpec => sourceSchema.parse(create);
 
 export type RssSource = z.infer<typeof rssSourceSchema>;
 export type HtmlSource = z.infer<typeof htmlSourceSchema>;

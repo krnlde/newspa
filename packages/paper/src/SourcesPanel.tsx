@@ -1,4 +1,4 @@
-import type { HealthState, PickJobState, SourcesResponse } from 'newspa-core';
+import type { HealthState, PickJobState, SourceFileView } from 'newspa-core';
 import { SourceRow } from './SourceRow.tsx';
 import { NewSource } from './SourcesNew.tsx';
 import { QUIET } from './sourceStyle.ts';
@@ -117,7 +117,7 @@ export interface SourcesLabels {
 }
 
 export interface SourcesProps {
-  readonly sources: SourcesResponse['files'];
+  readonly sources: readonly SourceFileView[];
   readonly dir: string;
   readonly writable: boolean;
   readonly labels: SourcesLabels;

@@ -13,6 +13,7 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { SourcesScope } from 'newspa-core';
 import { type Database, openInMemory } from 'newspa-db';
 import { type HttpDeps, handleRequest } from '../src/httpApp.ts';
 import type { PickRoutes } from '../src/pickApi.ts';
@@ -104,7 +105,10 @@ export const depsFor = (
   const logs: string[] = [];
   const hub = createHub({ log: (line) => logs.push(line) });
   const sources: SourcesRoutes = {
-    list: async (writable: boolean) => ({ status: 200, body: { dir: 'sources', files: [], writable } }),
+    list: async (scope: SourcesScope) => ({
+      status: 200,
+      body: { scope, ...(scope === 'full' ? { dir: 'sources' } : {}), files: [], writable: true },
+    }),
     write: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
     remove: async () => ({ status: 200, body: { ok: true, file: 'sources/x.json', messages: [] } }),
   };

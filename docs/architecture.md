@@ -22,9 +22,9 @@ newspa (one node process)
 │                  writes from a non-loopback peer: refused 403, on the address, before
 │                  routing (D-034) — no route authenticates, and rule 20 forbids adding
 │                  a token to make a LAN write safe
-│                  /api/sources, every verb: loopback-only (rule 18) — its answer is the
-│                  source files themselves, so the editor is a machine-local tool and a
-│                  LAN peer gets the 403 sentence, which the page prints
+│                  /api/sources, two scopes (rule 18, D-034+W4): the desk gets the file
+│                  text and every verb; a LAN peer gets the switches and the patch,
+│                  never the text. DELETE and /api/pick stay loopback-only
 └── pool           playwright-core + channel 'msedge', bounded, for render:true sources
 
 child processes: Edge (scrape/pick). Nothing else.

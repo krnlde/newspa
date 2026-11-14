@@ -60,6 +60,7 @@ const SRC_FILES: readonly string[] = [
   'schedulePlan.ts',
   'scheduler.ts',
   'sourcesApi.ts',
+  'sourcesHousehold.ts',
   'sse.ts',
   'start.ts',
   'state.ts',
@@ -168,15 +169,21 @@ describe('the pipeline', () => {
   });
 });
 
-describe('the reading list’s only writer (D-011, D-036)', () => {
-  it('is `sourcesApi.ts`: the pick fills the editor, it does not write', () => {
+describe('the reading list’s only writers (D-011, D-036, D-034+W4)', () => {
+  it('are the sources routes, not the pick: the pick fills the editor, it does not write', () => {
     // `sources/*.json` is the reader's own file, and a click is not a signature. So
     // the pick route has **no** write dependency at all: it merges, returns the text,
     // and SAVE — the one verb that writes — is the reader's act. A second call site
-    // for these is a second path to a file the reader did not agree to.
-    for (const needle of ['writeSource(', 'removeSource(']) {
+    // for these is a second path to a file the reader did not agree to. The household
+    // writer (W4) is the same writer under a whitelist: it calls config's `writeSource`
+    // with a spec re-parsed by `sourceSchema`, and `removeSource` stays desk-only.
+    const writers: Record<string, string[]> = {
+      'writeSource(': ['sourcesApi.ts', 'sourcesHousehold.ts'],
+      'removeSource(': ['sourcesApi.ts'],
+    };
+    for (const [needle, expected] of Object.entries(writers)) {
       const writersOf = SRC_FILES.filter((file) => sourceOf(file).includes(needle));
-      expect(writersOf, `${needle} has more than one call site`).toEqual(['sourcesApi.ts']);
+      expect(writersOf, `${needle} has more call sites than the two writers`).toEqual(expected);
     }
     // Non-vacuous: the pick really does the merge, in the layer that owns the schema.
     expect(sourceOf('pickApi.ts')).toContain('applyPick(');

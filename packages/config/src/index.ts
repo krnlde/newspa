@@ -40,11 +40,15 @@ export {
   type PickPatchFields,
 } from './pick.ts';
 export {
+  applyHouseholdPatch,
   type CssPath,
   cssPathSchema,
+  type HouseholdPatch,
   type HtmlFields,
   type HtmlItemSource,
   type HtmlSource,
+  householdCreateSchema,
+  householdPatchSchema,
   htmlFieldsSchema,
   htmlSourceSchema,
   type JsonFields,
@@ -56,6 +60,7 @@ export {
   type SourceKindOf,
   type SourceSpec,
   sourceSchema,
+  specOfHouseholdCreate,
 } from './schema.ts';
 export {
   BUNDLE_SCHEMA_URL,

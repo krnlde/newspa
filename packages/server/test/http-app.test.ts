@@ -80,11 +80,27 @@ describe('the LAN reads (D-034)', () => {
     );
   });
 
-  it('refuses the same peer the reading-list route: the paper is public, the files are not (rule 18)', async () => {
+  it('answers the same peer the household scope: the paper is public, the files are not (rule 18, W4)', async () => {
     await serve(
       await builtDist(),
-      async (base) => {
-        expect((await fetch(`${base}/api/sources`)).status).toBe(403);
+      async (base, h) => {
+        const res = await fetch(`${base}/api/sources`);
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as { scope: string; dir?: string; files: { text?: string }[] };
+        // The desk path and the file text are the two private facts of this answer.
+        expect(body).toMatchObject({ scope: 'household' });
+        expect(Object.keys(body)).not.toContain('dir');
+        for (const file of body.files) expect(file.text).toBeUndefined();
+        const del = await getJson(base, '/api/sources?id=bbc', { method: 'DELETE' });
+        expect(del.status).toBe(403);
+        expect(String(del.body['error'])).toContain('POST /api/sources');
+        expect(h.logs.join('\n')).toContain('refused DELETE /api/sources');
+        // The household POST rides the guard's one narrowed room; the stub answers.
+        const patch = await getJson(base, '/api/sources', {
+          method: 'POST',
+          body: '{"id":"bbc","patch":{"enabled":false}}',
+        });
+        expect(patch.status).toBe(200);
       },
       (deps) => ({ ...deps, addressOf: () => '192.168.1.42' }),
     );

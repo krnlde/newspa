@@ -19,6 +19,7 @@ import { ApiError, deleteSourceById, fetchSources, postSourceText } from '../../
  */
 
 const LIST: SourcesResponse = sourcesResponseSchema.parse({
+  scope: 'full',
   dir: '/home/reader/newspa/sources',
   files: [
     {

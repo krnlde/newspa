@@ -138,7 +138,27 @@ export const en = {
     picking: 'Picking…',
     newSource: 'New source',
     readOnly:
-      'Reading only from this address: this server has no authentication, so the reading list — every URL, watchword and note in your source files — is served and written only to a peer on this machine (rule 18, D-034). The paper itself is readable from anywhere it is bound.',
+      'Reading only from this address: this server has no authentication, so the desk’s editor — the file text with its watchwords, notes and selectors — is served and written only to a peer on this machine (rule 18, D-034). The paper itself is readable from anywhere it is bound.',
+    // The household scope (D-034, W4): the switches a device on the LAN may move.
+    // The preamble is the rule, in the reader's language, because the absence of
+    // the watchword fields needs a reason on the page, not only in the schema.
+    household: {
+      preamble:
+        'The switches of every source. The file itself — the words it watches for, the notes, the selectors — stays on the machine that runs the server.',
+      polling: 'Poll',
+      section: 'Section',
+      sectionPlaceholder: 'the keywords decide',
+      weight: 'Weight',
+      cadence: 'Every (min)',
+      apply: 'Apply',
+      applying: 'Applying…',
+      addTitle: 'Add a source',
+      label: 'Label',
+      url: 'Address',
+      kind: 'Kind',
+      add: 'Add',
+      adding: 'Adding…',
+    },
     kindNames: { rss: 'RSS', json: 'JSON', html: 'HTML' },
     templates: { rss: 'An RSS feed', json: 'A JSON endpoint', html: 'An HTML page' },
     htmlNote:

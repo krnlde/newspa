@@ -199,16 +199,16 @@ deliberately **not** reimplemented: the pipeline is hard-coded
     settings file) is refused from a non-loopback peer by the guard in
     `packages/server/src/net.ts`, which runs **before** routing — no route may add a
     mutation without it, and no credential, token, cookie or "shared secret" may be
-    introduced to make a LAN write safe (rule 17). `/api/sources` answers the source
-    files' **verbatim text**, so **every verb of it** is loopback-only
-    (`readingListAllowed`): the phone gets the paper, not the watchwords. `/api/pick`
-    is loopback-only **on both verbs** for two reasons at once: launching a browser on
-    the machine that runs the server is a write, and a pick reads a source file — so a
-    LAN `POST` dies at the mutation guard **before routing** and a LAN `GET` dies at the
-    reading-list wall, and each refusal names the route it refused. `/api/state`
-    **is** the reading list (rule 18), so binding past loopback is announced at boot: the
-    typeable URLs, the fact that the household can read the source list, and the firewall
-    command.
+    introduced to make a LAN write safe (rule 17). The W4 amendment (2026-11-14) narrows
+    the wall **by scope**: `/api/sources` answers a LAN peer in the **household scope**
+    — the switches (`enabled`, `section`, `weight`, `cadenceMinutes`, label, url) and a
+    whitelist-merged patch, **no file text on that wire** — while the file text,
+    `watchwords`, `notes`, `headers`, selectors, `DELETE` and `/api/pick` stay
+    loopback-only, no credential added (rules 17, 20). `/api/pick` is loopback-only
+    **on both verbs**: a browser opens on the server's machine, and a pick reads a
+    source file — LAN `POST` dies at the guard **before routing**, LAN `GET` at the
+    reading-list wall. `/api/state` **is** the reading list (rule 18): binding past
+    loopback is announced at boot — URLs, household source list, firewall command.
 
 ## Layout
 
@@ -225,7 +225,8 @@ packages/fetch    http, rss, html, json, fixtures. `pick` is built (WP6, D-036):
                   the transport refuses a `render: true` source by name.
 packages/server   Entry point (`cli.ts` → `boot` in `start.ts`), scheduler, pipeline,
                   routes (`/api/state`, `/api/events`, `/api/sources` GET/POST/DELETE and
-                  `/api/pick` POST/GET — all loopback-only, rules 18 and 20), the built
+                  `/api/pick` POST/GET — desk verbs loopback-only, LAN peers in the household scope, rules 18 and
+                   20), the built
                   page, the SSE hub, the pino log (`logger.ts`, D-046: a clock on every
                   line, `server.logLevel`, one line per poll), the address policy (D-034), the TLS pair
                   (`tls.ts`: paths, parsed at boot, no silent HTTP fallback, D-039),
@@ -251,8 +252,8 @@ docs/             architecture.md, state.md + state-server.md (the surface, the 
                   verbs, the dev loop) + state-device.md (the claim, the argv, TLS,
                   the install), roadmap.md (what is not built) +
                   roadmap-closed.md (the pipeline's records) +
-                  roadmap-closed-surface.md (the picker, the styling, the panel) +
-                  roadmap-closed-device.md (TLS, the install, the offline edition),
+                  roadmap-closed-surface.md (the picker, styling, panel), the W4 record in
+                  roadmap-closed-household.md, roadmap-closed-device.md (TLS, install, offline edition),
                   decisions.md + decisions-surface.md (the page, the address, the
                   reading list, the one overlay, the picker) + decisions-surface-nav.md (the spine, and no mark behind
                    copy) + decisions-display.md + decisions-display-dates.md (D-047, the dates)

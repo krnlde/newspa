@@ -19,7 +19,9 @@ import { SourcesSection } from '../../../src/SourcesSection.tsx';
  * a field form (`sourcesApi.ts`, D-011).
  */
 
-export const LIST: SourcesResponse = sourcesResponseSchema.parse({
+/** The desk's list: every file, verbatim. What a loopback peer is answered. */
+const deskList = sourcesResponseSchema.parse({
+  scope: 'full',
   dir: '/home/reader/newspa/sources',
   files: [
     {
@@ -45,6 +47,50 @@ export const LIST: SourcesResponse = sourcesResponseSchema.parse({
   ],
   writable: true,
 });
+// Narrowed at construction, not by a cast: the tests read `.dir` and `.text`, and
+// those keys exist only in the arm a loopback peer is answered with.
+if (deskList.scope !== 'full') throw new Error('the desk fixture must answer the full scope');
+export const LIST = deskList;
+
+/**
+ * The household peer's answer (D-034, W4): the switches, and nothing private. No
+ * `dir`, no `text` — a form built from this view cannot leak what it was never sent.
+ */
+export const HOUSEHOLD: SourcesResponse = sourcesResponseSchema.parse({
+  scope: 'household',
+  files: [
+    {
+      file: 'bbc-world.json',
+      id: 'bbc-world',
+      kind: 'rss',
+      label: 'BBC World',
+      url: 'https://bbc.example/news',
+      section: 'World',
+      group: null,
+      weight: 3,
+      enabled: true,
+      cadenceMinutes: 20,
+      issues: [],
+      state: 'ok',
+    },
+    {
+      file: 'broken.json',
+      id: null,
+      kind: null,
+      label: null,
+      url: null,
+      section: null,
+      group: null,
+      enabled: false,
+      issues: ['[json] the file is not valid JSON'],
+      state: null,
+    },
+  ],
+  writable: true,
+});
+
+/** The row of the household list that parses, by its file. */
+export const HOUSE_ROW = "[data-part='household-row'][data-file='bbc-world.json']";
 
 export const answer = (body: unknown, status = 200): Response =>
   ({ ok: status < 400, status, text: async () => JSON.stringify(body) }) as unknown as Response;

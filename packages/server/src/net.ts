@@ -7,10 +7,10 @@
  * these four functions are where that is decided, in one place, testably:
  *
  *  - loopback is the default, and LAN is a line in `config.json` (`server.host`);
- *  - a **non-GET** from a non-loopback peer is refused: `/api/state` shows the
- *    reading list to the household (rule 18 says that list is a statement about what
- *    a reader cares about), and a page on the LAN that could *write* a
- *    `sources/*.json` file is a hole with no lock on it;
+ *  - a **non-GET** from a non-loopback peer is refused, with one narrowed room (W4):
+ *    `/api/sources` answers a household peer in the **household scope** — the switches
+ *    of a source are the household's to move, its `watchwords`, `notes`, `headers` and
+ *    file text are the desk's (rule 18), and `pick` stays the desk's entirely;
  *  - binding beyond loopback is **said out loud** at boot, with the URL to type and
  *    the firewall command, because Windows blocks inbound `8787` and "it works on my
  *    machine" with a silent failure to connect is rule 5's silent zero wearing a
@@ -114,42 +114,37 @@ export const reachLine = (host: string, port: number, scheme: 'http' | 'https' =
   const urlsText = urls.join(', ');
   return (
     `listening on ${urlsText} — anyone on this network can read the paper, ` +
-    `and /api/state shows your source names to them; the source files themselves ` +
-    `(watchwords, notes, sections) and every write stay loopback-only. ` +
+    `and /api/state shows your source names to them; a household device can also move a source's switches ` +
+    `(on/off, section, weight, cadence), while the source files themselves — the file text, watchwords, notes, headers — ` +
+    `and deletions and picks stay on this machine. ` +
     `If nothing connects, allow the port: ${firewallHint(port)}.${tlsNote}`
   );
 };
 
 /**
- * The reading-list route (WP14): **every verb is loopback-only.**
+ * The reading-list route's **pick** arm (WP14): loopback-only.
  *
- * D-034 opened the *paper* to the household — the page, the edition, the stream. This
- * route is not the paper. `GET /api/sources` answers each source file's **verbatim
- * text**: the URL set, the `watchwords`/`blockwords`, the `section` labels in the
- * reader's own words, the `notes`, the `profile: true` fact. Rule 18 keeps precisely
- * that set local and unversioned, on the grounds that publishing it publishes its
- * reader; serving those bytes to the LAN, in clear text, from a server that
- * authenticates nothing, is the leak the rule exists to prevent. So the editor is a
- * machine-local tool, read and write alike, and the phone gets the paper.
+ * D-034 opened the *paper* to the household — the page, the edition, the stream — and
+ * the W4 ruling opened the source **switches** (see `sourcesAllowed`). A pick is neither:
+ * it reads a source file (its url, headers, `profile: true` fact) and **launches a
+ * browser on the machine that runs this server**. That is a remote control for the desk,
+ * so it stays the desk's, and the refusal says so.
  *
  * This is not a token, cookie or "shared secret" bolted on to make a LAN write safe
- * (rule 20 forbids that): it is the same wall the bind already is, applied to one
- * route.
+ * (rule 20 forbids that): it is the same wall the bind already is, applied to one route.
  */
 /** Which loopback-only surface a peer was refused from, so the reason names the route. */
-export type ReadingListRoute = 'sources' | 'pick';
+export type ReadingListRoute = 'pick';
 
 /** Why each route is loopback's, in the sentence the route answers with and the log prints. */
 const READING_LIST_WHY: Record<ReadingListRoute, string> = {
-  sources:
-    'the reading list is your file set — every URL, watchword and note — so it is loopback-only (rule 18, D-034); the paper itself is readable from anywhere this server is bound',
   pick: 'a pick reads a source file (its url, headers, `profile: true` fact) and opens a browser **on the machine that runs this server**, so it is loopback-only (rule 18, rule 20); author sources from that machine, and the phone gets the paper',
 };
 
 export const readingListAllowed = (
   method: string,
   address: string | undefined,
-  route: ReadingListRoute = 'sources',
+  route: ReadingListRoute,
 ): PeerDecision => {
   if (isLoopback(address)) return { allowed: true };
   return {
@@ -158,21 +153,61 @@ export const readingListAllowed = (
   };
 };
 
-/**
- * A guard's answer: allowed, or refused with the reason the route will print and the
- * log will name (rule 5: a refusal has to be legible).
- */
+/** A guard's answer: allowed, or refused with the reason the route will print and the log will name. */
 export type PeerDecision = { readonly allowed: true } | { readonly allowed: false; readonly reason: string };
+
+/**
+ * `/api/sources`, decided by the **peer's scope** (D-034, the W4 ruling).
+ *
+ *  - the machine that runs the server is `full`: it gets each file's verbatim text, and
+ *    every verb. The text is the reading list — URLs, `watchwords`, `blockwords`,
+ *    `notes`, `headers` — and rule 18 keeps that set local and unversioned, on the
+ *    grounds that publishing it publishes its reader;
+ *  - a device on the bound network is `household`: it gets the **switches** (`enabled`,
+ *    `section`, `weight`, `cadenceMinutes`, label, url) and **no file text at all**, so
+ *    the private fields are never on the wire, never in that browser's memory, and
+ *    never posted back. `POST` carries a patch or a create, and the body schema is what
+ *    refuses a key outside the switches;
+ *  - `DELETE` stays the desk's, in either reading: removing a file removes the
+ *    watchwords, notes and headers inside it, and turning a source off is the household
+ *    act that achieves what a deletion is wanted for.
+ *
+ * No credential is involved, in any direction (rule 17, rule 20): the address is the
+ * wall, and the wall now has a **narrower room** rather than a lock.
+ */
+export type SourcesDecision =
+  | { readonly allowed: true; readonly scope: 'full' | 'household' }
+  | { readonly allowed: false; readonly reason: string };
+
+export const sourcesAllowed = (method: string, address: string | undefined): SourcesDecision => {
+  const peer = address ?? 'an unknown peer';
+  if (isLoopback(address)) return { allowed: true, scope: 'full' };
+  if (method === 'GET' || method === 'HEAD') return { allowed: true, scope: 'household' };
+  if (method === 'POST') return { allowed: true, scope: 'household' };
+  return {
+    allowed: false,
+    reason:
+      `${method} /api/sources from ${peer} is refused: a source file carries its watchwords, notes and headers, so the file itself stays on the machine that runs this server (rule 18, D-034); ` +
+      'turning a source off is the household act — send {"enabled": false}',
+  };
+};
 
 /**
  * The guard, as a decision with a reason in it, so the route can answer with the
  * reason and a log can name it (rule 5: a refusal has to be legible).
+ *
+ * One room is narrower than the wall (D-034, the W4 ruling): a **POST to
+ * `/api/sources`** from the bound network is allowed past this guard, because its
+ * scope decision is `sourcesAllowed` and its body is the household schema — a device
+ * on the LAN moves a source's switches and never reads its file. Every other
+ * non-GET from a non-loopback peer dies here, **before routing**, as rule 20 demands.
  */
-export const mutationAllowed = (method: string, address: string | undefined): PeerDecision => {
+export const mutationAllowed = (method: string, address: string | undefined, path = ''): PeerDecision => {
   if (method === 'GET' || method === 'HEAD') return { allowed: true };
   if (isLoopback(address)) return { allowed: true };
+  if (path === '/api/sources' && method === 'POST') return { allowed: true };
   return {
     allowed: false,
-    reason: `${method} from ${address ?? 'an unknown peer'} is refused: this server has no authentication, so writes are loopback-only (D-034)`,
+    reason: `${method} from ${address ?? 'an unknown peer'} is refused: this server has no authentication, so writes are loopback-only (D-034), except a source's switches — send POST /api/sources {"id":"…","patch":{…}}`,
   };
 };

@@ -2,14 +2,24 @@
  * The address policy (D-034): who may reach what, and what the boot says about it.
  *
  * The server has no authentication, so these functions **are** the access control,
- * and they draw three lines, not one: the paper is readable by anyone the bind
- * reaches; every write is loopback-only; and the reading-list route (`/api/sources`)
- * is loopback-only for **every verb**, because its answer is the source files and the
- * files are what rule 18 keeps private. The boot line carries those facts, because a
- * bind that quietly opens a private file set is the silent zero with a listener on it.
+ * and they draw four lines, not one: the paper is readable by anyone the bind
+ * reaches; every write is loopback-only **except** the one narrowed room (D-034, W4) —
+ * `/api/sources` answers a household peer in the **household scope**, where the file
+ * text, watchwords and notes (rule 18) never travel; and `/api/pick` is loopback-only
+ * for every verb, because it opens a browser on the desk. The boot line carries those
+ * facts, because a bind that quietly opens a private file set is the silent zero with
+ * a listener on it.
  */
 import { describe, expect, it } from 'vitest';
-import { firewallHint, isLoopback, mutationAllowed, reachLine, readingListAllowed, urlsOf } from '../src/net.ts';
+import {
+  firewallHint,
+  isLoopback,
+  mutationAllowed,
+  reachLine,
+  readingListAllowed,
+  sourcesAllowed,
+  urlsOf,
+} from '../src/net.ts';
 
 describe('isLoopback', () => {
   it('accepts the forms a socket actually presents', () => {
@@ -65,10 +75,14 @@ describe('the boot line', () => {
     expect(reachLine('localhost', 8787)).toContain('this machine only');
   });
 
-  it('names the reading list, the writes rule and the firewall command for a LAN bind', () => {
+  it('names the reading list, the household switches, and the firewall command for a LAN bind', () => {
     const line = reachLine('0.0.0.0', 8787);
     expect(line).toContain('source names');
-    expect(line).toContain('loopback-only');
+    // The W4 ruling, stated at boot: the household can move the switches, and the
+    // file — its text, watchwords, notes, headers — stays where the server runs.
+    expect(line).toContain("move a source's switches");
+    expect(line).toContain('watchwords');
+    expect(line).toContain('stay on this machine');
     // The platform is the machine's own here, and the test reads it back from the
     // same function: the printed command is the one for the machine that printed it.
     expect(line).toContain(firewallHint(8787, process.platform));
@@ -143,57 +157,85 @@ describe('mutationAllowed', () => {
     expect(refused.allowed).toBe(false);
     if (refused.allowed === false) expect(refused.reason).toContain('unknown peer');
   });
+
+  it('lets one room be narrower: a LAN POST to /api/sources rides the household scope (W4)', () => {
+    expect(mutationAllowed('POST', '192.168.1.42', '/api/sources').allowed).toBe(true);
+    // Every other door stays shut, same peer, same verb: the exception is this route
+    // and this verb, and the reason names the room, so a refused phone is told.
+    expect(mutationAllowed('POST', '192.168.1.42', '/api/state').allowed).toBe(false);
+    expect(mutationAllowed('POST', '192.168.1.42', '/api/pick').allowed).toBe(false);
+    expect(mutationAllowed('DELETE', '192.168.1.42', '/api/sources').allowed).toBe(false);
+    expect(mutationAllowed('PUT', '192.168.1.42', '/api/sources').allowed).toBe(false);
+    const refused = mutationAllowed('POST', '192.168.1.42', '/api/state');
+    if (refused.allowed === false) expect(refused.reason).toContain('/api/sources');
+  });
 });
 
 describe('readingListAllowed', () => {
-  it('lets every verb from loopback — the editor is a machine-local tool', () => {
-    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
-      expect(readingListAllowed(method, '127.0.0.1').allowed, method).toBe(true);
-      expect(readingListAllowed(method, '::ffff:127.0.0.1').allowed, method).toBe(true);
-      expect(readingListAllowed(method, '::1').allowed, method).toBe(true);
+  it('lets the pick open from loopback, on all of its verbs', () => {
+    for (const method of ['GET', 'HEAD', 'POST']) {
+      expect(readingListAllowed(method, '127.0.0.1', 'pick').allowed, method).toBe(true);
+      expect(readingListAllowed(method, '::ffff:127.0.0.1', 'pick').allowed, method).toBe(true);
+      expect(readingListAllowed(method, '::1', 'pick').allowed, method).toBe(true);
     }
   });
 
-  it('refuses even a GET from the LAN: the answer is the files, and the files are the reading list', () => {
-    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
-      const refused = readingListAllowed(method, '192.168.1.42');
+  it('refuses the pick from the LAN: it reads a file and opens a browser on the desk', () => {
+    for (const method of ['GET', 'POST', 'DELETE']) {
+      const refused = readingListAllowed(method, '192.168.1.42', 'pick');
       expect(refused.allowed, method).toBe(false);
       if (refused.allowed === false) {
         expect(refused.reason).toContain(method);
         expect(refused.reason).toContain('192.168.1.42');
         expect(refused.reason).toContain('rule 18');
-        expect(refused.reason).toContain('D-034');
-        // The sentence points at the paper, which stays readable: a refusal that
-        // reads as "the server is closed" would be a lie about the LAN requirement.
-        expect(refused.reason).toContain('the paper itself is readable');
+        expect(refused.reason).toContain('rule 20');
+        // The reason says *why* this one is loopback's: a browser opens on the server.
+        expect(refused.reason).toContain('on the machine that runs this server');
       }
     }
   });
 
   it('refuses an unknown peer, in a sentence that says so', () => {
-    const refused = readingListAllowed('GET', undefined);
+    const refused = readingListAllowed('POST', undefined, 'pick');
     expect(refused.allowed).toBe(false);
     if (refused.allowed === false) expect(refused.reason).toContain('unknown peer');
   });
 
   it('names the route it refused, because a reason that points at another URL is a dead end', () => {
-    const sources = readingListAllowed('GET', '192.168.1.42');
     const pick = readingListAllowed('POST', '192.168.1.42', 'pick');
-    if (sources.allowed === false) expect(sources.reason).toContain('/api/sources from');
     if (pick.allowed === false) {
       expect(pick.reason).toContain('/api/pick from 192.168.1.42 is refused');
       expect(pick.reason).not.toContain('/api/sources');
-      // The reason says *why* this one is loopback's: a browser opens on the server.
-      expect(pick.reason).toContain('on the machine that runs this server');
-      expect(pick.reason).toContain('rule 20');
-      expect(pick.reason).toContain('rule 18');
+    }
+  });
+});
+
+describe('sourcesAllowed', () => {
+  it('answers the desk in full scope, on every verb', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
+      expect(sourcesAllowed(method, '127.0.0.1'), method).toEqual({ allowed: true, scope: 'full' });
+      expect(sourcesAllowed(method, '::1'), method).toEqual({ allowed: true, scope: 'full' });
     }
   });
 
-  it('lets the pick open from loopback, on both of its verbs', () => {
-    for (const method of ['GET', 'POST']) {
-      expect(readingListAllowed(method, '127.0.0.1', 'pick').allowed, method).toBe(true);
-      expect(readingListAllowed(method, '::1', 'pick').allowed, method).toBe(true);
+  it('answers a household peer in household scope for the read and the patch', () => {
+    for (const method of ['GET', 'HEAD', 'POST']) {
+      expect(sourcesAllowed(method, '192.168.1.42'), method).toEqual({ allowed: true, scope: 'household' });
     }
+  });
+
+  it('refuses a LAN DELETE, and the reason points at the switch that does the job', () => {
+    const refused = sourcesAllowed('DELETE', '192.168.1.42');
+    expect(refused.allowed).toBe(false);
+    if (refused.allowed === false) {
+      expect(refused.reason).toContain('/api/sources from 192.168.1.42');
+      expect(refused.reason).toContain('rule 18');
+      expect(refused.reason).toContain('D-034');
+      expect(refused.reason).toContain('"enabled"');
+    }
+  });
+
+  it('refuses an unknown peer every verb (no address is not loopback)', () => {
+    expect(sourcesAllowed('DELETE', undefined).allowed).toBe(false);
   });
 });

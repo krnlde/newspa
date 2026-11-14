@@ -35,6 +35,7 @@ export const refusalOf = (messages: readonly string[], status: number): Response
   answer({ ok: false, state: 'idle', sentence: '', messages: [...messages], text: null }, status);
 
 export const PICK_LIST = sourcesResponseSchema.parse({
+  scope: 'full',
   dir: LIST.dir,
   files: [
     {

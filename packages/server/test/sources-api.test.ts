@@ -5,9 +5,11 @@
  *
  * What each test pins is the rule the route exists to enforce: **the file is the
  * truth** (D-011) — a write writes `sources/<id>.json` and names it; **the schema is
- * the validator** (D-014) — a bad body is the zod issues, with nothing written; and
- * **a disappearance is a report** (rule 5) — a file that does not parse is listed
- * with its issues, and a deleted source is disabled and stays in the paper.
+ * the validator** (D-014) — a bad body is the zod issues, with nothing written; **the
+ * peer's scope decides what is sent** (D-034, W4) — a household device sees the
+ * switches and never the file; and **a disappearance is a report** (rule 5) — a file
+ * that does not parse is listed with its issues, and a deleted source is disabled and
+ * stays in the paper.
  */
 import { mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -38,6 +40,12 @@ const listBody = (answer: Awaited<ReturnType<typeof listSources>>): SourcesRespo
   return answer.body as SourcesResponse;
 };
 
+/** The desk's answer, narrowed: the tests below read `text`, which the household scope never sends. */
+const fullBody = (body: SourcesResponse): Extract<SourcesResponse, { scope: 'full' }> => {
+  if (body.scope !== 'full') throw new Error(`list answered scope "${body.scope}"`);
+  return body;
+};
+
 describe('listSources', () => {
   let dir: string;
   let h: ReturnType<typeof harness>;
@@ -50,7 +58,7 @@ describe('listSources', () => {
   it('lists every file with its own text, so the editor edits the file and not a copy of it', async () => {
     await writeSpecFile(dir, 'bbc.json', anRssSpec());
     await writeSpecFile(dir, 'cards.json', anHtmlSpec());
-    const body = listBody(await listSources(h.deps, true));
+    const body = fullBody(listBody(await listSources(h.deps, 'full')));
     expect(body.dir).toBe(dir);
     expect(body.files.map((file) => file.file)).toEqual(['bbc.json', 'cards.json']);
     const first = body.files[0];
@@ -66,7 +74,7 @@ describe('listSources', () => {
     await writeSpecFile(dir, 'good.json', anRssSpec({ id: 'good' }));
     await writeSpecFile(dir, 'broken.json', { id: 'broken', kind: 'rss' });
     await writeFile(join(dir, 'not-json.json'), '{\n', 'utf8');
-    const body = listBody(await listSources(h.deps, true));
+    const body = fullBody(listBody(await listSources(h.deps, 'full')));
     const broken = body.files.find((file) => file.file === 'broken.json');
     const notJson = body.files.find((file) => file.file === 'not-json.json');
     expect(broken?.id).toBeNull();
@@ -78,7 +86,7 @@ describe('listSources', () => {
 
   it('says so when a file names a different id than its own name (D-011: the filename is the id)', async () => {
     await writeSpecFile(dir, 'other-name.json', anRssSpec({ id: 'bbc' }));
-    const body = listBody(await listSources(h.deps, true));
+    const body = fullBody(listBody(await listSources(h.deps, 'full')));
     expect(body.files[0]?.id).toBeNull();
     expect(body.files[0]?.issues.join(' ')).toContain('filename');
   });
@@ -87,13 +95,15 @@ describe('listSources', () => {
     await writeSpecFile(dir, 'bbc.json', anRssSpec());
     addSource(h.db, anRssSpec());
     h.db.sources.setEnabled('bbc', false);
-    const body = listBody(await listSources(h.deps, false));
-    expect(body.writable).toBe(false);
+    const body = fullBody(listBody(await listSources(h.deps, 'full')));
+    // `writable` is true in both scopes (D-034, W4): the guard answers a LAN peer in
+    // the household scope, and a peer the guard refuses never reaches this list.
+    expect(body.writable).toBe(true);
     expect(body.files[0]).toMatchObject({ id: 'bbc', enabled: false, state: 'unknown' });
   });
 
   it('an empty directory is a listed zero, with the count the paper will show', async () => {
-    const body = listBody(await listSources(h.deps, true));
+    const body = fullBody(listBody(await listSources(h.deps, 'full')));
     expect(body.files).toEqual([]);
     expect(body.writable).toBe(true);
     expect(h.logs.join('\n')).toContain('the directory is empty');
@@ -101,7 +111,7 @@ describe('listSources', () => {
 
   it('a directory that is not there is a listed zero too, and says so (ENOENT is not a crash)', async () => {
     const missing = harness(join(await tempDir(), 'no-such-dir'));
-    const body = listBody(await listSources(missing.deps, true));
+    const body = fullBody(listBody(await listSources(missing.deps, 'full')));
     expect(body.files).toEqual([]);
     expect(missing.logs.join('\n')).toContain('the directory is empty');
   });
@@ -169,9 +179,9 @@ describe('writeSourceText', () => {
   });
 
   it('the route bag answers the same three facts as the functions', async () => {
-    const listed = await h.routes.list(true);
+    const listed = await h.routes.list('full');
     expect(listed.status).toBe(200);
-    const written = await h.routes.write({ text: JSON.stringify(anRssSpec({ id: 'ap' })) });
+    const written = await h.routes.write({ text: JSON.stringify(anRssSpec({ id: 'ap' })) }, 'full');
     expect(written.status).toBe(200);
     const removed = await h.routes.remove('ap');
     expect(removed.status).toBe(200);
