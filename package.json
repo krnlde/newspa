@@ -42,6 +42,7 @@
     "icons": "node scripts/rasterise-icons.mjs",
     "coverage": "pnpm -r --workspace-concurrency=1 exec vitest run --config vitest.coverage.ts --coverage --passWithNoTests",
     "audit:check": "pnpm audit --audit-level=low",
+    "up": "pnpm -r --include-workspace-root update --interactive --latest",
     "check": "pnpm lines && pnpm check:hooks && pnpm check:repo && pnpm check:secrets && pnpm check:coverage-policy && pnpm typecheck && pnpm lint && pnpm schemas:check && pnpm coverage && pnpm test:design && pnpm audit:check"
   },
   "devDependencies": {

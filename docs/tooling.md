@@ -119,7 +119,14 @@ Consequences, stated:
   runtime.
 - **Exact versions, no carets** (`saveExact: true`, catalog of exact pins). An
   exact pin is a snapshot of "aged 2 days, clean audit, works here", so
-  advancing is an explicit `pnpm update`, never an accident of `install`.
+  advancing is an explicit `pnpm up`, never an accident of `install`. `up` is
+  `pnpm -r --include-workspace-root update --interactive --latest`: pnpm writes a
+  `catalog:` bump to `pnpm-workspace.yaml` (measured on v12.18 - the manifest keeps
+  `catalog:`), keeps the entry's own operator, so an exact pin stays exact, and
+  resolution obeys `minimumReleaseAge`. `npm-check-updates` is **not** installed:
+  its job is rewriting ranges in `package.json`, and every range here is the string
+  `catalog:`, so it would bump nothing - and its `--removeRange` is the exact-pin
+  rule, which is not its to set.
 - **One Biome rule is off:** `complexity/useLiteralKeys`. `tsconfig.base.json`
   turns on `noPropertyAccessFromIndexSignature`, which _requires_ `record["k"]`;
   the rule demands `record.k`. tsc is the type gate, so the bracket form wins

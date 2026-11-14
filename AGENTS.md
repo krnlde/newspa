@@ -61,8 +61,8 @@ deliberately **not** reimplemented: the pipeline is hard-coded
    carets, no `latest`** (`saveExact: true`). No native modules (no node-gyp), no
    install scripts, `playwright-core` + `channel: 'msedge'` (never `playwright`
    for launching), `node:sqlite` (never `better-sqlite3`). Advance versions with
-   an explicit `pnpm update`; the 2-day `minimumReleaseAge` gate is the point,
-   not an obstacle.
+   an explicit `pnpm up` (the interactive, catalog-aware bump, `docs/tooling.md`);
+   the 2-day `minimumReleaseAge` gate is the point, not an obstacle.
 9. **pnpm config lives in `pnpm-workspace.yaml`**, not `.npmrc` (pnpm 12 reads
    only auth/registry/TLS/proxy from `.npmrc`).
 10. **Lint and format are Biome** (`biome.json`, `pnpm lint`, `pnpm format`).
@@ -283,7 +283,7 @@ pnpm test               pnpm coverage       pnpm test:design
 pnpm shots              # the paper in real Edge: 1440x900, 1024x768, 390x844
 pnpm export --bundle      # the reading list's only backup (rule 18); `import` is not built
 pnpm export --watchlist pnpm import -- …    # not built (WP11)
-pnpm audit --audit-level=low
+pnpm audit --audit-level=low      pnpm up   # interactive bump: catalog-aware, obeys the 2-day gate
 pnpm hooks:install        # once per clone: activates the pre-commit gate
 pnpm check:repo           # the published-schema owner/repo must match `git remote`
 pnpm check:secrets        # no credential shape in any tracked file (fixtures exempt)
