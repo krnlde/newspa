@@ -48,6 +48,15 @@ export const defaultFreshness = (): EditionFreshness => ({
 /** Age beyond two weeks is invisible, the same clamp as the score's recency term. */
 const MAX_AGE_HOURS = 336;
 
+/**
+ * A rail is the page's four quietest slots plus the room the lead takes from one
+ * section (`RAIL_ITEMS` in `packages/paper/src/FrontPage.tsx`). Core sends no more:
+ * a rail of 70 items is 70 duplicated objects on the wire for a page that prints 4.
+ * shortcut: 5 is the page's 4 + the lead's room, copied here because neither layer
+ * may read the other's constant; if `RAIL_ITEMS` changes, this number follows.
+ */
+const RAIL_LIMIT = 5;
+
 /** The instant the age is measured from: the publisher's date, else the sighting (D-047). */
 export const datedFrom = (item: ItemView): string | null => item.publishedAt ?? item.firstSeenAt;
 
@@ -117,7 +126,10 @@ export const buildEdition = (
       // The section prints the cap's worth, newest-ranked first; the rail is the
       // section's **news only** — the title page never prints an old item.
       items: bucket.items.slice(0, fresh.sectionMaxItems).map((entry) => entry.item),
-      rail: bucket.items.filter((entry) => entry.age <= fresh.maxAgeHours).map((entry) => entry.item),
+      rail: bucket.items
+        .filter((entry) => entry.age <= fresh.maxAgeHours)
+        .slice(0, RAIL_LIMIT)
+        .map((entry) => entry.item),
     }))
     .sort((a, b) => b.top - a.top)
     .map(({ top: _top, ...section }) => section);

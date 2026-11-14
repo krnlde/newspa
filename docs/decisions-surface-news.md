@@ -34,8 +34,10 @@ rank = score × 0.5 ^ (age / halfLife)      age = now - (publishedAt ?? firstSee
   page is a silent zero (rule 5), and the card prints its own age in plain words
   (D-047), so the truth is on the page, not in an absence.
 - **`EditionSection.rail`** is the section's fresh items - a **required** wire field,
-  filled by core. The paper has no clock: a rail that filtered by age itself would be
-  a second copy of the law, and the second copy is the one that drifts.
+  filled by core, and **capped at 5**: the page prints 4 (`RAIL_ITEMS`), and the live
+  paper showed rails of 70, which is 70 item objects per section on the wire for a
+  column of 4. The paper has no clock: a rail that filtered by age itself would be a
+  second copy of the law, and the second copy is the one that drifts.
 - **A section prints `sectionMaxItems` (default 12)**, newest-ranked first. The paper
   is an index of the day (rule 7), not an archive of the feed.
 - **Sections are ordered by the rank of their strongest story**, not by a summed

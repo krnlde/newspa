@@ -79,7 +79,8 @@ export const editionSectionSchema = z.object({
   /**
    * The section's fresh items — the material the title page's rail prints from
    * (D-048). The gate lives in core, not in the paper: the page has no clock, and
-   * a rail that filtered by age itself would be a second copy of the law.
+   * a rail that filtered by age itself would be a second copy of the law. The list
+   * is short — a rail is four slots, and 70 items for 4 is 70 objects on the wire.
    */
   rail: z.array(itemViewSchema),
 });

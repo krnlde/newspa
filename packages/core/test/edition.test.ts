@@ -232,9 +232,10 @@ describe('buildEdition — the freshness law (D-048)', () => {
     expect(business?.items).toHaveLength(12);
     const ages = business?.items.map((item) => Date.parse(item.publishedAt ?? '')) ?? [];
     expect([...ages].sort((a, b) => b - a)).toEqual(ages);
-    // The rail is **gated**, not capped: all 20 are fresh, and the page owns the
-    // count (`RAIL_ITEMS` in `FrontPage.tsx`); core owns only the age law.
-    expect(business?.rail).toHaveLength(20);
+    // The rail is gated **and** short: the wire carries what the page can print
+    // (four slots plus the room the lead takes), not the section's whole fresh set.
+    expect(business?.rail).toHaveLength(5);
+    expect(business?.rail.map((item) => item.key)).toEqual(business?.items.slice(0, 5).map((item) => item.key));
   });
 
   it('leaves the tier of the stored score alone: only placement decays', () => {
